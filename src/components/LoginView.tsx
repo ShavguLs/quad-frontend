@@ -1,0 +1,163 @@
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { motion } from 'motion/react';
+import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ArrowRight, X, ShieldAlert, Loader2 } from 'lucide-react';
+import { auth } from '../services/auth';
+import type { User } from '../types';
+
+interface LoginViewProps {
+  onBack: () => void;
+  onSwitchToRegister: () => void;
+  onSuccess: (user: User) => void;
+}
+
+export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister, onSuccess }) => {
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const { register, handleSubmit, formState: { errors } } = useForm();
+
+  const onSubmit = async (data: any) => {
+    setLoading(true);
+    setServerError(null);
+    
+    try {
+      const user = await auth.login({
+        email: data.email,
+        password: data.password,
+      });
+
+      onSuccess(user);
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setServerError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-black text-white flex flex-col md:flex-row overflow-hidden selection:bg-[#FFFF2E] selection:text-black font-sans relative">
+      <div className="absolute inset-0 z-0 opacity-30 mix-blend-screen pointer-events-none">
+        <ImageWithFallback 
+          src="https://images.unsplash.com/photo-1767477665624-f5ab7298a9cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080" 
+          className="w-full h-full object-cover grayscale brightness-50 contrast-150" 
+          alt="texture" 
+        />
+      </div>
+
+      <div className="relative w-full md:w-1/2 flex flex-col justify-between p-8 border-r-4 border-[#FFFF2E] z-10 bg-black/40 backdrop-blur-sm">
+        <div className="space-y-4">
+          <motion.div
+            initial={{ x: -50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            className="inline-block bg-[#FFFF2E] text-black px-4 py-2 text-[14px] font-black uppercase italic -rotate-2"
+          >
+            შეზღუდული ზონა // მხოლოდ სინდიკატისთვის
+          </motion.div>
+          <h1 className="text-[12vw] md:text-[8vw] font-black uppercase leading-[0.75] tracking-tighter text-[#FFFF2E] mix-blend-difference">
+            იდენტ <br /> პროტ <br /> ოკოლი.
+          </h1>
+        </div>
+
+        <div className="space-y-8">
+          <div className="max-w-xs">
+            <p className="text-[14px] font-black uppercase leading-relaxed text-gray-400">
+              გთხოვთ შეიყვანოთ თქვენი მინიჭებული სინდიკატის კოდი. არაავტორიზებული მცდელობები ფიქსირდება ბირთვის მიერ.
+            </p>
+          </div>
+          <button
+            onClick={onBack}
+            className="group flex items-center gap-4 text-[14px] font-black uppercase tracking-[0.3em] hover:text-[#FFFF2E] transition-colors"
+          >
+            <X className="w-4 h-4" /> [ ტერმინალის დატოვება ]
+          </button>
+        </div>
+      </div>
+
+      <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-24 z-10">
+        <motion.div 
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="w-full max-w-lg relative"
+        >
+          {serverError && (
+            <div className="mb-8 p-4 bg-red-600 text-white font-black uppercase text-[14px] italic animate-pulse">
+              ავტორიზაციის შეცდომა: {serverError}
+            </div>
+          )}
+          
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
+            <div className="relative group">
+              <label className="text-[14px] font-black uppercase tracking-[0.5em] text-[#FFFF2E] mb-4 block">
+                კომუნიკაციის არხი (ელფოსტა)
+              </label>
+              <input
+                {...register("email", { required: true })}
+                disabled={loading}
+                type="email"
+                className="w-full bg-transparent border-b-4 border-white/20 pb-4 text-4xl md:text-5xl font-black uppercase outline-none focus:border-[#FFFF2E] transition-all placeholder:text-zinc-900 disabled:opacity-50"
+                placeholder="მომხმარებელი@არხი.ნეტ"
+              />
+            </div>
+
+            <div className="relative group">
+              <label className="text-[14px] font-black uppercase tracking-[0.5em] text-[#FFFF2E] mb-4 block">
+                კოდის გასაღები
+              </label>
+              <input 
+                {...register("password", { required: true })}
+                disabled={loading}
+                type="password"
+                className="w-full bg-transparent border-b-4 border-white/20 pb-4 text-4xl md:text-5xl font-black uppercase outline-none focus:border-[#FFFF2E] transition-all placeholder:text-zinc-900 disabled:opacity-50"
+                placeholder="********"
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <input 
+                type="checkbox" 
+                id="remember_me" 
+                className="w-6 h-6 border-2 border-white bg-transparent checked:bg-[#FFFF2E] appearance-none cursor-pointer transition-colors" 
+              />
+              <label htmlFor="remember_me" className="text-[14px] font-black uppercase tracking-widest text-gray-500 cursor-pointer hover:text-white transition-colors">
+                კოდის დამახსოვრება ამ ტერმინალზე
+              </label>
+            </div>
+
+            <div className="pt-8">
+              <button 
+                disabled={loading}
+                className="group relative w-full bg-[#FFFF2E] text-black py-8 text-2xl font-black uppercase tracking-tighter overflow-hidden disabled:opacity-50"
+              >
+                <div className="relative z-10 flex items-center justify-center gap-4">
+                  {loading ? (
+                    <>დეშიფრაცია... <Loader2 className="w-8 h-8 animate-spin" /></>
+                  ) : (
+                    <>ავტორიზაცია <ArrowRight className="w-8 h-8 group-hover:translate-x-4 transition-transform" /></>
+                  )}
+                </div>
+                {!loading && <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300" />}
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-16 pt-16 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex items-center gap-4 opacity-50">
+              <ShieldAlert className="w-8 h-8 text-[#FFFF2E]" />
+              <div className="text-[14px] font-black uppercase tracking-widest leading-none">
+                დაშიფვრა აქტიურია <br /> <span className="text-white">v4.0.2 სინდიკატი</span>
+              </div>
+            </div>
+            <button
+              onClick={onSwitchToRegister}
+              className="text-[14px] font-black uppercase border-b-2 border-white/10 pb-1 hover:border-[#FFFF2E] hover:text-[#FFFF2E] transition-all"
+            >
+              ახალი წევრის რეგისტრაცია
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};

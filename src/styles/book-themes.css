@@ -1,0 +1,89 @@
+/* Book Theme CSS Styles */
+/* Paper background gradients and CSS custom properties */
+
+/* Parchment - Vintage paper look with subtle gradient */
+.book-paper-parchment {
+  background:
+    radial-gradient(ellipse at top, rgba(255, 255, 255, 0.3) 0%, transparent 60%),
+    linear-gradient(135deg, #f5e6c8 0%, #e8d5a8 50%, #d4c098 100%);
+  color: #4a3c28;
+}
+
+/* White - Clean white background */
+.book-paper-white {
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+/* Dark - Dark mode for night reading */
+.book-paper-dark {
+  background: #1a1a2e;
+  color: #e0e0e0;
+}
+
+/* Sepia - Warm vintage look with subtle texture */
+.book-paper-sepia {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #f4ecd8 0px,
+      #f4ecd8 2px,
+      #e8dcc0 2px,
+      #e8dcc0 4px
+    ),
+    linear-gradient(to bottom, #f4ecd8, #e8dcc0);
+  color: #5c4b37;
+}
+
+/* Base wrapper that uses CSS Custom Properties for dynamic theming */
+.book-theme-wrapper {
+  /* Uses CSS Custom Properties from inline style */
+  background-color: var(--book-bg-color);
+  color: var(--book-text-color);
+  font-family: var(--book-font-family);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Ensure smooth transitions for theme changes */
+.book-theme-wrapper * {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Selection styling that respects theme colors */
+.book-theme-wrapper ::selection {
+  background-color: rgba(128, 128, 128, 0.3);
+}
+
+/* Dark mode selection */
+.book-paper-dark ::selection {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Editor-specific paper container */
+.book-editor-paper {
+  /* Optimized for editing with comfortable spacing */
+  min-height: 100%;
+  padding: 2rem 3rem;
+  line-height: 1.6;
+}
+
+/* Focus mode - subtle dimming of non-active areas */
+.book-theme-wrapper.focus-mode {
+  /* Can be toggled for distraction-free mode */
+}
+
+/* Print styles - ensure clean printing regardless of theme */
+@media print {
+  .book-theme-wrapper {
+    background: white !important;
+    color: black !important;
+    font-family: Georgia, serif !important;
+  }
+
+  .book-paper-parchment,
+  .book-paper-dark,
+  .book-paper-sepia {
+    background: white !important;
+    color: black !important;
+  }
+}

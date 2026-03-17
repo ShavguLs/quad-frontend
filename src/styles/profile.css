@@ -1,0 +1,40 @@
+.profile-panel {
+  box-shadow: 10px 10px 0 rgba(255, 255, 255, 0.04);
+}
+
+.profile-field-input {
+  width: 100%;
+  background: #050505;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f8f8f8;
+  padding: 0.75rem 0.9rem;
+  outline: none;
+}
+
+.profile-field-input:focus {
+  border-color: #ffff2e;
+  box-shadow: 0 0 0 1px rgba(255, 255, 46, 0.4);
+}
+
+.profile-field-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.profile-action-button {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffff2e;
+  padding: 0.5rem 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.profile-action-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.profile-action-button:hover:not(:disabled) {
+  background: #ffff2e;
+  color: #111;
+}

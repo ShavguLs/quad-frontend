@@ -1,0 +1,165 @@
+.reader-page-shell {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.25rem;
+}
+
+.reader-page-canvas {
+  position: relative;
+  --reader-page-ratio-width: 595;
+  --reader-page-ratio-height: 842;
+  --reader-page-max-height: clamp(440px, 70vh, 790px);
+  aspect-ratio: calc(var(--reader-page-ratio-width) / var(--reader-page-ratio-height));
+  width: min(100%,
+      calc(var(--reader-page-max-height) * (var(--reader-page-ratio-width) / var(--reader-page-ratio-height))));
+  max-height: var(--reader-page-max-height);
+  overflow: hidden;
+
+  /* Paper book physical aesthetics */
+  border-radius: 2px 6px 6px 2px;
+  border-left: 1px solid rgba(0, 0, 0, 0.2);
+  border-right: 1px solid rgba(255, 255, 255, 0.4);
+  /* Physical stack and spine shadows */
+  box-shadow:
+    inset 4px 0 10px rgba(0, 0, 0, 0.1),
+    inset -1px 0 2px rgba(255, 255, 255, 0.3),
+    1px 0px 0px rgba(0, 0, 0, 0.15),
+    2px 0px 0px rgba(255, 255, 255, 0.7),
+    3px 0px 0px rgba(0, 0, 0, 0.1),
+    4px 0px 0px rgba(255, 255, 255, 0.6),
+    5px 0px 0px rgba(0, 0, 0, 0.1),
+    6px 0px 0px rgba(255, 255, 255, 0.5),
+    -1px 0 3px rgba(0, 0, 0, 0.05),
+    0 20px 40px -10px rgba(0, 0, 0, 0.6),
+    0 10px 15px -3px rgba(0, 0, 0, 0.2);
+}
+
+/* Spine fold lighting */
+.reader-page-canvas::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.1) 1%,
+      rgba(0, 0, 0, 0.03) 2.5%,
+      rgba(0, 0, 0, 0.1) 4%,
+      rgba(255, 255, 255, 0) 8%,
+      rgba(255, 255, 255, 0) 90%,
+      rgba(255, 255, 255, 0.05) 100%);
+  z-index: 5;
+}
+
+.reader-page-loading {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reader-page-content {
+  height: 100%;
+  overflow-y: auto;
+  padding: 2rem 2.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  position: relative;
+  z-index: 10;
+}
+
+.reader-page-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.reader-page-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.reader-page-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+@media (min-width: 768px) {
+  .reader-page-canvas {
+    --reader-page-max-height: clamp(560px, 74vh, 900px);
+  }
+
+  .reader-page-content {
+    padding: 1.5rem 1.25rem !important;
+  }
+}
+
+/* ---- PAPER TEXTURE EFFECT MODIFIERS ---- */
+
+/* Overrides for ReaderView Canvas */
+.reader-page-canvas[data-paper-effect="parchment"],
+.reader-page-canvas[data-paper-effect="grain"],
+.reader-page-canvas[data-paper-effect="vintage"],
+.reader-page-canvas[data-paper-effect="notebook"],
+.reader-page-canvas[data-paper-effect="blueprint"] {
+  border: none !important;
+  border-radius: 4px;
+  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4), 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+.reader-page-canvas[data-paper-effect="parchment"]::after,
+.reader-page-canvas[data-paper-effect="grain"]::after,
+.reader-page-canvas[data-paper-effect="vintage"]::after,
+.reader-page-canvas[data-paper-effect="notebook"]::after,
+.reader-page-canvas[data-paper-effect="blueprint"]::after {
+  display: none !important;
+}
+
+/* Overrides for Draft Studio Article */
+article[data-paper-effect="parchment"],
+article[data-paper-effect="grain"],
+article[data-paper-effect="vintage"],
+article[data-paper-effect="notebook"],
+article[data-paper-effect="blueprint"] {
+  border: none !important;
+  border-radius: 4px;
+  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4), 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+.reader-html {
+  color: #121212;
+  line-height: 1.55;
+  font-size: 1.03rem;
+}
+
+.reader-html h1,
+.reader-html h2,
+.reader-html h3,
+.reader-html h4,
+.reader-html h5,
+.reader-html h6,
+.reader-html p,
+.reader-html ul,
+.reader-html ol,
+.reader-html li,
+.reader-html blockquote {
+  margin: 0;
+}
+
+.reader-html h1,
+.reader-html h2,
+.reader-html h3,
+.reader-html h4,
+.reader-html h5,
+.reader-html h6,
+.reader-html p,
+.reader-html li,
+.reader-html blockquote {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.reader-html ul,
+.reader-html ol {
+  padding-left: 1.2rem;
+}
