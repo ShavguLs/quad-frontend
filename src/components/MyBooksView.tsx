@@ -9,9 +9,6 @@ import {
   Plus, 
   Loader2, 
   AlertCircle,
-  BarChart3,
-  Users,
-  Eye,
   Search,
   LayoutGrid,
   List
@@ -37,7 +34,6 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
   const [searchQuery, setSearchQuery] = useState('');
   const [editingBook, setEditingBook] = useState<MyBook | null>(null);
   const [deletingBook, setDeletingBook] = useState<MyBook | null>(null);
-  const [retryingBookId, setRetryingBookId] = useState<string | number | null>(null);
 
   const fetchMyBooks = async () => {
     setLoading(true);
@@ -124,18 +120,6 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
     setEditingBook(null);
   };
 
-  const handleRetryExtraction = async (bookId: string | number) => {
-    setRetryingBookId(bookId);
-    try {
-      await api.retryBookExtraction(bookId);
-      await fetchMyBooks();
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : 'ხელახლა ცდა ვერ მოხერხდა');
-    } finally {
-      setRetryingBookId(null);
-    }
-  };
 
   const isolateCardActionClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -289,7 +273,7 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
                             className="p-2 bg-black/80 hover:bg-[#FFFF2E] hover:text-black transition-all"
                             title="რედაქტირება"
                           >
-                            <Edit3 className="w-3 h-3" />
+                            <Edit3 className="w-3.5 h-3.5" />
                           </button>
                            <button 
                              type="button"
@@ -301,66 +285,19 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
                              className="p-2 bg-black/80 hover:bg-red-600 transition-all"
                              title="წაშლა"
                            >
-                             <Trash2 className="w-3 h-3" />
+                             <Trash2 className="w-3.5 h-3.5" />
                            </button>
                         </div>
                     </div>
 
                     {/* Meta Aspect */}
-                    <div className={`p-6 flex-1 ${viewMode === 'list' ? 'text-center md:text-left p-0' : ''}`}>
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="space-y-1">
-                          <h3 className="text-xl font-black uppercase tracking-tighter leading-none group-hover:text-[#FFFF2E] transition-colors">
-                            {book.title}
-                          </h3>
-                          <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest italic">
-                            ID: {book.id.toString().slice(-8)}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                           <span className="text-xl font-black text-[#FFFF2E]">{book.price}</span>
-                        </div>
+                    <div className={`p-4 flex-1 ${viewMode === 'list' ? 'text-center md:text-left p-0' : ''}`}>
+                      <div className="flex justify-between items-start">
+                        <h3 className="text-base font-black uppercase tracking-tighter leading-tight group-hover:text-[#FFFF2E] transition-colors flex-1 mr-2">
+                          {book.title}
+                        </h3>
+                        <span className="text-base font-black text-[#FFFF2E] shrink-0">{book.price}</span>
                       </div>
-
-
-                      <div className="mb-4 flex items-center justify-between gap-3">
-                        <span
-                          className={`inline-flex items-center px-2 py-1 text-[8px] font-black uppercase tracking-[0.18em] ${
-                            book.extraction_status === 'failed'
-                              ? 'bg-red-500/15 text-red-300 border border-red-500/30'
-                              : book.extraction_status === 'processing'
-                                ? 'bg-yellow-500/15 text-yellow-200 border border-yellow-500/30'
-                                : 'bg-green-500/15 text-green-200 border border-green-500/30'
-                          }`}
-                        >
-                          {book.extraction_status || 'completed'}
-                        </span>
-                        {book.extraction_status === 'failed' && (
-                          <button
-                            type="button"
-                            onClick={() => handleRetryExtraction(book.id)}
-                            disabled={retryingBookId === book.id}
-                            className="px-3 py-1 border border-yellow-300/40 text-yellow-200 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-yellow-300 hover:text-black transition-colors disabled:opacity-60"
-                          >
-                            {retryingBookId === book.id ? 'მიმდინარეობს...' : 'ხელახლა'}
-                          </button>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/5">
-                        <div className="text-center p-2 bg-white/5 hover:bg-white/10 transition-colors">
-                          <Eye className="w-3 h-3 mx-auto mb-1 text-gray-500" />
-                          <span className="text-[8px] font-black block">{book.views ?? '-'}</span>
-                        </div>
-                        <div className="text-center p-2 bg-white/5 hover:bg-white/10 transition-colors">
-                          <Users className="w-3 h-3 mx-auto mb-1 text-gray-500" />
-                          <span className="text-[8px] font-black block">{book.owners ?? '-'}</span>
-                        </div>
-                        <div className="text-center p-2 bg-white/5 hover:bg-white/10 transition-colors">
-                          <BarChart3 className="w-3 h-3 mx-auto mb-1 text-gray-500" />
-                          <span className="text-[8px] font-black block">{book.revenue ?? '-'}</span>
-                        </div>
-                      </div>
-                      
                     </div>
                   </motion.div>
                 ))}

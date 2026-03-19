@@ -376,7 +376,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
         if (canAutoJump && pageNumber !== target) {
             setPageNumber(target);
             if (!sessionTarget && pinnedTarget) {
-                setSaveToast({ message: `Started from pinned page ${pinnedTarget}`, type: 'success' });
+                setSaveToast({ message: `განახლდა დაპინული გვერდიდან ${pinnedTarget}`, type: 'success' });
                 setTimeout(() => setSaveToast(null), 2800);
             }
         }
@@ -522,7 +522,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                     }, 2500);
                 }
             } catch (err: unknown) {
-                if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load reader manifest');
+                if (!cancelled) setError(err instanceof Error ? err.message : 'მკითხველის მონაცემების ჩატვირთვა ვერ მოხერხდა');
             } finally {
                 if (!cancelled) setLoadingManifest(false);
             }
@@ -605,7 +605,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
             } catch (err: unknown) {
                 if (!cancelled) {
                     setPageData(null);
-                    setError(err instanceof Error ? err.message : 'Failed to load page');
+                    setError(err instanceof Error ? err.message : 'გვერდის ჩატვირთვა ვერ მოხერხდა');
                 }
             } finally {
                 if (!cancelled) setLoadingPage(false);
@@ -633,7 +633,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
         if (!result.success && result.reason) {
             showSaveToast(result.reason, 'error');
         } else if (result.success) {
-            showSaveToast(wasSaved ? 'Page removed from saved' : 'Page saved!', 'success');
+            showSaveToast(wasSaved ? 'გვერდი წაიშალა შენახულიდან' : 'გვერდი შენახულია!', 'success');
         }
     };
 
@@ -708,7 +708,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                         <div className="px-6 py-5 flex items-center justify-between border-b border-white/10 bg-white/[0.02]">
                             <h2 className="text-white text-sm sm:text-base font-bold tracking-widest uppercase flex items-center gap-3">
                                 <Bookmark className="w-5 h-5 text-[#FFFF2E]" />
-                                Saved Pages
+                                შენახული გვერდები
                             </h2>
                             <button
                                 onClick={() => setShowSavedPanel(false)}
@@ -725,8 +725,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                     <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/10">
                                         <Bookmark className="w-8 h-8 text-gray-500" />
                                     </div>
-                                    <p className="text-sm font-semibold text-gray-300 tracking-wide mb-1">No pages saved yet</p>
-                                    <p className="text-xs text-gray-500 max-w-[200px]">Pin pages while reading to easily find them later.</p>
+                                    <p className="text-sm font-semibold text-gray-300 tracking-wide mb-1">გვერდები ჯერ არ არის შენახული</p>
+                                                    <p className="text-xs text-gray-500 max-w-[200px]">დააპინეთ გვერდები კითხვისას, რომ მოგვიანებით ადვილად იპოვოთ.</p>
                                 </div>
                             ) : (
                                 <ul className="flex flex-col gap-2">
@@ -746,7 +746,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                                     {sp.pageNumber}
                                                 </div>
                                                 <div className="flex flex-col overflow-hidden">
-                                                    <span className="text-sm font-semibold text-gray-200 group-hover:text-white transition-colors truncate">Saved Slot {idx + 1}</span>
+                                                    <span className="text-sm font-semibold text-gray-200 group-hover:text-white transition-colors truncate">შენახული სლოტი {idx + 1}</span>
                                                     <span className="text-[10px] text-gray-500 font-medium uppercase tracking-widest mt-1 truncate">
                                                         {new Date(sp.savedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                                     </span>
@@ -755,7 +755,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                             <button
                                                 onClick={() => removeSavedPage(sp.pageNumber)}
                                                 className="w-10 h-10 flex-shrink-0 flex items-center justify-center text-gray-500 hover:text-white hover:bg-red-500/80 rounded-xl transition-all opacity-100 sm:opacity-0 group-hover:opacity-100"
-                                                title="Delete slot"
+                                                title="სლოტის წაშლა"
                                             >
                                                 <X className="w-4 h-4" />
                                             </button>
@@ -772,7 +772,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                     onClick={clearAllSavedPages}
                                     className="w-full py-3 text-xs font-bold tracking-[0.15em] uppercase text-red-500 hover:text-white bg-red-500/10 hover:bg-red-500 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]"
                                 >
-                                    Clear All Pages
+                                    ყველა გვერდის გასუფთავება
                                 </button>
                             </div>
                         )}
@@ -788,7 +788,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                         className="group relative inline-flex items-center justify-center gap-2 bg-red-500 px-4 py-2 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-600 transition-all duration-300 hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-500 hover:border-red-600"
                     >
                         <LogOut className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
-                        Exit
+                        გასვლა
                     </button>
 
                     <div className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none hidden md:block w-3/4 max-w-lg">
@@ -796,16 +796,16 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                             {bookTitle}
                         </h1>
                         <p className="mt-1 text-[10px] font-black uppercase tracking-[0.24em] text-gray-500 truncate">
-                            {manifest?.author || book?.author || 'Reader'}
-                        </p>
-                    </div>
-                    {/* fallback for mobile so we have inline flex behavior */}
-                    <div className="min-w-0 flex-1 text-center md:hidden pointer-events-none px-2">
-                        <h1 className="truncate text-base font-black uppercase tracking-[0.06em] text-white">
-                            {bookTitle}
-                        </h1>
-                        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.24em] text-gray-500 truncate">
-                            {manifest?.author || book?.author || 'Reader'}
+                            {manifest?.author || book?.author || 'მკითხველი'}
+                                                        </p>
+                                                    </div>
+                                                    {/* fallback for mobile so we have inline flex behavior */}
+                                                    <div className="min-w-0 flex-1 text-center md:hidden pointer-events-none px-2">
+                                                        <h1 className="truncate text-base font-black uppercase tracking-[0.06em] text-white">
+                                                            {bookTitle}
+                                                        </h1>
+                                                        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.24em] text-gray-500 truncate">
+                                                            {manifest?.author || book?.author || 'მკითხველი'}
                         </p>
                     </div>
 
@@ -815,7 +815,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                             <button
                                 id="reader-open-saved-panel"
                                 onClick={() => setShowSavedPanel(true)}
-                                title="View saved pages"
+                                title="შენახული გვერდების ნახვა"
                                 className={`group relative inline-flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition-all ${savedPages.length > 0
                                     ? 'border-2 border-[#FFFF2E] text-[#FFFF2E] bg-[#FFFF2E]/5'
                                     : 'border border-white/20 text-gray-400 hover:border-[#FFFF2E] hover:text-[#FFFF2E]'
@@ -824,7 +824,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                 {savedPages.length > 0
                                     ? <BookmarkCheck className="w-4 h-4" />
                                     : <Bookmark className="w-4 h-4" />}
-                                <span className="hidden sm:inline">Saved</span>
+                                <span className="hidden sm:inline">შენახული</span>
                                 {savedPages.length > 0 && (
                                     <span className="ml-0.5 inline-flex h-4 w-4 items-center justify-center bg-[#FFFF2E] text-[8px] font-black text-black">
                                         {savedPages.length}
@@ -840,7 +840,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                 className="group relative inline-flex items-center justify-center gap-2 bg-[#FFFF2E] px-4 py-2 text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,46,0.5)] border border-[#FFFF2E] hover:border-white"
                             >
                                 <Lock className="w-3.5 h-3.5" />
-                                <span className="relative z-10">{user ? 'Buy Full Access' : 'Login To Buy'}</span>
+                                <span className="relative z-10">{user ? 'სრული წვდომის ყიდვა' : 'შესვლა საყიდლად'}</span>
                             </button>
                         )}
                     </div>
@@ -849,7 +849,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                 {manifest?.status === 'processing' && (
                     <div className="border-2 border-white/20 bg-zinc-950 p-8 flex items-center gap-4 text-sm font-bold uppercase tracking-[0.2em]">
                         <Loader2 className="w-5 h-5 animate-spin text-[#FFFF2E]" />
-                        Extraction in progress. Reader content is being prepared.
+                        დამუშავება მიმდინარეობს. მკითხველის კონტენტი მზადდება.
                     </div>
                 )}
 
@@ -871,7 +871,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                 <div className="fixed right-4 md:right-8 top-1/2 -translate-y-1/2 z-[60] flex flex-col items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 p-2 md:p-3 rounded-[3rem] shadow-[0_0_40px_rgba(0,0,0,0.7)] transition-opacity duration-300">
                                     <button
                                         onClick={() => setFocusMode(false)}
-                                        title="Exit Focus Mode"
+                                        title="ფოკუს რეჟიმიდან გასვლა"
                                         className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full bg-white/5 text-gray-400 hover:bg-[#FFFF2E] hover:text-black hover:shadow-[0_0_15px_rgba(255,255,46,0.3)] transition-all"
                                     >
                                         <Minimize className="w-4 h-4 md:w-5 md:h-5" />
@@ -882,7 +882,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                     <button
                                         onClick={() => goToRelativePage(1)}
                                         disabled={pageNumber >= Math.max(availablePages, 1)}
-                                        title="Next Page"
+                                        title="შემდეგი გვერდი"
                                         className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-transparent border border-transparent text-white hover:border-[#FFFF2E] hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_20px_rgba(255,255,46,0.3)] transition-all focus:outline-none disabled:opacity-20 disabled:pointer-events-none"
                                     >
                                         <ChevronRight className="h-6 w-6 md:h-8 md:w-8 mr-[-2px]" />
@@ -895,7 +895,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                     <button
                                         onClick={() => goToRelativePage(-1)}
                                         disabled={pageNumber <= 1}
-                                        title="Previous Page"
+                                        title="წინა გვერდი"
                                         className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-transparent border border-transparent text-white hover:border-[#FFFF2E] hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_20px_rgba(255,255,46,0.3)] transition-all focus:outline-none disabled:opacity-20 disabled:pointer-events-none"
                                     >
                                         <ChevronLeft className="h-6 w-6 md:h-8 md:w-8 ml-[-2px]" />
@@ -937,7 +937,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                         )}
 
                                         {!loadingPage && pageData?.render_mode === 'image' && pageData.fallback_image_data && (
-                                            <img src={pageData.fallback_image_data} alt={`Page ${pageNumber}`} className="h-full w-full object-contain" />
+                                            <img src={pageData.fallback_image_data} alt={`გვერდი ${pageNumber}`} className="h-full w-full object-contain" />
                                         )}
 
                                         {!loadingPage && pageData?.render_mode !== 'image' && (
@@ -985,21 +985,21 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                         id="reader-prev-page"
                                         onClick={() => goToRelativePage(-1)}
                                         disabled={pageNumber <= 1}
-                                        title="Previous Page"
+                                        title="წინა გვერდი"
                                         className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-black/40 backdrop-blur-xl border border-white/10 text-white shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all duration-300 hover:scale-110 hover:border-[#FFFF2E] hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_20px_rgba(255,255,46,0.3)] focus:outline-none disabled:pointer-events-none disabled:opacity-20"
                                     >
                                         <ChevronLeft className="h-6 w-6 md:h-8 md:w-8 -ml-0.5 md:-ml-1" />
                                     </button>
 
                                     <div className="text-[11px] md:text-xs font-black uppercase tracking-[0.2em] text-gray-300 min-w-[120px] text-center">
-                                        Page {pageNumber} / {Math.max(availablePages, 1)}
+                                        გვერდი {pageNumber} / {Math.max(availablePages, 1)}
                                     </div>
 
                                     <button
                                         id="reader-next-page"
                                         onClick={() => goToRelativePage(1)}
                                         disabled={pageNumber >= Math.max(availablePages, 1)}
-                                        title="Next Page"
+                                        title="შემდეგი გვერდი"
                                         className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-black/40 backdrop-blur-xl border border-white/10 text-white shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all duration-300 hover:scale-110 hover:border-[#FFFF2E] hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_20px_rgba(255,255,46,0.3)] focus:outline-none disabled:pointer-events-none disabled:opacity-20"
                                     >
                                         <ChevronRight className="h-6 w-6 md:h-8 md:w-8 -mr-0.5 md:-mr-1" />
@@ -1013,14 +1013,14 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                         {/* ── Focus Button ── */}
                                         <button
                                             onClick={() => setFocusMode(f => !f)}
-                                            title={focusMode ? 'Exit Focus Mode' : 'Enter Focus Mode'}
+                                            title={focusMode ? 'ფოკუს რეჟიმიდან გასვლა' : 'ფოკუს რეჟიმში შეყვანა'}
                                             className={`inline-flex items-center gap-2 px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors ${focusMode
                                                 ? 'bg-[#FFFF2E] text-black border-[1px] border-[#FFFF2E] shadow-[0_0_10px_rgba(255,255,46,0.3)]'
                                                 : 'border border-white/20 text-gray-300 hover:border-[#FFFF2E] hover:text-[#FFFF2E]'
                                                 }`}
                                         >
                                             {focusMode ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
-                                            Focus
+                                            ფოკუსი
                                         </button>
 
                                         {manifest.access_mode !== 'preview' && (
@@ -1030,7 +1030,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                                     id="reader-save-page-btn"
                                                     onClick={handleToggleSave}
                                                     disabled={!canSaveMore && !isPageSaved(pageNumber)}
-                                                    title={isPageSaved(pageNumber) ? 'Remove saved page' : canSaveMore ? 'Save this page for later' : `Max ${maxSavedPages} pages saved`}
+                                                    title={isPageSaved(pageNumber) ? 'შენახული გვერდის წაშლა' : canSaveMore ? 'გვერდის შენახვა მოგვიანებლად' : `მაქსიმუმ ${maxSavedPages} გვერდი შენახულია`}
                                                     className={`inline-flex items-center gap-2 px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors ${isPageSaved(pageNumber)
                                                         ? 'bg-[#FFFF2E] text-black border-[1px] border-[#FFFF2E]'
                                                         : canSaveMore
@@ -1039,21 +1039,21 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                                         }`}
                                                 >
                                                     {isPageSaved(pageNumber) ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
-                                                    Save ({savedPages.length}/{maxSavedPages})
+                                                    შენახვა ({savedPages.length}/{maxSavedPages})
                                                 </button>
 
                                                 {/* Pin Button (1 start page) */}
                                                 <button
                                                     id="reader-mark-position-btn"
                                                     onClick={() => isMarkedPage ? clearPosition() : markPage(pageNumber)}
-                                                    title={isMarkedPage ? 'Remove start pin' : 'Pin this page to resume here next time'}
+                                                    title={isMarkedPage ? 'საწყისი პინის წაშლა' : 'ამ გვერდის დაპინება შემდეგ სესიაზე განახლებისთვის'}
                                                     className={`inline-flex items-center gap-2 px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors ${isMarkedPage
                                                         ? 'bg-[#FFFF2E] text-black border-[1px] border-[#FFFF2E] shadow-[0_0_10px_rgba(255,255,46,0.3)]'
                                                         : 'border border-white/20 text-gray-300 hover:border-[#FFFF2E] hover:text-[#FFFF2E]'
                                                         }`}
                                                 >
                                                     <MapPin className="w-3.5 h-3.5" />
-                                                    {isMarkedPage ? 'Pinned Start' : 'Pin Start'}
+                                                    {isMarkedPage ? 'დაპინული დასაწყისი' : 'დასაწყისის დაპინება'}
                                                 </button>
                                             </>
                                         )}

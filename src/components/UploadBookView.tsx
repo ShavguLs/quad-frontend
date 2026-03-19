@@ -21,7 +21,7 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
     author: '',
     description: '',
     price: '',
-    category: 'BOOKS',
+    category: 'წიგნები',
   });
 
   const [files, setFiles] = useState<{ cover: File | null; pdf: File | null }>({
@@ -168,10 +168,11 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className={fieldClassName}
                 >
-                  <option value="BOOKS">წიგნები</option>
-                  <option value="ESSAYS">ესსეები</option>
-                  <option value="ART">ხელოვნება</option>
-                  <option value="ARCHIVE">არქივი</option>
+                  <option value="ზინები">ზინები</option>
+                  <option value="წიგნები">წიგნები</option>
+                  <option value="ესსეები">ესსეები</option>
+                  <option value="ხელოვნება">ხელოვნება</option>
+                  <option value="არქივი">არქივი</option>
                 </select>
               </label>
             </div>
