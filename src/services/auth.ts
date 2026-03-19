@@ -1,7 +1,7 @@
 import type { User } from '../types';
 import { clearCsrfToken, ensureCsrfToken } from './api';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'http://localhost:8000';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://api.quaduni.com';
 
 const getErrorMessage = (data: unknown, fallback: string): string => {
   if (!data || typeof data !== 'object') {

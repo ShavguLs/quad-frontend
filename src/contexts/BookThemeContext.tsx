@@ -57,7 +57,7 @@ interface BookThemeProviderProps {
 }
 
 /** API base URL for theme persistence endpoints */
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://enquad-1bbee1f617a7.herokuapp.com';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://api.quaduni.com';
 
 /**
  * BookThemeProvider - Manages theme state and persistence
