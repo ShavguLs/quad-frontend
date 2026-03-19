@@ -10,7 +10,6 @@
       sitemap({
         hostname: 'https://quaduni.com',
         dynamicRoutes: ['/', '/books', '/community', '/reviews'],
-        outDir: 'build',
       }),
     ],
     resolve: {
@@ -61,7 +60,6 @@
     },
     build: {
       target: 'esnext',
-      outDir: 'build',
     },
     server: {
       port: 3000,
