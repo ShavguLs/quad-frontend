@@ -9,8 +9,9 @@ import {
   TrendingUp, 
   ShieldCheck,
   CreditCard,
-  Plus,
-  ArrowRight
+  ArrowRight,
+  Phone,
+  Mail
 } from 'lucide-react';
 import { api } from '../services/api';
 import type { User as AppUser, WalletStats, WalletTransaction } from '../types';
@@ -273,22 +274,18 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                     </motion.div>
                   )}
 
-                  {(activeTab === 'deposit' || activeTab === 'withdraw') && (
+                  {activeTab === 'deposit' && (
                     <motion.div
-                      key="form"
+                      key="deposit"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
                       className="max-w-md mx-auto py-12 space-y-12"
                     >
                       <div className="text-center space-y-4">
-                        <h3 className="text-4xl font-black uppercase italic">
-                          {activeTab === 'deposit' ? 'თანხის შეტანა' : 'თანხის გამოტანა'}
-                        </h3>
+                        <h3 className="text-4xl font-black uppercase italic">თანხის შეტანა</h3>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 leading-relaxed">
-                          {activeTab === 'deposit' 
-                            ? 'შეიყვანეთ სასურველი თანხა და დაამატეთ ბალანსზე. თანხა ხელმისაწვდომია დადასტურებისთანავე.'
-                            : 'თანხა გადაიგზავნება თქვენს რეგისტრირებულ ანგარიშზე. განხილვის დრო: 12–48 საათი.'}
+                          შეიყვანეთ სასურველი თანხა და დაამატეთ ბალანსზე. თანხა ხელმისაწვდომია დადასტურებისთანავე.
                         </p>
                       </div>
 
@@ -320,7 +317,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                         </div>
 
                         <button 
-                          onClick={activeTab === 'deposit' ? handleDeposit : undefined}
+                          onClick={handleDeposit}
                           disabled={processing || !amount}
                           className="w-full bg-white text-black py-8 text-2xl font-black uppercase tracking-tighter hover:bg-[#FFFF2E] transition-all flex items-center justify-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
                         >
@@ -328,7 +325,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                             <span className="animate-pulse">დამუშავება...</span>
                           ) : (
                             <>
-                              {activeTab === 'deposit' ? 'თანხის შეტანა' : 'თანხის გამოტანა'}
+                              თანხის შეტანა
                               <ArrowRight className="w-8 h-8 group-hover:translate-x-2 transition-transform" />
                             </>
                           )}
@@ -339,6 +336,57 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                           <ShieldCheck className="w-6 h-6" />
                           <span className="text-[10px] font-black">დაცული გადახდა</span>
                         </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {activeTab === 'withdraw' && (
+                    <motion.div
+                      key="withdraw"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="max-w-md mx-auto py-12 space-y-12"
+                    >
+                      <div className="text-center space-y-4">
+                        <h3 className="text-4xl font-black uppercase italic">თანხის გამოტანა</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 leading-relaxed">
+                          თანხის გამოსატანად დაგვიკავშირდით პირდაპირ. ქვემოთ მოცემულია საკონტაქტო ინფორმაცია.
+                        </p>
+                      </div>
+
+                      <div className="space-y-6">
+                        <a
+                          href="tel:+995591286699"
+                          className="flex items-center gap-6 p-6 border-4 border-white/10 bg-black/50 hover:border-[#FFFF2E] transition-all group"
+                        >
+                          <div className="w-14 h-14 flex items-center justify-center border-2 border-[#FFFF2E] text-[#FFFF2E]">
+                            <Phone className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">ტელეფონი</div>
+                            <div className="text-2xl font-black group-hover:text-[#FFFF2E] transition-colors">+995 591 286 699</div>
+                          </div>
+                        </a>
+
+                        <a
+                          href="mailto:support@quaduni.com"
+                          className="flex items-center gap-6 p-6 border-4 border-white/10 bg-black/50 hover:border-[#FFFF2E] transition-all group"
+                        >
+                          <div className="w-14 h-14 flex items-center justify-center border-2 border-[#FFFF2E] text-[#FFFF2E]">
+                            <Mail className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">ელ-ფოსტა</div>
+                            <div className="text-2xl font-black group-hover:text-[#FFFF2E] transition-colors">support@quaduni.com</div>
+                          </div>
+                        </a>
+                      </div>
+
+                      <div className="p-6 border-2 border-dashed border-white/10 text-center">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-600">
+                          გამოტანის მოთხოვნა მუშავდება 24 საათის განმავლობაში
+                        </p>
                       </div>
                     </motion.div>
                   )}
