@@ -480,7 +480,7 @@ const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalo
         description="Quaduni — ქართული ციფრული წიგნების მაღაზია. აღმოაჩინე, იყიდე და წაიკითხე ქართული წიგნები ონლაინ."
         canonical="https://quaduni.com/"
       />
-      <section className="relative min-h-[600px] lg:h-screen lg:min-h-[750px] bg-black overflow-hidden flex flex-col justify-center pt-24 pb-20 lg:pt-20">
+      <section className="relative min-h-[550px] lg:h-screen lg:min-h-[750px] bg-black overflow-hidden flex flex-col justify-center pt-20 pb-20 sm:pt-24 lg:pt-20">
         <style>{`
           /* Slick Structural Styles */
           .slick-slider { position: relative; display: block; box-sizing: border-box; user-select: none; touch-action: pan-y; -webkit-tap-highlight-color: transparent; }
@@ -572,15 +572,15 @@ const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalo
             <Slider {...settings}>
               {featuredBooks.map((book, idx) => (
                 <div key={book.id} className="outline-none">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
                     {/* Book Object Column */}
-                    <div className="col-span-12 lg:col-span-6 flex justify-center lg:justify-start">
+                    <div className="col-span-12 lg:col-span-6 flex justify-center lg:justify-start order-2 lg:order-1">
                       <motion.div 
                         initial={{ rotate: 10, x: -100, opacity: 0 }}
                         animate={{ rotate: -5, x: 0, opacity: 1 }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
                         whileHover={{ rotate: 0, scale: 1.02 }}
-                        className="relative w-full max-w-[400px] aspect-[3/4] group cursor-pointer"
+                        className="relative w-full max-w-[200px] sm:max-w-[300px] lg:max-w-[400px] aspect-[3/4] group cursor-pointer"
                         onClick={() => onBookClick(book)}
                       >
                         {/* Industrial Shadow */}
@@ -603,21 +603,21 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                     </div>
 
                     {/* Content Column */}
-                    <div className="col-span-12 lg:col-span-6 space-y-8">
+                    <div className="col-span-12 lg:col-span-6 space-y-6 lg:space-y-8 order-1 lg:order-2">
                       <motion.div
                         initial={{ y: 50, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.2, duration: 0.6 }}
-                        className="space-y-4"
+                        className="space-y-3 lg:space-y-4"
                       >
                         <div className="flex items-center gap-4 text-[#FFFF2E]">
                           <span className="w-12 h-1 bg-[#FFFF2E]" />
                           <span className="text-xs font-black uppercase tracking-[0.5em]">პოპულარული</span>
                         </div>
-                        <h2 className="text-5xl md:text-6xl lg:text-[8vw] font-black uppercase leading-[0.8] tracking-tighter">
+                        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[8vw] font-black uppercase leading-[0.85] tracking-tighter">
                           {book.title}
                         </h2>
-                        <p className="text-xl font-black uppercase italic text-gray-500">
+                        <p className="text-base sm:text-xl font-black uppercase italic text-gray-500">
                           {book.author}
                         </p>
                       </motion.div>
@@ -626,11 +626,11 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                         initial={{ y: 30, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.4, duration: 0.6 }}
-                        className="pt-4"
+                        className="pt-2 lg:pt-4"
                       >
                         <button 
                           onClick={() => onBookClick(book)}
-                          className="group relative bg-white text-black px-12 py-5 font-black uppercase text-xl overflow-hidden"
+                          className="group relative bg-white text-black px-8 sm:px-12 py-4 sm:py-5 font-black uppercase text-base sm:text-xl overflow-hidden"
                         >
                           <span className="relative z-10 flex items-center gap-4">
                             გაიგე მეტი <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
@@ -663,7 +663,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
         </div>
       </section>
 
-    <section className="bg-black py-32 border-b-8 border-[#FFFF2E] relative overflow-hidden">
+    <section className="bg-black py-16 md:py-32 border-b-8 border-[#FFFF2E] relative overflow-hidden">
       <style>{`
         .featured-slider .slick-list { overflow: visible !important; }
         .featured-slider .slick-slide { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); opacity: 0.3; transform: scale(0.8) rotate(-2deg); filter: grayscale(1); }
@@ -679,9 +679,9 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
       </div>
 
       <div className="container mx-auto px-6 mb-12 md:mb-20 relative z-10">
-        <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
+          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end md:gap-8">
           <div className="border-l-4 md:border-l-8 border-[#FFFF2E] pl-4 md:pl-8">
-            <h2 className="text-6xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter leading-[0.75]">
+            <h2 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter leading-[0.75]">
               რჩეული<br />
               <span className="text-[#FFFF2E]">კოლექცია</span>
             </h2>
@@ -707,7 +707,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
         </div>
       </div>
 
-      <div className="featured-slider px-4 md:px-0">
+      <div className="featured-slider px-4 md:px-0 overflow-hidden sm:overflow-visible">
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
             <LoadingSpinner size="lg" text="წიგნები იტვირთება..." />
@@ -726,11 +726,11 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
             nextArrow={<CustomNextArrow />}
             responsive={[
               { breakpoint: 1024, settings: { slidesToShow: 2 } },
-              { breakpoint: 640, settings: { slidesToShow: 1 } }
+              { breakpoint: 640, settings: { slidesToShow: 1, centerMode: false, centerPadding: '0' } }
             ]}
           >
             {archiveBooks.map((book, i) => (
-              <div key={i} className="px-6 py-12">
+              <div key={i} className="px-3 sm:px-6 py-6 sm:py-12">
                 <div 
                   onClick={() => onBookClick(book)}
                   className="relative bg-zinc-900 border-4 border-white group cursor-pointer transition-all duration-500 hover:border-[#FFFF2E]"
@@ -799,7 +799,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
       </div>
     </section>
 
-    <section className="bg-black py-20 relative overflow-hidden">
+    <section className="bg-black py-12 md:py-20 relative overflow-hidden">
       {/* Texture Overlays - Darker & Grittier */}
       <div className="absolute inset-0 opacity-20 pointer-events-none mix-blend-multiply z-50 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
       <div className="absolute inset-0 opacity-5 pointer-events-none z-50 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
@@ -826,7 +826,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                   <div className="w-3 h-3 bg-red-600 rounded-full animate-ping" />
                   <span className="text-[10px] font-black text-[#FFFF2E] uppercase tracking-[0.4em]">დაგვიკავშირდით</span>
                 </div>
-                <h2 className="text-6xl lg:text-8xl font-black uppercase leading-[0.75] tracking-tighter mb-8">
+                <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black uppercase leading-[0.75] tracking-tighter mb-8">
                   მოგვწერეთ<br />
                   <span className="text-[#FFFF2E]">ახლავე</span><br />
                   .
@@ -1211,7 +1211,7 @@ const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading }
 };
 
 const Footer = () => (
-  <footer className="bg-black py-16 md:py-24 px-6 border-t-8 border-[#FFFF2E]">
+  <footer className="bg-black py-12 md:py-24 px-6 border-t-8 border-[#FFFF2E]">
     <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
       <div className="col-span-1 md:col-span-2">
         <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter mb-6">quaduni.com</h2>
@@ -1244,7 +1244,7 @@ const Footer = () => (
         </ul>
       </div>
     </div>
-    <div className="container mx-auto mt-24 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-black text-gray-700 uppercase tracking-[0.2em]">
+    <div className="container mx-auto mt-12 md:mt-24 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-black text-gray-700 uppercase tracking-[0.2em]">
       <div>© 2026 QUADUNI.COM. ყველა უფლება დაცულია.</div>
       <div className="flex gap-8">
         <a href="/terms#privatesoba">პირადი მონაცემების დაცვა</a>
