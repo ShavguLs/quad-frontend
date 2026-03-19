@@ -788,7 +788,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                         className="group relative inline-flex items-center justify-center gap-2 bg-red-500 px-4 py-2 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-600 transition-all duration-300 hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-500 hover:border-red-600"
                     >
                         <LogOut className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
-                        გასვლა
+                        <span className="hidden md:inline">გასვლა</span>
                     </button>
 
                     <div className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none hidden md:block w-3/4 max-w-lg">
@@ -841,7 +841,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                             >
                                 <Lock className="w-3.5 h-3.5" />
                                 <span className="relative z-10 hidden md:inline">{user ? 'სრული წვდომის ყიდვა' : 'შესვლა საყიდლად'}</span>
-                                <span className="relative z-10 md:hidden">{user ? 'ყიდვა' : 'შესვლა'}</span>
                             </button>
                         )}
                     </div>
