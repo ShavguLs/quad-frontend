@@ -6,6 +6,7 @@ import {
   Send, Lock, CheckCircle, AlertCircle, X, Bookmark, BellOff, Trash2, Loader2
 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { SEOMeta } from './SEOMeta';
 import { api } from '../services/api';
 import { auth } from '../services/auth';
 import type { CommunityPost, CommunityPostComment, User } from '../types';
@@ -762,6 +763,11 @@ export const CommunityView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-24 selection:bg-[#FFFF2E] selection:text-black font-mono">
+      <SEOMeta
+        title="ქომუნითი"
+        description="Quaduni-ს საზოგადოება — დისკუსიები, განცხადებები და ხელოვნება ქართველი მკითხველებისა და ავტორებისთვის."
+        canonical="https://quaduni.com/community"
+      />
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="flex flex-col lg:flex-row gap-12">
 

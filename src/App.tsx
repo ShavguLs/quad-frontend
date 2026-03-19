@@ -17,6 +17,7 @@ import { MyBooksView } from './components/MyBooksView';
 import { BookDraftView } from './components/BookDraftView';
 import { CommunityView } from './components/CommunityView';
 import { ReaderView } from './components/ReaderView';
+import { SEOMeta } from './components/SEOMeta';
 import { api } from './services/api';
 import { auth } from './services/auth';
 import type { Book, Review, User as AppUser } from './types';
@@ -473,6 +474,11 @@ const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalo
 
   return (
     <>
+      <SEOMeta
+        title="მთავარი"
+        description="Quaduni — ქართული ციფრული წიგნების მაღაზია. აღმოაჩინე, იყიდე და წაიკითხე ქართული წიგნები ონლაინ."
+        canonical="https://quaduni.com/"
+      />
       <section className="relative min-h-[600px] lg:h-screen lg:min-h-[750px] bg-black overflow-hidden flex flex-col justify-center pt-24 pb-20 lg:pt-20">
         <style>{`
           /* Slick Structural Styles */
@@ -948,6 +954,11 @@ const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError,
 
   return (
     <div className="pt-32 pb-32 px-6">
+      <SEOMeta
+        title="კატალოგი"
+        description="ქართული წიგნების სრული კატალოგი — ზინები, ესსეები, ხელოვნება და არქივი. იპოვე შენი შემდეგი საკითხავი."
+        canonical="https://quaduni.com/books"
+      />
       <div className="container mx-auto">
         <header className="mb-12 md:mb-20">
           <div className="flex items-center gap-4 text-[#FFFF2E] font-black uppercase text-xs tracking-widest mb-4">
@@ -1098,6 +1109,11 @@ const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading }
 
   return (
     <div className="pt-32 pb-32 px-6">
+      <SEOMeta
+        title="შეფასებები"
+        description="მკითხველთა შეფასებები და რეცენზიები ქართულ წიგნებზე. გაიგე რას ფიქრობს საზოგადოება."
+        canonical="https://quaduni.com/reviews"
+      />
       <div className="container mx-auto">
         <header className="mb-12 md:mb-20">
           <div className="flex items-center gap-4 text-coral-400 font-black uppercase text-xs tracking-widest mb-4">

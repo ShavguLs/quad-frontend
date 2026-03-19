@@ -1,10 +1,17 @@
 
   import { defineConfig } from 'vite';
   import react from '@vitejs/plugin-react-swc';
+  import sitemap from 'vite-plugin-sitemap';
   import path from 'path';
 
   export default defineConfig({
-    plugins: [react()],
+    plugins: [
+      react(),
+      sitemap({
+        hostname: 'https://quaduni.com',
+        dynamicRoutes: ['/', '/books', '/community', '/reviews'],
+      }),
+    ],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {

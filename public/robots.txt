@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /reader/
+Disallow: /wallet/
+Disallow: /upload/
+Disallow: /draft/
+Disallow: /my-books/
+Disallow: /profile/
+Disallow: /library/
+
+Sitemap: https://quaduni.com/sitemap.xml

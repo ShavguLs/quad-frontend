@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, ShoppingBag, Info, CheckCircle2, Loader2, Zap, Star, MessageSquare, ThumbsUp, ThumbsDown, Send, X, BookOpen } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { SEOMeta } from './SEOMeta';
 import { api } from '../services/api';
 import type { Book, Review, User } from '../types';
 
@@ -188,8 +189,27 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
     }
   };
 
+  const bookCover = book.cover_image_url || book.coverUrl || book.img;
+  const bookJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Book',
+    name: book.title,
+    author: { '@type': 'Person', name: book.author },
+    ...(book.description && { description: book.description }),
+    ...(bookCover && { image: bookCover }),
+    ...(book.price && { offers: { '@type': 'Offer', price: book.price, priceCurrency: 'GEL' } }),
+  };
+
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-24 selection:bg-[#FFFF2E] selection:text-black">
+      <SEOMeta
+        title={`${book.title} — ${book.author}`}
+        description={book.description || `${book.title} — ${book.author}-ის წიგნი Quaduni-ზე`}
+        image={bookCover}
+        canonical={`https://quaduni.com/book/${book.id}`}
+        type="book"
+        jsonLd={bookJsonLd}
+      />
       <div className="container mx-auto px-6">
         {/* Navigation / Breadcrumb */}
         <button
