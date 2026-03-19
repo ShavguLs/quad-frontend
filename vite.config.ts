@@ -10,6 +10,7 @@
       sitemap({
         hostname: 'https://quaduni.com',
         dynamicRoutes: ['/', '/books', '/community', '/reviews'],
+        outDir: 'build',
       }),
     ],
     resolve: {
