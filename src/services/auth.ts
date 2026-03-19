@@ -1,6 +1,7 @@
 import type { User } from '../types';
+import { clearCsrfToken, ensureCsrfToken } from './api';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://enquad-1bbee1f617a7.herokuapp.com';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'http://localhost:8000';
 
 const getErrorMessage = (data: unknown, fallback: string): string => {
   if (!data || typeof data !== 'object') {
@@ -36,14 +37,26 @@ const getCookieValue = (name: string): string | null => {
 let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
 
+const buildCsrfHeaders = async (): Promise<Headers> => {
+  const headers = new Headers();
+  const csrfToken = await ensureCsrfToken();
+  if (csrfToken) {
+    headers.set('X-CSRFToken', csrfToken);
+    return headers;
+  }
+
+  const cookieToken = getCookieValue('csrftoken');
+  if (cookieToken) {
+    headers.set('X-CSRFToken', cookieToken);
+  }
+
+  return headers;
+};
+
 // Internal function to perform the actual refresh request
 const doRefresh = async (): Promise<boolean> => {
   try {
-    const headers = new Headers();
-    const csrfToken = getCookieValue('csrftoken');
-    if (csrfToken) {
-      headers.set('X-CSRFToken', csrfToken);
-    }
+    const headers = await buildCsrfHeaders();
 
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
@@ -65,7 +78,13 @@ export const refreshAccessToken = async (): Promise<boolean> => {
   }
 
   isRefreshing = true;
-  refreshPromise = doRefresh().finally(() => {
+  refreshPromise = doRefresh().then(async (success) => {
+    if (success) {
+      // Refresh CSRF token after successful token refresh
+      await ensureCsrfToken();
+    }
+    return success;
+  }).finally(() => {
     isRefreshing = false;
     refreshPromise = null;
   });
@@ -114,9 +133,12 @@ export const auth = {
   },
 
   async login(payload: { email: string; password: string }): Promise<User> {
+    const headers = await buildCsrfHeaders();
+    headers.set('Content-Type', 'application/json');
+
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       credentials: 'include',
       body: JSON.stringify(payload),
     });
@@ -127,13 +149,18 @@ export const auth = {
     }
 
     const data = await response.json();
+    // Ensure CSRF token is loaded after successful login
+    await ensureCsrfToken();
     return data?.user as User;
   },
 
   async register(payload: { email: string; password: string; firstName: string; lastName: string; handle: string }): Promise<void> {
+    const headers = await buildCsrfHeaders();
+    headers.set('Content-Type', 'application/json');
+
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       credentials: 'include',
       body: JSON.stringify(payload),
     });
@@ -142,6 +169,29 @@ export const auth = {
       const data = await response.json().catch(() => ({}));
       throw new Error(getErrorMessage(data, 'REGISTRATION_FAILED'));
     }
+    // Ensure CSRF token is loaded after successful registration
+    await ensureCsrfToken();
+  },
+
+  async googleLogin(credential: string): Promise<User> {
+    const headers = await buildCsrfHeaders();
+    headers.set('Content-Type', 'application/json');
+
+    const response = await fetch(`${API_BASE_URL}/auth/google`, {
+      method: 'POST',
+      headers,
+      credentials: 'include',
+      body: JSON.stringify({ credential }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(getErrorMessage(data, 'GOOGLE_AUTH_FAILED'));
+    }
+
+    const data = await response.json();
+    await ensureCsrfToken();
+    return data?.user as User;
   },
 
   async logout(): Promise<void> {
@@ -151,10 +201,15 @@ export const auth = {
 
 // Standalone logout function for use by API interceptor
 async function logout(): Promise<void> {
+  const headers = await buildCsrfHeaders();
+
   await fetch(`${API_BASE_URL}/auth/logout`, {
     method: 'POST',
     credentials: 'include',
+    headers,
   }).catch(() => undefined);
+
+  clearCsrfToken();
 }
 
 export { logout };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { motion } from 'motion/react';
+import { GoogleLogin } from '@react-oauth/google';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ArrowRight, X, ShieldAlert, Loader2 } from 'lucide-react';
 import { auth } from '../services/auth';
@@ -30,6 +31,21 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
       onSuccess(user);
     } catch (err: any) {
       console.error('Login error:', err);
+      setServerError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
+    if (!credentialResponse.credential) return;
+    setLoading(true);
+    setServerError(null);
+    try {
+      const user = await auth.googleLogin(credentialResponse.credential);
+      onSuccess(user);
+    } catch (err: any) {
+      console.error('Google login error:', err);
       setServerError(err.message);
     } finally {
       setLoading(false);
@@ -141,6 +157,25 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
               </button>
             </div>
           </form>
+
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <div className="flex items-center gap-4 w-full">
+              <div className="flex-1 h-px bg-white/10" />
+              <span className="text-[12px] font-black uppercase tracking-[0.3em] text-gray-600">ან</span>
+              <div className="flex-1 h-px bg-white/10" />
+            </div>
+            <div className={loading ? 'opacity-50 pointer-events-none' : ''}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setServerError('Google authentication cancelled or failed.')}
+                theme="filled_black"
+                size="large"
+                text="signin_with"
+                shape="rectangular"
+                locale="ka"
+              />
+            </div>
+          </div>
 
           <div className="mt-16 pt-16 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-4 opacity-50">

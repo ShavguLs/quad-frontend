@@ -20,6 +20,65 @@ import type {
 } from '../types';
 import { refreshAccessToken, logout } from './auth';
 
+// In-memory CSRF token store for cross-origin local dev (localhost -> api.quaduni.com)
+let inMemoryCsrfToken: string | null = null;
+
+const getCookieValue = (name: string): string | null => {
+  if (typeof document === 'undefined') return null;
+
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = document.cookie.match(new RegExp(`(?:^|; )${escapedName}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
+/**
+ * Ensures we have a valid CSRF token for unsafe HTTP methods.
+ * Priority:
+ *   1. In-memory token (if available)
+ *   2. Cookie read (for same-origin cases)
+ *   3. Fetch from /auth/csrf endpoint (for cross-origin local dev)
+ */
+export const ensureCsrfToken = async (): Promise<string | null> => {
+  // 1. Use in-memory token if available
+  if (inMemoryCsrfToken) {
+    return inMemoryCsrfToken;
+  }
+
+  // 2. Try reading from cookie (works for same-origin)
+  const cookieToken = getCookieValue('csrftoken');
+  if (cookieToken) {
+    inMemoryCsrfToken = cookieToken;
+    return cookieToken;
+  }
+
+  // 3. Fetch from backend (for cross-origin local dev)
+  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://enquad-1bbee1f617a7.herokuapp.com';
+  try {
+    const response = await fetch(`${apiBaseUrl}/auth/csrf`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+    if (response.ok) {
+      const data = await response.json() as { csrfToken?: string };
+      if (data.csrfToken) {
+        inMemoryCsrfToken = data.csrfToken;
+        return data.csrfToken;
+      }
+    }
+  } catch {
+    // Failed to fetch CSRF token - will proceed without it
+  }
+
+  return null;
+};
+
+/**
+ * Sets the in-memory CSRF token. Call this after successful auth actions.
+ */
+export const setCsrfToken = (token: string | null): void => {
+  inMemoryCsrfToken = token;
+};
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://enquad-1bbee1f617a7.herokuapp.com';
 const initialHasApi = Boolean(API_BASE_URL);
 let hasApi = initialHasApi;
@@ -36,17 +95,16 @@ interface RequestOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
-const getCookieValue = (name: string): string | null => {
-  if (typeof document === 'undefined') return null;
-
-  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = document.cookie.match(new RegExp(`(?:^|; )${escapedName}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-};
-
 const shouldAttachCsrfToken = (method?: string): boolean => {
   if (!method) return false;
   return !['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method.toUpperCase());
+};
+
+/**
+ * Clears the in-memory CSRF token (e.g., on logout)
+ */
+export const clearCsrfToken = (): void => {
+  inMemoryCsrfToken = null;
 };
 
 const fetchWithRefresh = async (url: string, options: RequestOptions = {}): Promise<Response> => {
@@ -86,8 +144,9 @@ const request = async <T>(path: string, options: RequestOptions = {}): Promise<T
     baseHeaders.set('Content-Type', 'application/json');
   }
 
+  // Ensure CSRF token is attached for unsafe methods
   if (shouldAttachCsrfToken(options.method) && !baseHeaders.has('X-CSRFToken')) {
-    const csrfToken = getCookieValue('csrftoken');
+    const csrfToken = await ensureCsrfToken();
     if (csrfToken) {
       baseHeaders.set('X-CSRFToken', csrfToken);
     }

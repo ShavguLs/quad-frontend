@@ -598,7 +598,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                       >
                         <div className="flex items-center gap-4 text-[#FFFF2E]">
                           <span className="w-12 h-1 bg-[#FFFF2E]" />
-                          <span className="text-xs font-black uppercase tracking-[0.5em]">ბოლო მანიფესტი</span>
+                          <span className="text-xs font-black uppercase tracking-[0.5em]">პოპულარული</span>
                         </div>
                         <h2 className="text-5xl md:text-6xl lg:text-[8vw] font-black uppercase leading-[0.8] tracking-tighter">
                           {book.title}
@@ -1327,7 +1327,7 @@ export default function App() {
         ]);
         if (cancelled) return;
         setBooks(booksData);
-        setFeaturedBooks(featuredData.length > 0 ? featuredData : booksData.slice(0, 3));
+        setFeaturedBooks(featuredData);
       } catch (err: any) {
         if (!cancelled) setCatalogError(err.message || 'CATALOG_UNAVAILABLE');
       } finally {
@@ -1513,7 +1513,7 @@ export default function App() {
 
       <main>
         <Routes>
-          <Route path="/" element={<HomePage onNavigate={handleNavigate} onBookClick={handleBookClick} featuredBooks={featuredBooks} archiveBooks={books} catalogError={catalogError} isLoading={isCatalogLoading} />} />
+          <Route path="/" element={<HomePage onNavigate={handleNavigate} onBookClick={handleBookClick} featuredBooks={featuredBooks} archiveBooks={featuredBooks} catalogError={catalogError} isLoading={isCatalogLoading} />} />
           <Route path="/books" element={<BooksPage onBookClick={handleBookClick} searchQuery={searchQuery} books={books} onAddToCart={addToCart} catalogError={catalogError} isLoading={isCatalogLoading} />} />
           <Route path="/community" element={<CommunityView />} />
           <Route path="/reviews" element={<ReviewsPage reviews={reviews} reviewsError={reviewsError} user={user} onReviewsChange={() => loadReviews()} isLoading={isReviewsLoading} />} />
