@@ -16,7 +16,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) || "";
+const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) || "464354709574-cg69doav97v5ee8ie2u37j0nfkuthqv7.apps.googleusercontent.com";
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>

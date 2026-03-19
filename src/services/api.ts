@@ -52,7 +52,7 @@ export const ensureCsrfToken = async (): Promise<string | null> => {
   }
 
   // 3. Fetch from backend (for cross-origin local dev)
-  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://enquad-1bbee1f617a7.herokuapp.com';
+  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://api.quaduni.com';
   try {
     const response = await fetch(`${apiBaseUrl}/auth/csrf`, {
       method: 'GET',
@@ -79,7 +79,7 @@ export const setCsrfToken = (token: string | null): void => {
   inMemoryCsrfToken = token;
 };
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://enquad-1bbee1f617a7.herokuapp.com';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://api.quaduni.com';
 const initialHasApi = Boolean(API_BASE_URL);
 let hasApi = initialHasApi;
 
