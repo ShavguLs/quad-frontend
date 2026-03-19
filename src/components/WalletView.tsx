@@ -360,7 +360,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                           href="tel:+995591286699"
                           className="flex items-center gap-6 p-6 border-4 border-white/10 bg-black/50 hover:border-[#FFFF2E] transition-all group"
                         >
-                          <div className="w-14 h-14 flex items-center justify-center border-2 border-[#FFFF2E] text-[#FFFF2E]">
+                          <div className="w-14 h-14 flex items-center justify-center text-[#FFFF2E]">
                             <Phone className="w-6 h-6" />
                           </div>
                           <div>
@@ -373,7 +373,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                           href="mailto:support@quaduni.com"
                           className="flex items-center gap-6 p-6 border-4 border-white/10 bg-black/50 hover:border-[#FFFF2E] transition-all group"
                         >
-                          <div className="w-14 h-14 flex items-center justify-center border-2 border-[#FFFF2E] text-[#FFFF2E]">
+                          <div className="w-14 h-14 flex items-center justify-center text-[#FFFF2E]">
                             <Mail className="w-6 h-6" />
                           </div>
                           <div>
@@ -383,11 +383,6 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                         </a>
                       </div>
 
-                      <div className="p-6 border-2 border-dashed border-white/10 text-center">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-600">
-                          გამოტანის მოთხოვნა მუშავდება 24 საათის განმავლობაში
-                        </p>
-                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
