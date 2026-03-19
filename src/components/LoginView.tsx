@@ -72,7 +72,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
             quaduni.com // შესვლა
           </motion.div>
           <h1 className="text-[12vw] md:text-[8vw] font-black uppercase leading-[0.75] tracking-tighter text-[#FFFF2E] mix-blend-difference">
-            კეთი<br />ლი<br />იყოს.
+            კეთილი<br />იყოს.
           </h1>
         </div>
 

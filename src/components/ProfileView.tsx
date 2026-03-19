@@ -79,8 +79,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
   };
 
   const activeUser = profileUser;
-  const fullName = activeUser?.name || 'ანონიმური ერთეული';
-  const handle = activeUser?.handle || 'დაურეგისტრირებელი სიგნალი';
+  const fullName = activeUser?.name || 'ანონიმური მომხმარებელი';
+  const handle = activeUser?.handle || 'სახელური';
   const bio = activeUser?.bio || null;
 
   const handleProfileUpdated = (updatedUser: AppUser) => {
@@ -113,13 +113,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
             className="group flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-gray-500 hover:text-[#FFFF2E] transition-colors"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-2 transition-transform" />
-            [ უკან სარდაფში ]
+            [ უკან ]
           </button>
           
            <div className="flex items-center gap-4 md:gap-6">
               <div className="flex items-center gap-2 text-[10px] font-black text-green-500 uppercase tracking-widest">
                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                 კავშირი სტაბილურია
+                 სინქრონიზებულია
               </div>
              <button 
               onClick={handleManualSync}
@@ -127,7 +127,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
               className="text-[10px] font-black uppercase bg-white/5 hover:bg-white/10 px-3 py-1.5 md:px-4 md:py-2 border border-white/10 flex items-center gap-2 transition-all disabled:opacity-30"
              >
                 <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
-                სინქრონიზაციის იძულება
+                განახლება
               </button>
               <button
                 onClick={() => setIsSettingsOpen(true)}
@@ -152,7 +152,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
             >
               {/* Folder Tab Aesthetic */}
               <div className="absolute top-0 right-0 bg-[#FFFF2E] text-black px-4 py-1 text-[9px] font-black uppercase">
-                საიდუმლო ფაილი
+                პროფილი
               </div>
 
               <div className="mb-10 pt-4">
@@ -178,11 +178,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
 
               <div className="space-y-4 pt-8 border-t border-white/10">
                 <div className="flex justify-between items-center text-[10px] font-bold">
-                  <span className="text-gray-500 uppercase tracking-widest">                  რეგისტრის იდენტიფიკატორი:</span>
+                  <span className="text-gray-500 uppercase tracking-widest">ID:</span>
                   <span className="text-white truncate max-w-[150px]">{activeUser?.id || 'UNKNOWN'}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px] font-bold">
-                  <span className="text-gray-500 uppercase tracking-widest">                  კომუნიკაცია:</span>
+                  <span className="text-gray-500 uppercase tracking-widest">ელ-ფოსტა:</span>
                   <span className="text-white lowercase">{activeUser?.email || 'N/A'}</span>
                 </div>
               </div>
@@ -192,7 +192,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
             <div className="bg-[#FFFF2E] text-black p-6 font-black uppercase italic text-xs shadow-[10px_10px_0px_0px_rgba(255,255,255,0.05)]">
               <div className="flex items-center gap-3 mb-2">
                 <Database className="w-4 h-4" />
-                სინდიკატის შენიშვნა:
+                შენიშვნა:
               </div>
               "YOUR PURCHASES ARE YOURS ALONE. WE DO NOT TRACK, WE DO NOT ADVERTISE, WE DO NOT COMPLY."
             </div>
@@ -206,12 +206,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
                   <Package className="w-6 h-6 text-[#FFFF2E]" />
                 </div>
                 <div>
-                <h3 className="text-2xl font-black uppercase tracking-tighter">დაცული აქტივები</h3>
-                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">შეძენების მანიფესტი // სულ: {orders.length}</p>
+                <h3 className="text-2xl font-black uppercase tracking-tighter">ჩემი შეძენები</h3>
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">შეძენილი წიგნები // სულ: {orders.length}</p>
                 </div>
               </div>
               <div className="hidden md:block text-[9px] font-black text-gray-700 tracking-widest">
-                INKSLAB პროტოკოლით დადასტურებული
+                INK SLAB-ის გარანტია
               </div>
             </div>
 
@@ -219,16 +219,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
               {loading && !syncing ? (
                 <div className="flex flex-col items-center justify-center py-32 gap-6 opacity-30">
                   <Loader2 className="w-16 h-16 animate-spin text-[#FFFF2E]" />
-                  <span className="text-xs font-black uppercase tracking-[0.5em] animate-pulse">ნაკადის დეშიფრირება...</span>
+                  <span className="text-xs font-black uppercase tracking-[0.5em] animate-pulse">იტვირთება...</span>
                 </div>
               ) : error ? (
                 <div className="border-4 border-red-600/20 bg-red-600/5 p-12 text-center space-y-6">
                   <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-600/10 mb-4">
                     <AlertCircle className="w-10 h-10 text-red-600" />
                   </div>
-                  <h4 className="text-3xl font-black uppercase text-red-600 tracking-tighter">სისტემური შეცდომა</h4>
+                  <h4 className="text-3xl font-black uppercase text-red-600 tracking-tighter">შეცდომა</h4>
                   <p className="text-xs uppercase font-bold text-gray-400 max-w-md mx-auto leading-relaxed">
-                    მანიფესტის მიღებისას კრიტიკული შეცდომა. დაშიფრული არხი შესაძლოა დაზიანებული იყოს ან სერვერი დროებით მიუწვდომელია.
+                    შეძენების ჩამოტვირთვა ვერ მოხერხდა. გთხოვთ, სცადოთ მოგვიანებით.
                   </p>
                   <div className="bg-black/50 p-4 border border-red-600/30 font-mono text-red-400 text-[10px] break-all">
                     LOG_ERR: {error}
@@ -237,7 +237,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
                     onClick={fetchOrders}
                     className="mt-8 bg-red-600 text-white px-10 py-4 text-xs font-black uppercase hover:bg-white hover:text-red-600 transition-colors"
                   >
-                    კავშირის ხელახლა ცდა
+                    ხელახლა ცდა
                   </button>
                 </div>
               ) : orders.length === 0 ? (
@@ -247,14 +247,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl font-black text-black/50 select-none group-hover:text-black transition-colors">?</div>
                   </div>
                   <div className="space-y-4">
-                  <h3 className="text-3xl font-black uppercase text-zinc-700">მონაცემები არ არის დაფიქსირებული</h3>
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-800">კოლექტივმა ჯერ არ დაიცვა აქტივები ამ იდენტიფიკატორისთვის</p>
+                  <h3 className="text-3xl font-black uppercase text-zinc-700">შეძენები არ გაქვს</h3>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-800">ჯერ არ შეგიძენია არცერთი წიგნი</p>
                   </div>
                   <button 
                     onClick={onBack}
                     className="bg-zinc-800 text-white px-10 py-5 text-xs font-black uppercase hover:bg-[#FFFF2E] hover:text-black transition-all transform hover:-translate-y-1 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.3)]"
                   >
-                    არქივის დათვალიერება
+                    წიგნების დათვალიერება
                   </button>
                 </div>
               ) : (
@@ -283,21 +283,21 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
                       </span>
                       <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-2">
                         <FileText className="w-3 h-3" />
-                        {order.timestamp ? new Date(order.timestamp).toLocaleDateString() : 'თარიღი დაფარულია'} // {order.timestamp ? new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'დრო დაფარულია'}
+                        {order.timestamp ? new Date(order.timestamp).toLocaleDateString() : 'თარიღი უცნობია'} // {order.timestamp ? new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'დრო უცნობია'}
                       </span>
                             </div>
                             <h3 className="text-3xl font-black uppercase tracking-tighter leading-none group-hover:text-[#FFFF2E] transition-colors">
                               {order.bookTitle}
                             </h3>
                             <div className="text-[9px] font-bold text-gray-700 flex items-center gap-2 uppercase tracking-[0.2em]">
-                              მანიფესტის იდენტიფიკატორი: <span className="text-gray-500">{order.id}</span>
+                              შეკვეთის ID: <span className="text-gray-500">{order.id}</span>
                             </div>
                           </div>
 
                           <div className="mt-8 md:mt-0 flex items-center justify-between border-t border-white/5 pt-4">
                             <div className="text-2xl font-black text-[#FFFF2E]">{order.price}</div>
                             <button className="group/btn flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors cursor-pointer">
-                              ტვირთის თვალიერება <ExternalLink className="w-3 h-3 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                              წიგნის ნახვა <ExternalLink className="w-3 h-3 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
                             </button>
                           </div>
                         </div>
@@ -353,13 +353,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
           <div className="flex items-center gap-4">
             <ShieldCheck className="w-12 h-12 text-[#FFFF2E]" />
             <div className="text-[9px] font-black uppercase tracking-[0.2em] leading-tight">
-              უსაფრთხო საცავი აქტიურია <br /> <span className="text-gray-500">დაშიფვრა: AES-256-GCM // სინქ_პროტოკოლი: V.4.0.1</span>
+              შენი შეძენები დაცულია <br /> <span className="text-gray-500">დაშიფვრა: AES-256-GCM // INK SLAB V.4.0.1</span>
             </div>
           </div>
           <div className="flex items-center gap-8 text-[9px] font-black uppercase tracking-widest italic text-gray-500">
-            <span className="hover:text-[#FFFF2E] cursor-help">              // სესიის წაშლა</span>
-            <span className="hover:text-[#FFFF2E] cursor-help">              // კოორდინატების ანონიმიზაცია</span>
-            <span className="hover:text-[#FFFF2E] cursor-help">              // ჟურნალების წაშლა</span>
+            <span className="hover:text-[#FFFF2E] cursor-help">// კონფიდენციალობა</span>
+            <span className="hover:text-[#FFFF2E] cursor-help">// გამოყენების პირობები</span>
+            <span className="hover:text-[#FFFF2E] cursor-help">// დახმარება</span>
           </div>
         </div>
       </div>

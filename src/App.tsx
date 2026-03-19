@@ -17,6 +17,7 @@ import { MyBooksView } from './components/MyBooksView';
 import { BookDraftView } from './components/BookDraftView';
 import { CommunityView } from './components/CommunityView';
 import { ReaderView } from './components/ReaderView';
+import { TermsView } from './components/TermsView';
 import { SEOMeta } from './components/SEOMeta';
 import { api } from './services/api';
 import { auth } from './services/auth';
@@ -475,7 +476,7 @@ const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalo
   return (
     <>
       <SEOMeta
-        title="მთავარი"
+        title="Quaduni - რჩეული წიგნები"
         description="Quaduni — ქართული ციფრული წიგნების მაღაზია. აღმოაჩინე, იყიდე და წაიკითხე ქართული წიგნები ონლაინ."
         canonical="https://quaduni.com/"
       />
@@ -845,7 +846,8 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                       <p className="text-[9px] font-black uppercase text-[#FFFF2E] tracking-widest">ელ-ფოსტა</p>
                       <span className="text-[9px] font-black text-green-500">აქტიური</span>
                     </div>
-                    <p className="text-xs font-bold text-white/60 uppercase tracking-wide">hello@inkslab.ge</p>
+                    <p className="text-xs font-bold text-white/60 uppercase tracking-wide">supremeee20001@gmail.com
+                    </p>
                     <div className="h-px w-full bg-[#FFFF2E]/10" />
                     <div className="flex justify-between items-center">
                       <p className="text-[9px] font-black uppercase text-[#FFFF2E] tracking-widest">პასუხის დრო</p>
@@ -864,7 +866,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                   </div>
                   <div>
                     <h3 className="text-2xl font-black uppercase leading-none">შეტყობინება</h3>
-                    <p className="text-[9px] font-bold text-[#FFFF2E] uppercase tracking-[0.2em] mt-1">CONTACT@INKSLAB</p>
+                    <p className="text-[9px] font-bold text-[#FFFF2E] uppercase tracking-[0.2em] mt-1">supremeee20001@gmail.com</p>
                   </div>
                 </div>
 
@@ -1237,16 +1239,16 @@ const Footer = () => (
         <h4 className="font-black uppercase text-xs mb-6 text-[#FFFF2E] tracking-widest">კონტაქტი</h4>
         <ul className="flex flex-col gap-3 text-sm font-black uppercase">
           <li>თბილისი, საქართველო</li>
-          <li>hello@quaduni.com</li>
-          <li>ორშ-პარ 10:00-18:00</li>
+          <li>supremeee20001@gmail.com</li>
+          <li>ორშ-შაბ 09:00-20:00</li>
         </ul>
       </div>
     </div>
     <div className="container mx-auto mt-24 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-black text-gray-700 uppercase tracking-[0.2em]">
       <div>© 2026 QUADUNI.COM. ყველა უფლება დაცულია.</div>
       <div className="flex gap-8">
-        <a href="#">პირადი მონაცემების დაცვა</a>
-        <a href="#">გაყიდვის პირობები</a>
+        <a href="/terms#privatesoba">პირადი მონაცემების დაცვა</a>
+        <a href="/terms#gayidva">გაყიდვის პირობები</a>
       </div>
     </div>
   </footer>
@@ -1550,6 +1552,7 @@ export default function App() {
           <Route path="/library" element={<LibraryView user={user} onBack={() => navigate('/')} onBookClick={handleBookClick} />} />
           <Route path="/my-books" element={<MyBooksView user={user} onBack={() => navigate('/')} onUploadNew={() => navigate('/upload')} />} />
           <Route path="/draft/:bookId" element={<BookDraftRoute />} />
+          <Route path="/terms" element={<TermsView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
