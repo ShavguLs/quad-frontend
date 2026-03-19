@@ -35,6 +35,7 @@ export interface Book {
   extraction_status?: 'pending' | 'processing' | 'completed' | 'partial' | 'failed';
   extraction_error?: string | null;
   is_readable?: boolean;
+  purchase_count?: number;
 }
 
 export interface Review {

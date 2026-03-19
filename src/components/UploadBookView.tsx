@@ -44,11 +44,11 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
         <div className="max-w-xl w-full p-8 border-2 border-red-500 bg-zinc-950 text-center space-y-6 shadow-[10px_10px_0_0_rgba(255,0,0,0.2)]">
-          <h2 className="text-3xl font-black uppercase tracking-tight">Access Locked</h2>
-          <p className="text-xs uppercase tracking-[0.2em] text-gray-400 leading-relaxed">Sign in first to upload a new manuscript.</p>
+          <h2 className="text-3xl font-black uppercase tracking-tight">წვდომა შეზღუდულია</h2>
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-400 leading-relaxed">წიგნის ასატვირთად გაიარეთ ავტორიზაცია.</p>
           <div className="grid grid-cols-2 gap-3">
-            <button onClick={onBack} className="py-3 border border-white/20 text-xs font-bold uppercase hover:border-white">Back</button>
-            <button onClick={onLoginRequired} className="py-3 bg-[#FFFF2E] text-black text-xs font-black uppercase hover:bg-white">Login</button>
+            <button onClick={onBack} className="py-3 border border-white/20 text-xs font-bold uppercase hover:border-white">უკან</button>
+            <button onClick={onLoginRequired} className="py-3 bg-[#FFFF2E] text-black text-xs font-black uppercase hover:bg-white">შესვლა</button>
           </div>
         </div>
       </div>
@@ -64,7 +64,7 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
     e.preventDefault();
 
     if (!files.pdf) {
-      setError('PDF file is required.');
+      setError('PDF ფაილი სავალდებულოა.');
       return;
     }
 
@@ -78,7 +78,7 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
       });
       navigate('/my-books', { replace: true });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      setError(err instanceof Error ? err.message : 'ატვირთვა ვერ მოხერხდა');
     } finally {
       setSubmitting(false);
     }
@@ -95,17 +95,17 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
           className="group flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] mb-10 text-gray-400 hover:text-[#FFFF2E] transition-colors"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          [ Back To Dashboard ]
+          [ უკან ]
         </button>
 
         <div className="border-l-8 border-[#FFFF2E] pl-6 mb-12">
           <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.8]">
-            Upload
+            წიგნის
             <br />
-            <span className="text-[#FFFF2E]">New Book</span>
+            <span className="text-[#FFFF2E]">ატვირთვა</span>
           </h1>
           <p className="mt-5 text-[10px] font-black uppercase tracking-[0.4em] text-gray-500">
-            Publisher Intake // Metadata + Files
+            გამომცემლობა // მეტამონაცემები + ფაილები
           </p>
         </div>
 
@@ -115,13 +115,13 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
               <label className="block flex-1">
                 <span className="mb-2 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#FFFF2E]">
                   <Type className="w-3.5 h-3.5" />
-                  Title
+                  სათაური
                 </span>
                 <input
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Book title"
+                  placeholder="წიგნის სათაური"
                   className={fieldClassName}
                 />
               </label>
@@ -129,13 +129,13 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
               <label className="block flex-1">
                 <span className="mb-2 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#FFFF2E]">
                   <User className="w-3.5 h-3.5" />
-                  Author
+                  ავტორი
                 </span>
                 <input
                   required
                   value={formData.author}
                   onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                  placeholder="Author name"
+                  placeholder="ავტორის სახელი"
                   className={fieldClassName}
                 />
               </label>
@@ -145,7 +145,7 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
               <label className="block w-[180px] flex-none">
                 <span className="mb-2 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#FFFF2E]">
                   <Hash className="w-3.5 h-3.5" />
-                  Price
+                  ფასი
                 </span>
                 <input
                   required
@@ -161,41 +161,41 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
 
               <label className="block flex-1">
                 <span className="mb-2 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#FFFF2E]">
-                  Category
+                  კატეგორია
                 </span>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className={fieldClassName}
                 >
-                  <option value="BOOKS">BOOKS</option>
-                  <option value="ESSAYS">ESSAYS</option>
-                  <option value="ART">ART</option>
-                  <option value="ARCHIVE">ARCHIVE</option>
+                  <option value="BOOKS">წიგნები</option>
+                  <option value="ESSAYS">ესსეები</option>
+                  <option value="ART">ხელოვნება</option>
+                  <option value="ARCHIVE">არქივი</option>
                 </select>
               </label>
             </div>
 
             <label className="block">
               <span className="mb-2 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#FFFF2E]">
-                <BookText className="w-3.5 h-3.5" />
-                Description
-              </span>
-              <textarea
-                required
-                rows={8}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Short summary for readers"
+                  <BookText className="w-3.5 h-3.5" />
+                  აღწერა
+                </span>
+                <textarea
+                  required
+                  rows={8}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="მოკლე შინაარსი მკითხველებისთვის"
                 className={`${fieldClassName} resize-none`}
               />
             </label>
 
             <label className="block">
               <span className="mb-2 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#FFFF2E]">
-                <FileText className="w-3.5 h-3.5" />
-                PDF File
-              </span>
+                  <FileText className="w-3.5 h-3.5" />
+                  PDF ფაილი
+                </span>
               <input
                 required
                 type="file"
@@ -209,18 +209,18 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
           <aside className="lg:col-span-4 border-2 border-white/10 bg-zinc-950 p-6 md:p-8 flex flex-col gap-6">
             <label className="block">
               <span className="mb-2 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#FFFF2E]">
-                <ImageIcon className="w-3.5 h-3.5" />
-                Cover Image
-              </span>
-              <div className="border-2 border-dashed border-white/20 overflow-hidden bg-black">
-                {coverPreviewUrl ? (
-                  <img src={coverPreviewUrl} alt="Cover preview" className="aspect-[3/4] w-full object-cover" />
-                ) : (
-                  <div className="aspect-[3/4] w-full flex flex-col items-center justify-center gap-3 text-gray-500">
-                    <Upload className="w-6 h-6" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">No Cover Selected</span>
-                  </div>
-                )}
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  გარეკანი
+                </span>
+                <div className="border-2 border-dashed border-white/20 overflow-hidden bg-black">
+                  {coverPreviewUrl ? (
+                    <img src={coverPreviewUrl} alt="გარეკანის გადახედვა" className="aspect-[3/4] w-full object-cover" />
+                  ) : (
+                    <div className="aspect-[3/4] w-full flex flex-col items-center justify-center gap-3 text-gray-500">
+                      <Upload className="w-6 h-6" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">გარეკანი არ არის არჩეული</span>
+                    </div>
+                  )}
               </div>
               <input type="file" accept="image/*" onChange={(e) => onFile(e, 'cover')} className={`${fieldClassName} mt-3 text-xs`} />
             </label>
@@ -237,7 +237,7 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
               className="mt-auto w-full inline-flex items-center justify-center gap-2 bg-[#FFFF2E] px-5 py-4 text-black text-[10px] font-black uppercase tracking-[0.2em] disabled:opacity-60 hover:bg-white transition-colors"
             >
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-              {submitting ? 'Uploading...' : 'Publish Upload'}
+              {submitting ? 'იტვირთება...' : 'გამოქვეყნება'}
             </button>
           </aside>
         </form>

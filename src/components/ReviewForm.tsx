@@ -39,7 +39,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
     try {
       await onSubmit({ rating, content });
     } catch (err: any) {
-      setError(err.message || 'მიმოხილვის გადაცემა ვერ მოხერხდა');
+      setError(err.message || 'მიმოხილვის გამოგზავნა ვერ მოხერხდა');
     }
   };
 
@@ -67,7 +67,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
 
       <div className="space-y-2">
         <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-          შეაფასეთ ეს მანიფესტი *
+          შეაფასეთ ეს წიგნი *
         </label>
         <StarRating
           rating={rating}
@@ -88,12 +88,12 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
 
       <div className="space-y-2">
         <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-          თქვენი ანალიზი *
+          შენი მიმოხილვა *
         </label>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="გაგვიზიარეთ თქვენი აზრები ამ მანიფესტზე..."
+          placeholder="გაგვიზიარეთ თქვენი აზრები ამ წიგნზე..."
           className="w-full bg-black border-2 border-white/20 p-4 text-sm font-bold uppercase leading-relaxed placeholder:text-gray-600 focus:border-[#FFFF2E] focus:outline-none transition-colors resize-none"
           rows={6}
           disabled={isSubmitting}
@@ -123,7 +123,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
         ) : existingReview ? (
           'მიმოხილვის განახლება'
         ) : (
-          'მიმოხილვის გადაცემა'
+          'მიმოხილვის გამოგზავნა'
         )}
       </button>
     </form>

@@ -14,8 +14,8 @@ export const DeleteBookDialog: React.FC<DeleteBookDialogProps> = ({ book, onConf
   const [error, setError] = useState<string | null>(null);
 
   const handleConfirm = async () => {
-    if (confirmText !== 'DELETE') {
-      setError('Please type DELETE to confirm');
+    if (confirmText !== 'წაშლა') {
+      setError('დაწერეთ "წაშლა" დასადასტურებლად');
       return;
     }
 
@@ -25,7 +25,7 @@ export const DeleteBookDialog: React.FC<DeleteBookDialogProps> = ({ book, onConf
     try {
       await onConfirm();
     } catch (err: any) {
-      setError(err.message || 'Failed to delete book');
+      setError(err.message || 'წაშლა ვერ მოხერხდა');
       setIsDeleting(false);
     }
   };
@@ -37,7 +37,7 @@ export const DeleteBookDialog: React.FC<DeleteBookDialogProps> = ({ book, onConf
         <div className="flex justify-between items-center p-6 border-b border-red-600/20">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-6 h-6 text-red-600" />
-            <h2 className="text-xl font-black uppercase tracking-tighter text-red-600">DELETE_MANIFEST</h2>
+            <h2 className="text-xl font-black uppercase tracking-tighter text-red-600">წიგნის წაშლა</h2>
           </div>
           <button 
             onClick={onCancel}
@@ -53,7 +53,7 @@ export const DeleteBookDialog: React.FC<DeleteBookDialogProps> = ({ book, onConf
           {/* Warning */}
           <div className="p-4 bg-red-600/10 border border-red-600/30 space-y-2">
             <p className="text-sm font-bold uppercase tracking-wide text-red-600">
-              You are about to permanently delete:
+              თქვენ საბოლოოდ წაშლით:
             </p>
             <p className="text-lg font-black text-[#FFFF2E] uppercase tracking-wide">
               "{book.title}"
@@ -70,13 +70,13 @@ export const DeleteBookDialog: React.FC<DeleteBookDialogProps> = ({ book, onConf
           {/* Confirmation Input */}
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-              Type "DELETE" to confirm
+              დაწერეთ "წაშლა" დასადასტურებლად
             </label>
             <input
               type="text"
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
-              placeholder="DELETE"
+              placeholder="წაშლა"
               disabled={isDeleting}
               className="w-full bg-black border-2 border-red-600/30 p-4 text-sm font-bold uppercase outline-none focus:border-red-600 transition-colors disabled:opacity-50"
             />
@@ -89,22 +89,22 @@ export const DeleteBookDialog: React.FC<DeleteBookDialogProps> = ({ book, onConf
               disabled={isDeleting}
               className="flex-1 py-4 border-2 border-white/10 text-sm font-black uppercase tracking-widest hover:border-white transition-colors disabled:opacity-50"
             >
-              CANCEL
+              გაუქმება
             </button>
             <button
               onClick={handleConfirm}
-              disabled={isDeleting || confirmText !== 'DELETE'}
+              disabled={isDeleting || confirmText !== 'წაშლა'}
               className="flex-1 py-4 bg-red-600 text-white text-sm font-black uppercase tracking-widest hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isDeleting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  DELETING...
+                  იშლება...
                 </>
               ) : (
                 <>
                   <Trash2 className="w-4 h-4" />
-                  DELETE
+                  წაშლა
                 </>
               )}
             </button>

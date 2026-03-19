@@ -34,13 +34,13 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
     try {
       // Validate required fields
       if (!formData.title.trim()) {
-        throw new Error('Title is required');
+        throw new Error('სათაური სავალდებულოა');
       }
       if (!formData.author.trim()) {
-        throw new Error('Author is required');
+        throw new Error('ავტორი სავალდებულოა');
       }
       if (parseFloat(formData.price) < 0) {
-        throw new Error('Price cannot be negative');
+        throw new Error('ფასი არ შეიძლება იყოს უარყოფითი');
       }
 
       await api.updateBook(book.id, {
@@ -63,7 +63,7 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
 
       onSave(updatedBook);
     } catch (err: any) {
-      setError(err.message || 'Failed to update book');
+      setError(err.message || 'განახლება ვერ მოხერხდა');
     } finally {
       setIsSubmitting(false);
     }
@@ -75,8 +75,8 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-4 sm:px-6">
           <div>
-            <h2 className="text-sm sm:text-base font-black uppercase tracking-[0.18em] text-white">Edit Book</h2>
-            <p className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/45">Update book details</p>
+            <h2 className="text-sm sm:text-base font-black uppercase tracking-[0.18em] text-white">წიგნის რედაქტირება</h2>
+            <p className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/45">მონაცემების განახლება</p>
           </div>
           <button onClick={onCancel} className="rounded-md p-2 text-white/70 hover:bg-white/10 hover:text-white transition-colors" aria-label="Close edit modal">
             <X className="w-5 h-5" />
@@ -93,7 +93,7 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
             <div className="space-y-5">
               {/* Title */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Title *</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">სათაური *</label>
                 <input
                   type="text"
                   name="title"
@@ -106,7 +106,7 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
 
               {/* Author */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Author *</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">ავტორი *</label>
                 <input
                   type="text"
                   name="author"
@@ -119,7 +119,7 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
 
               {/* Description */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Description</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">აღწერა</label>
                 <textarea
                   name="description"
                   value={formData.description}
@@ -132,7 +132,7 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
               {/* Price & Category */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Price (£) *</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">ფასი (₾) *</label>
                   <input
                     type="number"
                     name="price"
@@ -145,7 +145,7 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Category</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">კატეგორია</label>
                   <input
                     type="text"
                     name="category"
@@ -167,7 +167,7 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
               onClick={onCancel}
               className="w-full sm:w-auto rounded-lg border border-white/20 px-5 py-2.5 text-xs font-black uppercase tracking-[0.18em] text-white/80 hover:border-white hover:text-white transition-colors"
             >
-              CANCEL
+              გაუქმება
             </button>
             <button
               type="submit"
@@ -177,10 +177,10 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  SAVING...
+                  ინახება...
                 </>
               ) : (
-                'SAVE CHANGES'
+                'შენახვა'
               )}
             </button>
           </div>

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, ShoppingBag, Info, CheckCircle2, Loader2, Zap, Star, MessageSquare, ThumbsUp, ThumbsDown, Send, X, BookOpen } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -9,13 +9,14 @@ interface BookPageProps {
   book: Book;
   relatedBooks: Book[];
   user: User | null;
+  isAuthLoading: boolean;
   onBack: () => void;
   onAddToCart: () => void;
   onReadBook: () => void;
   onOpenBook: (book: Book) => void;
 }
 
-export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, onBack, onAddToCart, onReadBook, onOpenBook }) => {
+export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, isAuthLoading, onBack, onAddToCart, onReadBook, onOpenBook }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [ownedBooks, setOwnedBooks] = useState<Set<string | number>>(new Set());
@@ -52,6 +53,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, on
 
   useEffect(() => {
     const fetchLibrary = async () => {
+      if (isAuthLoading) return;
       if (!user) {
         setLoadingOwnership(false);
         return;
@@ -68,7 +70,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, on
       }
     };
     fetchLibrary();
-  }, [user]);
+  }, [user, isAuthLoading]);
 
   const canRead = ownedBooks.has(book.id);
 
@@ -270,7 +272,11 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, on
               </div>
 
               <div className="flex flex-col gap-4">
-                {canRead ? (
+                {(isAuthLoading || loadingOwnership) ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+                  </div>
+                ) : canRead ? (
                   <button
                     onClick={onReadBook}
                     className="group relative py-8 text-2xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-white text-black hover:bg-[#FFFF2E]"
@@ -300,8 +306,6 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, on
                     </button>
                   </>
                 )}
-
-
               </div>
 
               <div className="pt-12 mt-12 border-t-2 border-white/10 space-y-6 opacity-40 grayscale group hover:grayscale-0 hover:opacity-100 transition-all">
@@ -312,6 +316,10 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, on
                 <div className="grid grid-cols-2 gap-y-4 text-[10px] font-black uppercase">
                   <div className="text-gray-500">გვერდები:</div>
                   <div className="text-right">{pageCount ? `სულ ${pageCount}` : 'უცნობია'}</div>
+                  <div className="text-gray-500">ნახვები:</div>
+                  <div className="text-right">{book.views ?? 0}</div>
+                  <div className="text-gray-500">შეძენილია:</div>
+                  <div className="text-right">{book.purchase_count ?? 0}</div>
                 </div>
               </div>
             </motion.div>

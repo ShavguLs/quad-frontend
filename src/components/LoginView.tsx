@@ -69,24 +69,24 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
             animate={{ x: 0, opacity: 1 }}
             className="inline-block bg-[#FFFF2E] text-black px-4 py-2 text-[14px] font-black uppercase italic -rotate-2"
           >
-            შეზღუდული ზონა // მხოლოდ სინდიკატისთვის
+            quaduni.com // შესვლა
           </motion.div>
           <h1 className="text-[12vw] md:text-[8vw] font-black uppercase leading-[0.75] tracking-tighter text-[#FFFF2E] mix-blend-difference">
-            იდენტ <br /> პროტ <br /> ოკოლი.
+            კეთი<br />ლი<br />იყოს.
           </h1>
         </div>
 
         <div className="space-y-8">
           <div className="max-w-xs">
             <p className="text-[14px] font-black uppercase leading-relaxed text-gray-400">
-              გთხოვთ შეიყვანოთ თქვენი მინიჭებული სინდიკატის კოდი. არაავტორიზებული მცდელობები ფიქსირდება ბირთვის მიერ.
+              შეიყვანეთ ელ-ფოსტა და პაროლი თქვენს ანგარიშზე შესასვლელად.
             </p>
           </div>
           <button
             onClick={onBack}
             className="group flex items-center gap-4 text-[14px] font-black uppercase tracking-[0.3em] hover:text-[#FFFF2E] transition-colors"
           >
-            <X className="w-4 h-4" /> [ ტერმინალის დატოვება ]
+            <X className="w-4 h-4" /> [ მთავარ გვერდზე დაბრუნება ]
           </button>
         </div>
       </div>
@@ -106,20 +106,20 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
             <div className="relative group">
               <label className="text-[14px] font-black uppercase tracking-[0.5em] text-[#FFFF2E] mb-4 block">
-                კომუნიკაციის არხი (ელფოსტა)
+                ელ-ფოსტა
               </label>
               <input
                 {...register("email", { required: true })}
                 disabled={loading}
                 type="email"
                 className="w-full bg-transparent border-b-4 border-white/20 pb-4 text-4xl md:text-5xl font-black uppercase outline-none focus:border-[#FFFF2E] transition-all placeholder:text-zinc-900 disabled:opacity-50"
-                placeholder="მომხმარებელი@არხი.ნეტ"
+                placeholder="თქვენი@ელფოსტა.კომ"
               />
             </div>
 
             <div className="relative group">
               <label className="text-[14px] font-black uppercase tracking-[0.5em] text-[#FFFF2E] mb-4 block">
-                კოდის გასაღები
+                პაროლი
               </label>
               <input 
                 {...register("password", { required: true })}
@@ -137,7 +137,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
                 className="w-6 h-6 border-2 border-white bg-transparent checked:bg-[#FFFF2E] appearance-none cursor-pointer transition-colors" 
               />
               <label htmlFor="remember_me" className="text-[14px] font-black uppercase tracking-widest text-gray-500 cursor-pointer hover:text-white transition-colors">
-                კოდის დამახსოვრება ამ ტერმინალზე
+                დამახსოვრება
               </label>
             </div>
 
@@ -148,9 +148,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
               >
                 <div className="relative z-10 flex items-center justify-center gap-4">
                   {loading ? (
-                    <>დეშიფრაცია... <Loader2 className="w-8 h-8 animate-spin" /></>
+                    <>შესვლა... <Loader2 className="w-8 h-8 animate-spin" /></>
                   ) : (
-                    <>ავტორიზაცია <ArrowRight className="w-8 h-8 group-hover:translate-x-4 transition-transform" /></>
+                    <>შესვლა <ArrowRight className="w-8 h-8 group-hover:translate-x-4 transition-transform" /></>
                   )}
                 </div>
                 {!loading && <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300" />}
@@ -181,7 +181,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
             <div className="flex items-center gap-4 opacity-50">
               <ShieldAlert className="w-8 h-8 text-[#FFFF2E]" />
               <div className="text-[14px] font-black uppercase tracking-widest leading-none">
-                დაშიფვრა აქტიურია <br /> <span className="text-white">v4.0.2 სინდიკატი</span>
+                quaduni.com <br /> <span className="text-white">დაცული კავშირი</span>
               </div>
             </div>
             <button

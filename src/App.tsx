@@ -23,7 +23,7 @@ import type { Book, Review, User as AppUser } from './types';
 
 // --- Sub-Components ---
 
-const Navbar = ({ onNavigate, user, onSignOut, searchQuery, onSearchChange, cartCount, onOpenCart }) => {
+const Navbar = ({ onNavigate, user, isAuthLoading, onSignOut, searchQuery, onSearchChange, cartCount, onOpenCart }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -37,7 +37,7 @@ const Navbar = ({ onNavigate, user, onSignOut, searchQuery, onSearchChange, cart
   const userItems = [
     { id: 'profile', label: 'პროფილი', icon: User },
     { id: 'wallet', label: 'საფულე', icon: ShoppingBag },
-    { id: 'library', label: 'შენაძენი', icon: Database },
+    { id: 'library', label: 'ბიბლიოთეკა', icon: Database },
     { id: 'my-books', label: 'ჩემი წიგნები', icon: BookOpen },
     { id: 'upload-book', label: 'ატვირთვა', icon: Plus },
   ];
@@ -46,7 +46,7 @@ const Navbar = ({ onNavigate, user, onSignOut, searchQuery, onSearchChange, cart
     <>
       <nav className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-4 md:px-6 py-4 border-b-2 border-white/10 bg-black/95 backdrop-blur-xl font-mono">
         <div className="flex items-center gap-4 lg:gap-12">
-          <h1 className="text-2xl md:text-3xl font-black tracking-[-0.1em] uppercase leading-none cursor-pointer text-white hover:text-[#FFFF2E] transition-colors" onClick={() => onNavigate('home')}>INK SLAB</h1>
+          <h1 className="text-2xl md:text-3xl font-black tracking-[-0.1em] uppercase leading-none cursor-pointer text-white hover:text-[#FFFF2E] transition-colors" onClick={() => onNavigate('home')}>QUADUNI</h1>
           <div className="hidden lg:flex gap-8">
             {menuItems.map(item => (
               <button key={item.id} onClick={() => onNavigate(item.id as any)} className="text-xs font-black uppercase tracking-widest hover:line-through transition-all cursor-pointer text-white">{item.label}</button>
@@ -55,7 +55,9 @@ const Navbar = ({ onNavigate, user, onSignOut, searchQuery, onSearchChange, cart
         </div>
         <div className="flex items-center gap-4 md:gap-6">
           <div className="hidden lg:flex items-center gap-6 mr-4 border-r-2 border-white/10 pr-6">
-            {user ? (
+            {isAuthLoading ? (
+              <div className="w-24 h-6 bg-white/5 border border-white/10 animate-pulse" />
+            ) : user ? (
               <div className="relative">
                 <div 
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -82,7 +84,7 @@ const Navbar = ({ onNavigate, user, onSignOut, searchQuery, onSearchChange, cart
                         className="absolute right-0 mt-4 w-64 bg-black border-4 border-white shadow-[12px_12px_0px_0px_rgba(255,255,46,1)] z-20 overflow-hidden"
                       >
                         <div className="bg-[#FFFF2E] text-black px-4 py-2 text-[9px] font-black uppercase flex justify-between items-center">
-                          <span>დამხმარე მენიუ</span>
+                          <span>ანგარიში</span>
                           <span className="animate-pulse">●</span>
                         </div>
                         
@@ -141,7 +143,7 @@ const Navbar = ({ onNavigate, user, onSignOut, searchQuery, onSearchChange, cart
               type="text" 
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-                      placeholder="იპოვე სიმართლე..."
+                      placeholder="წიგნის ძიება..."
               className="bg-transparent text-[11px] font-black uppercase outline-none w-24 lg:w-32 placeholder:text-gray-600 tracking-widest text-white" 
             />
             <Search className="w-4 h-4 text-gray-400 group-focus-within:text-[#FFFF2E] transition-colors" />
@@ -179,7 +181,7 @@ const Navbar = ({ onNavigate, user, onSignOut, searchQuery, onSearchChange, cart
               className="fixed top-0 right-0 h-full w-[85%] max-w-sm bg-zinc-950 border-l-4 border-[#FFFF2E] z-[110] flex flex-col lg:hidden"
             >
               <div className="p-6 border-b-2 border-white/10 flex justify-between items-center bg-black">
-                <h2 className="text-2xl font-black uppercase tracking-tighter text-white">მართვის ცენტრი</h2>
+                <h2 className="text-2xl font-black uppercase tracking-tighter text-white">მენიუ</h2>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 border-2 border-white/20 hover:border-[#FFFF2E] hover:text-[#FFFF2E] transition-all">
                   <X className="w-6 h-6" />
                 </button>
@@ -205,8 +207,14 @@ const Navbar = ({ onNavigate, user, onSignOut, searchQuery, onSearchChange, cart
                 </div>
 
                 <div className="space-y-4">
-                  <span className="text-[10px] font-black text-[#FFFF2E] uppercase tracking-[0.4em] mb-4 block">მომხმარებლის პროტოკოლი</span>
-                  {user ? (
+                  <span className="text-[10px] font-black text-[#FFFF2E] uppercase tracking-[0.4em] mb-4 block">ანგარიში</span>
+                  {isAuthLoading ? (
+                    <div className="grid gap-2">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="w-full p-4 border-2 border-white/5 bg-black animate-pulse h-14" />
+                      ))}
+                    </div>
+                  ) : user ? (
                     <div className="grid gap-2">
                       {userItems.map(item => (
                         <button 
@@ -246,7 +254,7 @@ const Navbar = ({ onNavigate, user, onSignOut, searchQuery, onSearchChange, cart
                       type="text" 
                       value={searchQuery}
                       onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="იპოვე სიმართლე..."
+              placeholder="წიგნის ძიება..."
                       className="bg-transparent text-sm font-black uppercase outline-none flex-1 placeholder:text-gray-800 tracking-widest text-white" 
                     />
                     <Search className="w-5 h-5 text-gray-800 group-focus-within:text-[#FFFF2E]" />
@@ -257,7 +265,7 @@ const Navbar = ({ onNavigate, user, onSignOut, searchQuery, onSearchChange, cart
               <div className="p-6 bg-black border-t-2 border-white/10">
                 <div className="flex items-center gap-4 text-xs font-black uppercase tracking-widest text-gray-700">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  სადგური აქტიურია // 404_SYND
+                  INK SLAB // ონლაინ
                 </div>
               </div>
             </motion.div>
@@ -270,7 +278,7 @@ const Navbar = ({ onNavigate, user, onSignOut, searchQuery, onSearchChange, cart
 
 const CartSidebar = ({ isOpen, onClose, cart, onRemove, onExecuteOrder, isExecuting, executeError }) => {
   const total = cart.reduce((acc, item) => {
-    const price = parseFloat(item.book.price.replace('£', '')) || 0;
+    const price = parseFloat(item.book.price.replace('₾', '')) || 0;
     return acc + price;
   }, 0);
 
@@ -329,7 +337,7 @@ const CartSidebar = ({ isOpen, onClose, cart, onRemove, onExecuteOrder, isExecut
                         <span className="text-[10px] font-black text-[#FFFF2E] uppercase tracking-widest">{item.book.author}</span>
                       </div>
                       <div className="flex justify-between items-end pt-4">
-                        <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">რაოდ: 1</div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">რაოდენობა: 1</div>
                         <span className="text-xl font-black text-white">{item.book.price}</span>
                       </div>
                     </div>
@@ -341,12 +349,12 @@ const CartSidebar = ({ isOpen, onClose, cart, onRemove, onExecuteOrder, isExecut
             {cart.length > 0 && (
               <div className="p-8 bg-black border-t-4 border-white space-y-6">
                 <div className="flex justify-between items-end">
-                  <span className="text-xs font-black uppercase tracking-widest text-gray-500">ჯამური_საფასური</span>
-                  <span className="text-5xl font-black text-[#FFFF2E]">£{total.toFixed(2)}</span>
+                  <span className="text-xs font-black uppercase tracking-widest text-gray-500">სულ</span>
+                  <span className="text-5xl font-black text-[#FFFF2E]">₾{total.toFixed(2)}</span>
                 </div>
                 {executeError && (
                   <div className="border-2 border-red-600/50 bg-red-600/10 text-red-500 px-4 py-3 text-[9px] font-black uppercase tracking-widest">
-                    გადახდის_შეცდომა: {executeError}
+                    შეცდომა: {executeError}
                   </div>
                 )}
                 <button
@@ -354,12 +362,11 @@ const CartSidebar = ({ isOpen, onClose, cart, onRemove, onExecuteOrder, isExecut
                   onClick={onExecuteOrder}
                   disabled={isExecuting}
                 >
-                  {isExecuting ? 'შეკვეთა_იტვირთება...' : 'შეკვეთის_განხორციელება'}
+                  {isExecuting ? 'მუშავდება...' : 'ყიდვა'}
                   <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                 </button>
                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-700 text-center leading-relaxed">
-                  გაგრძელებით, თქვენ ეთანხმებით სინდიკატის პროტოკოლებს. <br />
-                  ყველა გაყიდვა საბოლოოა.
+                  გაგრძელებით, თქვენ ეთანხმებით გამოყენების პირობებს. <br />
                 </p>
               </div>
             )}
@@ -583,7 +590,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                         
                         {/* Identification Tag */}
                         <div className="absolute -top-4 -right-4 bg-black text-[#FFFF2E] border-2 border-[#FFFF2E] px-4 py-1 text-[10px] font-black uppercase tracking-widest -rotate-12 group-hover:rotate-0 transition-transform">
-                          PRIORITY_ASSET_0{idx + 1}
+                          რჩეული #{idx + 1}
                         </div>
                       </motion.div>
                     </div>
@@ -631,8 +638,8 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
             </Slider>
           ) : (
             <div className="border-4 border-dashed border-white/10 p-20 text-center">
-              <h3 className="text-3xl font-black uppercase text-gray-500">არქივი გათიშულია</h3>
-              <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-600">დაუკავშირდით სერვერს</p>
+              <h3 className="text-3xl font-black uppercase text-gray-500">წიგნები ვერ ჩაიტვირთა</h3>
+              <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-600">სცადეთ გვერდის განახლება</p>
             </div>
           )}
         </div>
@@ -642,7 +649,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
           <div className="flex whitespace-nowrap animate-marquee">
             {[...Array(10)].map((_, i) => (
               <span key={i} className="text-black font-black uppercase tracking-tighter text-sm mx-12">
-                ★ მთელს მსოფლიოში გზავნილი ★ მხოლოდ ანალოგური ★ დამოუკიდებელი პრესა ★ ალგორითმები არ არის ★ სუფთა_მელანი ★ ბრუტალისტური_დიზაინი ★
+                ★ ქართული ციფრული წიგნები ★ წაიკითხე. გამოაქვეყნე. გაიზარდე. ★ ყველა ჟანრი ★ გახდი ავტორი ★ quaduni.com ★ შექმენი შენი ბიბლიოთეკა ★
               </span>
             ))}
           </div>
@@ -669,11 +676,10 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
           <div className="border-l-4 md:border-l-8 border-[#FFFF2E] pl-4 md:pl-8">
             <h2 className="text-6xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter leading-[0.75]">
               რჩეული<br />
-              <span className="text-[#FFFF2E]">არქივი</span>
+              <span className="text-[#FFFF2E]">კოლექცია</span>
             </h2>
             <div className="flex items-center gap-4 mt-6">
-              <span className="bg-[#FFFF2E] text-black text-[10px] font-black px-2 py-0.5 uppercase">დადასტურებული მარაგი</span>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">აირჩიეთ კომპონენტი ანალიზისთვის</p>
+              <span className="bg-[#FFFF2E] text-black text-[10px] font-black px-2 py-0.5 uppercase">რჩეული სათაურები</span>
             </div>
           </div>
           
@@ -697,7 +703,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
       <div className="featured-slider px-4 md:px-0">
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
-            <LoadingSpinner size="lg" text="არქივი იტვირთება..." />
+            <LoadingSpinner size="lg" text="წიგნები იტვირთება..." />
           </div>
         ) : hasArchive ? (
           <Slider 
@@ -749,14 +755,14 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                       <span className="text-2xl font-black italic">{book.price}</span>
                     </div>
                     <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">
-                      ავტ_ხელმ: {book.author}
+                      ავტ: {book.author}
                     </p>
                     
                     {/* Action Bar */}
                     <div className="pt-4 flex items-center justify-between border-t border-white/10">
-                      <span className="text-[8px] font-black uppercase text-[#FFFF2E]">კატ: {book.category || 'უცნობი'}</span>
+                      <span className="text-[8px] font-black uppercase text-[#FFFF2E]">ჟანრი: {book.category || 'სხვა'}</span>
                       <div className="flex items-center gap-2 group/btn">
-                        <span className="text-[10px] font-black uppercase opacity-0 group-hover:opacity-100 transition-opacity">ასლის მოთხოვნა</span>
+                        <span className="text-[10px] font-black uppercase opacity-0 group-hover:opacity-100 transition-opacity">ნახვა</span>
                         <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                       </div>
                     </div>
@@ -771,8 +777,8 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
           </Slider>
         ) : !isLoading && (
           <div className="mx-6 border-4 border-dashed border-white/10 p-20 text-center">
-            <h3 className="text-2xl font-black uppercase text-gray-500">არქივის სიგნალი არ არის</h3>
-            <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-600">დაუკავშირდით სერვერს</p>
+            <h3 className="text-2xl font-black uppercase text-gray-500">წიგნები ჯერ არ დამატებულა</h3>
+            <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-600">მალე გამოჩნდება</p>
           </div>
         )}
       </div>
@@ -780,7 +786,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
       <div className="mt-12 container mx-auto px-6">
         <div className="flex items-center gap-4">
           <div className="h-[2px] flex-1 bg-white/10" />
-          <div className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-600">რჩეული ნაკადის დასასრული</div>
+          <div className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-600">ატვირთეთ წიგნები ჩვენთან</div>
           <div className="h-[2px] flex-1 bg-white/10" />
         </div>
       </div>
@@ -797,7 +803,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
           {/* Giant Background Header - Now Outlined/Ghosted */}
           <div className="absolute -top-32 -right-10 z-0 select-none pointer-events-none">
             <h2 className="text-[30vw] font-black text-white/[0.02] uppercase leading-none rotate-6 tracking-tighter" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.1)', color: 'transparent' }}>
-              SIGNAL
+              ᲙᲐᲕᲨᲘᲠᲘ
             </h2>
           </div>
 
@@ -811,37 +817,34 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
               <div className="relative z-10 pt-4">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-3 h-3 bg-red-600 rounded-full animate-ping" />
-                  <span className="text-[10px] font-black text-[#FFFF2E] uppercase tracking-[0.4em]">კავშირი დამყარებულია</span>
+                  <span className="text-[10px] font-black text-[#FFFF2E] uppercase tracking-[0.4em]">დაგვიკავშირდით</span>
                 </div>
                 <h2 className="text-6xl lg:text-8xl font-black uppercase leading-[0.75] tracking-tighter mb-8">
-                  დაიწყეთ<br />
-                  <span className="text-[#FFFF2E]">გადაცემა</span><br />
+                  მოგვწერეთ<br />
+                  <span className="text-[#FFFF2E]">ახლავე</span><br />
                   .
                 </h2>
                 
                 <div className="space-y-4 max-w-sm">
                   <div className="h-1 w-16 bg-[#FFFF2E]" />
                   <p className="text-xs font-bold uppercase text-gray-400 leading-relaxed tracking-tight">
-                    ანონიმური ნოდის რაუტინგი აქტიურია. კოლექტიურ არქივში კვალი არ რჩება.
+                    გვიამბეთ წიგნებზე, პლატფორმაზე, ან ნებისმიერ სხვა კითხვაზე — სიხარულით გიპასუხებთ.
                   </p>
                 </div>
               </div>
               
               <div className="space-y-6 relative z-10 mt-8">
-                  <div className="p-4 border-2 border-[#FFFF2E]/20 bg-black/80 backdrop-blur-sm">
-                    <div className="flex justify-between items-center mb-2">
-                      <p className="text-[9px] font-black uppercase text-[#FFFF2E] tracking-widest">სიგნალის სიძლიერე</p>
-                      <span className="text-[9px] font-black text-green-500">მაქს</span>
+                  <div className="p-4 border-2 border-[#FFFF2E]/20 bg-black/80 backdrop-blur-sm space-y-3">
+                    <div className="flex justify-between items-center">
+                      <p className="text-[9px] font-black uppercase text-[#FFFF2E] tracking-widest">ელ-ფოსტა</p>
+                      <span className="text-[9px] font-black text-green-500">აქტიური</span>
                     </div>
-                  <div className="flex gap-1 h-6 items-end">
-                    {[...Array(16)].map((_, i) => (
-                      <div 
-                        key={i} 
-                        className="flex-1 bg-[#FFFF2E] opacity-20" 
-                        style={{ height: `${20 + Math.random() * 80}%`, animation: `pulse-bar ${1 + Math.random()}s infinite alternate` }} 
-                      />
-                    ))}
-                  </div>
+                    <p className="text-xs font-bold text-white/60 uppercase tracking-wide">hello@inkslab.ge</p>
+                    <div className="h-px w-full bg-[#FFFF2E]/10" />
+                    <div className="flex justify-between items-center">
+                      <p className="text-[9px] font-black uppercase text-[#FFFF2E] tracking-widest">პასუხის დრო</p>
+                    </div>
+                    <p className="text-xs font-bold text-white/60 uppercase tracking-wide">24 საათის განმავლობაში</p>
                 </div>
               </div>
             </div>
@@ -854,8 +857,8 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                     <Plus className="w-6 h-6 text-[#FFFF2E]" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-black uppercase leading-none">ახალი სიგნალი</h3>
-                    <p className="text-[9px] font-bold text-[#FFFF2E] uppercase tracking-[0.2em] mt-1">REF: 404-SYND</p>
+                    <h3 className="text-2xl font-black uppercase leading-none">შეტყობინება</h3>
+                    <p className="text-[9px] font-bold text-[#FFFF2E] uppercase tracking-[0.2em] mt-1">CONTACT@INKSLAB</p>
                   </div>
                 </div>
 
@@ -866,9 +869,9 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                         type="text" 
                         required
                         className="w-full bg-transparent border-b-2 border-white/20 p-3 font-black uppercase text-xl focus:outline-none focus:border-[#FFFF2E] focus:bg-[#FFFF2E]/5 transition-all placeholder:text-zinc-800"
-                        placeholder="იდენტიფიკატორი"
+                        placeholder="სახელი"
                       />
-                      <label className="block text-[9px] font-black uppercase text-gray-500 mt-2 tracking-widest group-focus-within:text-[#FFFF2E]">გამომგზავნის ID</label>
+                      <label className="block text-[9px] font-black uppercase text-gray-500 mt-2 tracking-widest group-focus-within:text-[#FFFF2E]">სახელი</label>
                     </div>
 
                     <div className="group relative">
@@ -876,9 +879,9 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                         type="email" 
                         required
                         className="w-full bg-transparent border-b-2 border-white/20 p-3 font-black uppercase text-xl focus:outline-none focus:border-[#FFFF2E] focus:bg-[#FFFF2E]/5 transition-all placeholder:text-zinc-800"
-                        placeholder="ამომავლი"
+                        placeholder="ელ-ფოსტა"
                       />
-                      <label className="block text-[9px] font-black uppercase text-gray-500 mt-2 tracking-widest group-focus-within:text-[#FFFF2E]">დაბრუნების გზა</label>
+                      <label className="block text-[9px] font-black uppercase text-gray-500 mt-2 tracking-widest group-focus-within:text-[#FFFF2E]">ელ-ფოსტა</label>
                     </div>
 
                     <div className="group relative">
@@ -886,9 +889,9 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                         rows={2}
                         required
                         className="w-full bg-transparent border-b-2 border-white/20 p-3 font-black uppercase text-xl focus:outline-none focus:border-[#FFFF2E] focus:bg-[#FFFF2E]/5 transition-all placeholder:text-zinc-800 resize-none"
-                        placeholder="მანიფესტი..."
+                        placeholder="შეტყობინება..."
                       />
-                      <label className="block text-[9px] font-black uppercase text-gray-500 mt-2 tracking-widest group-focus-within:text-[#FFFF2E]">მონაცემთა ნაკადი</label>
+                      <label className="block text-[9px] font-black uppercase text-gray-500 mt-2 tracking-widest group-focus-within:text-[#FFFF2E]">შეტყობინება</label>
                     </div>
                   </div>
 
@@ -897,7 +900,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                       <div className="absolute inset-0 bg-white translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
                       <span className="relative z-10 flex items-center gap-4">
                         <div className="w-2 h-2 bg-black rounded-full group-hover:scale-150 transition-transform" />
-                        გაუშვით
+                        გაგზავნა
                       </span>
                       <ArrowRight className="w-8 h-8 group-hover:translate-x-3 transition-transform relative z-10" />
                     </button>
@@ -908,31 +911,11 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                           <div key={i} className={`w-1.5 h-2.5 ${i < 6 ? 'bg-[#FFFF2E]' : 'bg-white/10'}`} />
                         ))}
                       </div>
-                      <span className="text-[8px] font-black uppercase text-gray-600 tracking-[0.2em]">სიგნალის ბლოკირება აქტიურია</span>
+                      <span className="text-[8px] font-black uppercase text-gray-600 tracking-[0.2em]">24 საათში გიპასუხებთ</span>
                     </div>
                   </div>
                 </form>
               </div>
-            </div>
-          </div>
-          
-          {/* Bottom Industrial Info Bar */}
-          <div className="w-full bg-zinc-950 border-x-4 border-b-4 border-[#FFFF2E] p-4 flex flex-wrap justify-between items-center gap-4">
-            <div className="flex items-center gap-8 animate-marquee whitespace-nowrap overflow-hidden">
-              <div className="flex items-center gap-8 shrink-0">
-                {[1,2,3,4,5,6].map(i => (
-                  <div key={i} className="flex items-center gap-4">
-                    <span className="text-[#FFFF2E] font-black uppercase text-[10px] tracking-widest opacity-50">SYNC_ACTIVE_{i}</span>
-                    <div className="w-1 h-1 bg-[#FFFF2E] rounded-full" />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="flex gap-8 items-center">
-              <div className="h-2 w-24 bg-zinc-800 rounded-full overflow-hidden">
-                <div className="h-full bg-[#FFFF2E] w-3/4 animate-pulse" />
-              </div>
-              <span className="text-white font-black uppercase text-[10px] tracking-widest opacity-30">V.404_BUILD</span>
             </div>
           </div>
         </div>
@@ -969,7 +952,7 @@ const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError,
         <header className="mb-12 md:mb-20">
           <div className="flex items-center gap-4 text-[#FFFF2E] font-black uppercase text-xs tracking-widest mb-4">
             <span className="w-12 h-[2px] bg-[#FFFF2E]" />
-            კოლექტიური ბიბლიოთეკა
+            წიგნების კატალოგი
           </div>
           <h2 className="text-6xl md:text-8xl lg:text-[12vw] font-black uppercase leading-[0.8] tracking-tighter">კატალოგი</h2>
         </header>
@@ -995,7 +978,7 @@ const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError,
             </button>
           ))}
           <div className="ml-auto flex items-center gap-4 text-[10px] font-black text-gray-600 uppercase tracking-widest">
-            {filteredBooks.length} ნივთი
+            {filteredBooks.length} სათაური
           </div>
         </div>
 
@@ -1022,8 +1005,8 @@ const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError,
               </AnimatePresence>
               {filteredBooks.length === 0 && (
                 <div className="col-span-full py-32 text-center border-4 border-dashed border-white/10">
-                  <h3 className="text-4xl font-black uppercase text-gray-500 italic">შესაბამისი ჩანაწერი არ მოიძებნა</h3>
-                  <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-600">არქივში ამ სიგნალის ჩანაწერი არ არის</p>
+                  <h3 className="text-4xl font-black uppercase text-gray-500 italic">წიგნი ვერ მოიძებნა</h3>
+                  <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-600">სცადეთ სხვა საძიებო სიტყვა</p>
                 </div>
               )}
             </>
@@ -1138,8 +1121,7 @@ const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading }
           </div>
         ) : reviews.length === 0 ? (
           <div className="py-24 border-4 border-dashed border-white/10 text-center">
-            <h3 className="text-3xl font-black uppercase text-gray-600">შეფასებები არ არის ხელმისწვდომი</h3>
-            <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-600">დაუკავშირდით სერვერს შეფასებების ჩასატვირთად</p>
+            <h3 className="text-3xl font-black uppercase text-gray-600">შეფასებები არ არის ხელმისწვდომი</h3>          
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -1214,9 +1196,9 @@ const Footer = () => (
   <footer className="bg-black py-16 md:py-24 px-6 border-t-8 border-[#FFFF2E]">
     <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
       <div className="col-span-1 md:col-span-2">
-        <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter mb-6">INK SLAB</h2>
+        <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter mb-6">quaduni.com</h2>
         <p className="text-gray-500 font-bold uppercase text-xs max-w-sm mb-8">
-          გვჯერა მელნის სურნელისა და ქაღალდის შეგრძნების. ციფრული ვალია. ანალოგური თავისუფლებაა.
+          ქართული წიგნების ციფრული პლატფორმა — წაიკითხე, გამოაქვეყნე, შექმენი შენი ბიბლიოთეკა.
         </p>
         <div className="flex gap-4">
           {['IG', 'TW', 'YT', 'TK'].map(s => (
@@ -1229,24 +1211,23 @@ const Footer = () => (
       <div>
         <h4 className="font-black uppercase text-xs mb-6 text-[#FFFF2E] tracking-widest">ნავიგაცია</h4>
         <ul className="flex flex-col gap-3 text-sm font-black uppercase">
-          <li><a href="#" className="hover:text-[#FFFF2E] transition-colors">მაღაზია</a></li>
-          <li><a href="#" className="hover:text-[#FFFF2E] transition-colors">არქივები</a></li>
-          <li><a href="#" className="hover:text-[#FFFF2E] transition-colors">წარდგენები</a></li>
-          <li><a href="#" className="hover:text-[#FFFF2E] transition-colors">საბითუმო</a></li>
+          <li><a href="/" className="hover:text-[#FFFF2E] transition-colors">მთავარი</a></li>
+          <li><a href="/books" className="hover:text-[#FFFF2E] transition-colors">კატალოგი</a></li>
+          <li><a href="/register" className="hover:text-[#FFFF2E] transition-colors">რეგისტრაცია</a></li>
+          <li><a href="/login" className="hover:text-[#FFFF2E] transition-colors">შესვლა</a></li>
         </ul>
       </div>
       <div>
         <h4 className="font-black uppercase text-xs mb-6 text-[#FFFF2E] tracking-widest">კონტაქტი</h4>
         <ul className="flex flex-col gap-3 text-sm font-black uppercase">
-          <li>BASEMENT 4, LONDON</li>
-          <li>HELLO@INKSLAB.CC</li>
-          <li>+44 020 888 999</li>
-          <li>ორშ-შაბ 11:00-19:00</li>
+          <li>თბილისი, საქართველო</li>
+          <li>hello@quaduni.com</li>
+          <li>ორშ-პარ 10:00-18:00</li>
         </ul>
       </div>
     </div>
     <div className="container mx-auto mt-24 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-black text-gray-700 uppercase tracking-[0.2em]">
-      <div>© 2026 INK SLAB COLLECTIVE. ყველა უფლება დაცულია.</div>
+      <div>© 2026 QUADUNI.COM. ყველა უფლება დაცულია.</div>
       <div className="flex gap-8">
         <a href="#">პირადი მონაცემების დაცვა</a>
         <a href="#">გაყიდვის პირობები</a>
@@ -1255,9 +1236,65 @@ const Footer = () => (
   </footer>
 );
 
+interface BookDetailRouteProps {
+  selectedBook: Book | null;
+  featuredBooks: Book[];
+  books: Book[];
+  user: AppUser | null;
+  isAuthLoading: boolean;
+  addToCart: (book: Book) => void;
+}
+
+const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, featuredBooks, books, user, isAuthLoading, addToCart }) => {
+  const params = useParams();
+  const routeLocation = useLocation();
+  const navigate = useNavigate();
+  const locationBook = (routeLocation.state as any)?.book as Book | undefined;
+  const bookId = params.bookId;
+
+  const book = locationBook
+    || (selectedBook && String(selectedBook.id) === String(bookId) ? selectedBook : null)
+    || [...featuredBooks, ...books].find((item) => String(item.id) === String(bookId));
+
+  if (!book) {
+    return <Navigate to="/books" replace />;
+  }
+
+  return (
+    <BookPage
+      book={book}
+      relatedBooks={[...featuredBooks, ...books]}
+      user={user}
+      isAuthLoading={isAuthLoading}
+      onBack={() => navigate('/books')}
+      onAddToCart={() => addToCart(book)}
+      onReadBook={() => navigate(`/reader/${book.id}`, { state: { book } })}
+      onOpenBook={(nextBook) => navigate(`/book/${nextBook.id}`, { state: { book: nextBook } })}
+    />
+  );
+};
+
+const BookDraftRoute: React.FC = () => {
+  const params = useParams();
+  const navigate = useNavigate();
+  const bookId = params.bookId;
+
+  if (!bookId) {
+    return <Navigate to="/my-books" replace />;
+  }
+
+  return (
+    <BookDraftView
+      bookId={bookId}
+      onBack={() => navigate('/my-books')}
+    />
+  );
+};
+
 export default function App() {
   const [selectedBook, setSelectedBook] = useState<any>(null);
   const [user, setUser] = useState<AppUser | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<any[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -1294,7 +1331,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    auth.getSession().then(setUser).catch(() => setUser(null));
+    auth.getSession()
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setIsAuthLoading(false));
   }, []);
 
   useEffect(() => {
@@ -1411,48 +1451,6 @@ export default function App() {
     }
   };
 
-  const BookDetailRoute = () => {
-    const params = useParams();
-    const routeLocation = useLocation();
-    const locationBook = (routeLocation.state as any)?.book as Book | undefined;
-    const bookId = params.bookId;
-
-    const book = locationBook
-      || (selectedBook && String(selectedBook.id) === String(bookId) ? selectedBook : null)
-      || [...featuredBooks, ...books].find((item) => String(item.id) === String(bookId));
-
-    if (!book) {
-      return <Navigate to="/books" replace />;
-    }
-
-    return (
-      <BookPage
-        book={book}
-        relatedBooks={[...featuredBooks, ...books]}
-        user={user}
-        onBack={() => navigate('/books')}
-        onAddToCart={() => addToCart(book)}
-        onReadBook={() => navigate(`/reader/${book.id}`, { state: { book } })}
-        onOpenBook={(nextBook) => navigate(`/book/${nextBook.id}`, { state: { book: nextBook } })}
-      />
-    );
-  };
-
-  const BookDraftRoute = () => {
-    const params = useParams();
-    const bookId = params.bookId;
-
-    if (!bookId) {
-      return <Navigate to="/my-books" replace />;
-    }
-
-    return (
-      <BookDraftView
-        bookId={bookId}
-        onBack={() => navigate('/my-books')}
-      />
-    );
-  };
 
   if (isAuthRoute) {
     return (
@@ -1493,6 +1491,7 @@ export default function App() {
         <Navbar
           onNavigate={handleNavigate}
           user={user}
+          isAuthLoading={isAuthLoading}
           onSignOut={handleSignOut}
           searchQuery={searchQuery}
           onSearchChange={handleSearchChange}
@@ -1517,7 +1516,7 @@ export default function App() {
           <Route path="/books" element={<BooksPage onBookClick={handleBookClick} searchQuery={searchQuery} books={books} onAddToCart={addToCart} catalogError={catalogError} isLoading={isCatalogLoading} />} />
           <Route path="/community" element={<CommunityView />} />
           <Route path="/reviews" element={<ReviewsPage reviews={reviews} reviewsError={reviewsError} user={user} onReviewsChange={() => loadReviews()} isLoading={isReviewsLoading} />} />
-          <Route path="/book/:bookId" element={<BookDetailRoute />} />
+          <Route path="/book/:bookId" element={<BookDetailRoute selectedBook={selectedBook} featuredBooks={featuredBooks} books={books} user={user} isAuthLoading={isAuthLoading} addToCart={addToCart} />} />
           <Route
             path="/reader/:bookId"
             element={

@@ -58,7 +58,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
         setTransactions(txData || []);
         setTransactionsPage(1);
       } catch (err: any) {
-        if (!cancelled) setError(err.message || 'WALLET_OFFLINE');
+        if (!cancelled) setError(err.message || 'საფულე მიუწვდომელია');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -80,7 +80,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
 
   const handleDeposit = async () => {
     if (!amount || parseFloat(amount) <= 0) {
-      setError('INVALID_AMOUNT');
+      setError('არასწორი თანხა');
       return;
     }
     setProcessing(true);
@@ -95,9 +95,9 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
       setTransactionsPage(1);
       setAmount('');
       setActiveTab('overview');
-      alert(`შეტვირთვა წარმატებულია! დაემატა ${result.amount}. ახალი ბალანსი: ${result.new_balance}`);
+      alert(`თანხის შეტანა წარმატებულია! დაემატა ${result.amount}. ახალი ბალანსი: ${result.new_balance}`);
     } catch (err: any) {
-      setError(err.message || 'DEPOSIT_FAILED');
+      setError(err.message || 'თანხის შეტანა ვერ მოხერხდა');
     } finally {
       setProcessing(false);
     }
@@ -112,7 +112,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
           className="group flex items-center gap-4 text-xs font-black uppercase tracking-[0.3em] mb-12 hover:text-[#FFFF2E] transition-all"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-2 transition-transform" />
-          [ საცავის დატოვება ]
+          [ უკან ]
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -123,11 +123,11 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
               <div className="relative z-10">
                 <div className="flex items-center gap-3 text-[#FFFF2E] mb-6">
                   <Wallet className="w-5 h-5" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em]">სინდიკატის ბალანსი</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em]">ჩემი ბალანსი</span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-[10px] font-black uppercase text-gray-500">ფუნტი</span>
-                  <h2 className="text-6xl font-black tracking-tighter">£{stats?.balance ?? '0.00'}</h2>
+                  <span className="text-[10px] font-black uppercase text-gray-500">ლარი</span>
+                  <h2 className="text-6xl font-black tracking-tighter">₾{(stats?.balance ?? '0.00').replace('₾', '')}</h2>
                 </div>
                 <div className="mt-8 flex gap-2">
                   <div className="flex-1 h-2 bg-white/10 overflow-hidden">
@@ -148,14 +148,14 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                   <TrendingUp className="w-4 h-4" />
                   <span className="text-[8px] font-black uppercase tracking-widest text-white">სულ გამომუშავებული</span>
                 </div>
-                <div className="text-3xl font-black">£{stats?.totalMade ?? '0.00'}</div>
+                <div className="text-3xl font-black">₾{(stats?.totalMade ?? '0.00').replace('₾', '')}</div>
               </div>
               <div className="p-6 border-2 border-white/10 bg-white/5 hover:border-white transition-all">
                 <div className="flex items-center gap-2 text-gray-500 mb-2">
                   <Zap className="w-4 h-4" />
-                  <span className="text-[8px] font-black uppercase tracking-widest text-white">სინქრონიზაციის მოლოდინში</span>
+                  <span className="text-[8px] font-black uppercase tracking-widest text-white">მოლოდინში</span>
                 </div>
-                <div className="text-3xl font-black text-[#FFFF2E]">£{stats?.pending ?? '0.00'}</div>
+                <div className="text-3xl font-black text-[#FFFF2E]">₾{(stats?.pending ?? '0.00').replace('₾', '')}</div>
               </div>
             </div>
           </div>
@@ -166,8 +166,8 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
               {/* Header Tabs */}
               <div className="flex border-b-4 border-white bg-black">
                 {[
-                  { id: 'overview', label: 'მანიფესტი', icon: ShieldCheck },
-                  { id: 'deposit', label: 'თანხის შეტვირთვა', icon: ArrowDownLeft },
+                  { id: 'overview', label: 'ისტორია', icon: ShieldCheck },
+                  { id: 'deposit', label: 'თანხის შეტანა', icon: ArrowDownLeft },
                   { id: 'withdraw', label: 'გამოტანა', icon: ArrowUpRight },
                 ].map((tab) => (
                   <button
@@ -198,18 +198,18 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                         <h3 className="text-xl font-black uppercase italic tracking-widest">ტრანზაქციების ისტორია</h3>
                         <div className="flex items-center gap-2 text-[10px] font-black text-gray-600 uppercase">
                           <div className="w-2 h-2 bg-green-500 rounded-full" />
-                          სინდიკატი დაცულია
+                          ანგარიში დაცულია
                         </div>
                       </div>
 
                       <div className="space-y-4">
                         {loading ? (
                           <div className="p-8 border-2 border-dashed border-white/10 text-center text-[10px] font-black uppercase tracking-widest text-gray-500">
-                            შენახვის სინქრონიზაცია...
+                            იტვირთება...
                           </div>
                         ) : error ? (
                           <div className="p-8 border-2 border-red-600/20 bg-red-600/5 text-center text-[10px] font-black uppercase tracking-widest text-red-500">
-                            შეცდომა შენახვაში: {error}
+                            შეცდომა: {error}
                           </div>
                         ) : transactions.length === 0 ? (
                           <div className="p-8 border-2 border-dashed border-white/10 text-center text-[10px] font-black uppercase tracking-widest text-gray-500">
@@ -224,7 +224,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                                   tx.type === 'DEPOSIT' ? 'border-blue-500 text-blue-500' : 'border-red-500 text-red-500'
                                 }`}>
                                      {tx.type === 'გაყიდვა' ? <TrendingUp className="w-5 h-5" /> : 
-                                    tx.type === 'შეტვირთვა' ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                                    tx.type === 'შეტანა' ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
                                 </div>
                                 <div>
                                   <h4 className="font-black uppercase text-sm tracking-tight">{tx.label}</h4>
@@ -283,20 +283,20 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                     >
                       <div className="text-center space-y-4">
                         <h3 className="text-4xl font-black uppercase italic">
-                          {activeTab === 'deposit' ? 'სისტემური კრედიტების შეტვირთვა' : 'სინდიკატის ღირებულების გამოტანა'}
+                          {activeTab === 'deposit' ? 'თანხის შეტანა' : 'თანხის გამოტანა'}
                         </h3>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 leading-relaxed">
                           {activeTab === 'deposit' 
-                            ? 'სინდიკატის კრედიტების შეტვირთვა დაშიფრული გზის გავლით. თანხა ხელმისაწვდომია ქსელის დადასტურებისთანავე.'
-                            : 'თანხა გადაიგზავნება თქვენს რეგისტრირებულ უცხოურ ანგარიშზე. სინქრონიზაციის დრო რეგიონზეა დამოკიდებული (12სთ - 48სთ).'}
+                            ? 'შეიყვანეთ სასურველი თანხა და დაამატეთ ბალანსზე. თანხა ხელმისაწვდომია დადასტურებისთანავე.'
+                            : 'თანხა გადაიგზავნება თქვენს რეგისტრირებულ ანგარიშზე. განხილვის დრო: 12–48 საათი.'}
                         </p>
                       </div>
 
                       <div className="space-y-8">
                         <div className="relative group">
-                          <label className="absolute -top-3 left-4 bg-black px-2 text-[10px] font-black text-[#FFFF2E] uppercase z-10">შეიყვანეთ თანხა (ფუნტი)</label>
+                          <label className="absolute -top-3 left-4 bg-black px-2 text-[10px] font-black text-[#FFFF2E] uppercase z-10">შეიყვანეთ თანხა (₾)</label>
                           <div className="flex items-center border-4 border-white bg-black/50 p-6 focus-within:border-[#FFFF2E] transition-all">
-                            <span className="text-4xl font-black text-gray-700 mr-4">£</span>
+                            <span className="text-4xl font-black text-gray-700 mr-4">₾</span>
                             <input 
                               type="number" 
                               value={amount}
@@ -314,7 +314,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                               onClick={() => setAmount(val)}
                               className="py-3 border-2 border-white/10 font-black text-xs hover:border-[#FFFF2E] hover:text-[#FFFF2E] transition-all"
                             >
-                              +£{val}
+                              +₾{val}
                             </button>
                           ))}
                         </div>
@@ -328,7 +328,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                             <span className="animate-pulse">დამუშავება...</span>
                           ) : (
                             <>
-                              {activeTab === 'deposit' ? 'შეტვირთვის დაწყება' : 'გამოტანის განხორციელება'}
+                              {activeTab === 'deposit' ? 'თანხის შეტანა' : 'თანხის გამოტანა'}
                               <ArrowRight className="w-8 h-8 group-hover:translate-x-2 transition-transform" />
                             </>
                           )}
@@ -337,7 +337,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                         <div className="flex items-center gap-4 opacity-30 grayscale justify-center">
                           <CreditCard className="w-6 h-6" />
                           <ShieldCheck className="w-6 h-6" />
-                          <span className="text-[10px] font-black">უსაფრთხო სინდიკატის პროტოკოლი V4</span>
+                          <span className="text-[10px] font-black">დაცული გადახდა</span>
                         </div>
                       </div>
                     </motion.div>

@@ -58,18 +58,18 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onBack, onSwitchToLo
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-16 border-b-4 border-white/20 pb-12">
           <div>
             <div className="flex items-center gap-4 mb-4">
-              <span className="bg-[#FFFF2E] text-black px-2 py-1 text-[14px] font-black uppercase">ფორმა_რეგისტრაცია_SF2026</span>
-              <span className="text-[14px] font-black uppercase text-gray-500">უსაფრთხო_არხი_v4</span>
+              <span className="bg-[#FFFF2E] text-black px-2 py-1 text-[14px] font-black uppercase">QUADUNI.COM</span>
+              <span className="text-[14px] font-black uppercase text-gray-500">რეგისტრაცია</span>
             </div>
             <h1 className="text-6xl md:text-9xl font-black uppercase leading-[0.75] tracking-tighter">
-              შემოუერთდი <br /> <span className="text-[#FFFF2E]">სინდიკატს.</span>
+              შექმენი <br /> <span className="text-[#FFFF2E]">ანგარიში.</span>
             </h1>
           </div>
           <button 
             onClick={onBack}
             className="text-[14px] font-black uppercase bg-[#FFFF2E] text-black px-6 py-3 hover:bg-white transition-colors"
           >
-            [ განაცხადის გაუქმება ]
+            [ მთავარზე დაბრუნება ]
           </button>
         </div>
 
@@ -108,13 +108,13 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onBack, onSwitchToLo
 
             <div className="space-y-4">
               <label className="text-[14px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
-                <ChevronRight className="w-4 h-4 text-[#FFFF2E]" /> კოდური სახელი
-              </label>
-              <input 
-                {...register("handle", { required: true })}
-                disabled={loading}
-                className="w-full bg-zinc-900 border-2 border-white/10 p-5 text-xl font-black uppercase outline-none focus:border-[#FFFF2E] transition-all placeholder:text-zinc-700 disabled:opacity-50"
-                placeholder="აირჩიეთ თქვენი ID"
+                  <ChevronRight className="w-4 h-4 text-[#FFFF2E]" /> მომხმარებლის სახელი
+                </label>
+                <input 
+                  {...register("handle", { required: true })}
+                  disabled={loading}
+                  className="w-full bg-zinc-900 border-2 border-white/10 p-5 text-xl font-black uppercase outline-none focus:border-[#FFFF2E] transition-all placeholder:text-zinc-700 disabled:opacity-50"
+                  placeholder="მომხმარებლის სახელი"
               />
             </div>
           </div>
@@ -122,7 +122,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onBack, onSwitchToLo
           <div className="space-y-10">
             <div className="space-y-4">
               <label className="text-[14px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
-                <ChevronRight className="w-4 h-4 text-[#FFFF2E]" /> კომუნიკაციის არხი
+                  <ChevronRight className="w-4 h-4 text-[#FFFF2E]" /> ელ-ფოსტა
               </label>
               <input 
                 {...register("email", { required: true })}
@@ -135,7 +135,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onBack, onSwitchToLo
 
             <div className="space-y-4">
               <label className="text-[14px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
-                <ChevronRight className="w-4 h-4 text-[#FFFF2E]" /> დაშიფვრის გასაღები
+                  <ChevronRight className="w-4 h-4 text-[#FFFF2E]" /> პაროლი
               </label>
               <input 
                 {...register("password", { required: true, minLength: 6 })}
@@ -151,7 +151,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onBack, onSwitchToLo
           <div className="md:col-span-2">
             <div className="space-y-4 mb-10">
               <label className="text-[14px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
-                <ChevronRight className="w-4 h-4 text-[#FFFF2E]" /> გასაღების დადასტურება
+                  <ChevronRight className="w-4 h-4 text-[#FFFF2E]" /> პაროლის დადასტურება
               </label>
               <input 
                 {...register("confirmPassword", { required: true })}
@@ -167,14 +167,14 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onBack, onSwitchToLo
               className="w-full bg-[#FFFF2E] text-black py-8 text-3xl font-black uppercase italic tracking-tighter hover:bg-white transition-all transform hover:-translate-y-2 flex items-center justify-center gap-6 disabled:opacity-50 disabled:translate-y-0"
             >
               {loading ? (
-                <>სინქრონიზაცია მიმდინარეობს <Loader2 className="w-8 h-8 animate-spin" /></>
+                <>რეგისტრაცია მიმდინარეობს <Loader2 className="w-8 h-8 animate-spin" /></>
               ) : (
-                <>სინქრონიზაციის დაწყება <Zap className="w-8 h-8 fill-current" /></>
+                <>რეგისტრაცია <Zap className="w-8 h-8 fill-current" /></>
               )}
             </button>
             <div className="mt-8 flex items-center justify-between text-[14px] font-black uppercase text-gray-600">
               <div className="flex items-center gap-2 italic">
-                <ShieldCheck className="w-4 h-4" /> მესამე მხარის თვალთვალი დადასტურებულია
+                <ShieldCheck className="w-4 h-4" /> უსაფრთხო რეგისტრაცია
               </div>
               <button 
                 type="button"

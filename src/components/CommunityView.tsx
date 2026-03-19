@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import {
   MessageSquare, Heart, MoreHorizontal, Plus, Zap, Globe,
-  Send, Lock, CheckCircle, AlertCircle, X, Bookmark, BellOff, Trash2
+  Send, Lock, CheckCircle, AlertCircle, X, Bookmark, BellOff, Trash2, Loader2
 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { api } from '../services/api';
@@ -232,7 +232,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId, postAuth
         </p>
       ) : comments.length === 0 ? (
         <p className="text-[9px] font-black uppercase text-gray-700 tracking-widest">
-          კომენტარები არ არის — პირველი გახდი!
+          კომენტარები არ არის — გახდი პირველი!
         </p>
       ) : (
         <div
@@ -413,7 +413,7 @@ const PostComposer: React.FC<ComposerProps> = ({ isAuthenticated, onPost, onLogi
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             disabled={!isAuthenticated || submitting}
-            placeholder={isAuthenticated ? 'ახალი მანიფესტის გავრცელება... (Ctrl+Enter)' : 'გადაცემის გასაგზავნად შეიყვანეთ სისტემაში...'}
+            placeholder={isAuthenticated ? 'რა გაქვს სათქმელი?... (Ctrl+Enter)' : 'პოსტირებისთვის გაიარეთ ავტორიზაცია...'}
             className="w-full bg-transparent border-b-2 border-white/10 p-2 text-sm font-black uppercase outline-none focus:border-[#FFFF2E] transition-all resize-none min-h-[96px] disabled:opacity-40 disabled:cursor-not-allowed"
             rows={3}
           />
@@ -461,7 +461,7 @@ const PostComposer: React.FC<ComposerProps> = ({ isAuthenticated, onPost, onLogi
                   className="flex items-center gap-2 text-[10px] font-black uppercase text-green-500"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  გადაცემა გაიგზავნა
+                  პოსტი გამოქვეყნდა
                 </motion.div>
               )}
             </div>
@@ -475,7 +475,7 @@ const PostComposer: React.FC<ComposerProps> = ({ isAuthenticated, onPost, onLogi
                 {submitting ? (
                   <><span className="animate-spin inline-block w-3 h-3 border-2 border-black border-t-transparent rounded-full" />გაგზავნა...</>
                 ) : (
-                  <><Send className="w-3 h-3" />გადაცემა</>
+                  <><Send className="w-3 h-3" />გამოქვეყნება</>
                 )}
               </button>
             ) : (
@@ -509,6 +509,7 @@ export const CommunityView: React.FC = () => {
   const [activeMenuId, setActiveMenuId] = useState<string | number | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -594,6 +595,8 @@ export const CommunityView: React.FC = () => {
       if (cancelled) return;
       setCurrentUser(null);
       setIsAuthenticated(false);
+    }).finally(() => {
+      if (!cancelled) setIsAuthLoading(false);
     });
 
     return () => {
@@ -601,10 +604,11 @@ export const CommunityView: React.FC = () => {
     };
   }, []);
 
-  // Initial load + refresh when auth state changes
+  // Load posts only once auth has settled to prevent double-fetch
   useEffect(() => {
+    if (isAuthLoading) return;
     loadPosts(1, false);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAuthLoading]);
 
   // Infinite scroll observer
   useEffect(() => {
@@ -743,6 +747,19 @@ export const CommunityView: React.FC = () => {
     return activeTab === 'ALL' || p.category === activeTab;
   });
 
+  if (isAuthLoading || loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6">
+          <Loader2 className="w-10 h-10 animate-spin text-white/30" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-600 animate-pulse">
+            იტვირთება...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-24 selection:bg-[#FFFF2E] selection:text-black font-mono">
       <div className="container mx-auto px-6 max-w-6xl">
@@ -751,8 +768,8 @@ export const CommunityView: React.FC = () => {
           {/* ── Left Sidebar ─────────────────────────────────────────── */}
           <div className="w-full lg:w-64 space-y-8">
             <div className="border-l-4 border-[#FFFF2E] pl-6 space-y-2">
-              <h1 className="text-4xl font-black uppercase tracking-tighter">სინდიკატის<br /><span className="text-[#FFFF2E]">ცენტრი</span></h1>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest italic">კოლექტიური ინტელექტი_V4</p>
+              <h1 className="text-4xl font-black uppercase tracking-tighter">ქომუნითი</h1>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest italic">სათემო სივრცე</p>
             </div>
 
             <div className="space-y-2 pt-8 border-t border-white/10">
@@ -773,16 +790,16 @@ export const CommunityView: React.FC = () => {
             <div className="p-6 bg-zinc-900 border-2 border-white/5 space-y-4">
               <div className="flex items-center gap-2 text-[#FFFF2E]">
                 <Globe className="w-4 h-4" />
-                <span className="text-[10px] font-black uppercase">გლობალური სტატუსი</span>
+                <span className="text-[10px] font-black uppercase">სტატისტიკა</span>
               </div>
               <div className="space-y-2 text-[10px] font-black uppercase leading-tight">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">გადაცემები:</span>
+                  <span className="text-gray-500">პოსტები:</span>
                   <span>{totalCount > 0 ? `${posts.length} / ${totalCount}` : posts.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">უსაფრთხოება:</span>
-                  <span className="text-green-500">ოპტიმალური</span>
+                  <span className="text-gray-500">სტატუსი:</span>
+                  <span className="text-green-500">ონლაინ</span>
                 </div>
               </div>
             </div>
@@ -799,11 +816,11 @@ export const CommunityView: React.FC = () => {
             <div className="space-y-6">
               {loading ? (
                 <div className="p-12 border-4 border-dashed border-white/10 text-center text-[10px] font-black uppercase tracking-widest text-gray-500 animate-pulse">
-                  ლენტის სინქრონიზაცია...
+                  პოსტები იტვირთება...
                 </div>
               ) : error ? (
                 <div className="p-12 border-4 border-red-600/20 bg-red-600/5 text-center text-[10px] font-black uppercase tracking-widest text-red-500">
-                  ლენტის შეცდომა: {error}
+                  შეცდომა: {error}
                 </div>
               ) : filteredPosts.length === 0 ? (
                 <motion.div
@@ -811,7 +828,7 @@ export const CommunityView: React.FC = () => {
                   animate={{ opacity: 1 }}
                   className="p-12 border-4 border-dashed border-white/10 text-center"
                 >
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">გადაცემები არ არის აღმოჩენილი</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">პოსტები ჯერ არ არის</p>
                   {isAuthenticated && (
                     <p className="mt-2 text-[9px] font-black uppercase text-gray-700">პირველი გახდი!</p>
                   )}
@@ -957,13 +974,13 @@ export const CommunityView: React.FC = () => {
                       <div className="w-2 h-2 bg-[#FFFF2E] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                       <div className="w-2 h-2 bg-[#FFFF2E] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                       <div className="w-2 h-2 bg-[#FFFF2E] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                      <span className="ml-2">გადაცემების ჩატვირთვა...</span>
+                      <span className="ml-2">პოსტების ჩატვირთვა...</span>
                     </div>
                   ) : hasMore ? (
                     <div className="h-12" /> /* Spacer for intersection observer */
                   ) : (
                     <p className="text-[10px] font-black uppercase text-gray-600 tracking-widest">
-                      ყველა გადაცემა ნაჩვენებია ({filteredPosts.length})
+                      ყველა პოსტი ნაჩვენებია ({filteredPosts.length})
                     </p>
                   )}
                 </div>
@@ -975,7 +992,7 @@ export const CommunityView: React.FC = () => {
           <div className="hidden xl:block w-72 space-y-8">
             {/* Saved Posts Block */}
             <div className="p-8 border-2 border-white/5 bg-zinc-900 space-y-6">
-              <h4 className="text-sm font-black uppercase italic border-b-2 border-white/10 pb-4 text-[#FFFF2E]">შენახული ტალღები</h4>
+              <h4 className="text-sm font-black uppercase italic border-b-2 border-white/10 pb-4 text-[#FFFF2E]">შენახული პოსტები</h4>
               <button
                 onClick={() => setActiveTab('SAVED')}
                 className={`w-full flex items-center justify-between p-4 border text-[10px] font-black uppercase transition-all ${activeTab === 'SAVED' ? 'border-[#FFFF2E] bg-[#FFFF2E]/10 text-[#FFFF2E]' : 'border-white/10 text-gray-500 hover:border-white/30 hover:text-white'}`}
@@ -990,17 +1007,17 @@ export const CommunityView: React.FC = () => {
               </button>
             </div>
 
-            {!isAuthenticated && (
+            {!isAuthLoading && !isAuthenticated && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="p-6 border-2 border-[#FFFF2E]/20 bg-[#FFFF2E]/5 space-y-4"
               >
-                <div className="text-[10px] font-black uppercase text-[#FFFF2E] tracking-widest">სინდიკატში შესვლა</div>
+                <div className="text-[10px] font-black uppercase text-[#FFFF2E] tracking-widest">გახდი წევრი</div>
                 <div className="text-[9px] font-black uppercase text-gray-500 leading-loose space-y-2">
                   <p>1. გაიარეთ ავტორიზაცია</p>
-                  <p>2. დაწერეთ თქვენი მანიფესტი</p>
-                  <p>3. დააჭირეთ „გადაცემა"</p>
+                  <p>2. დაწერეთ თქვენი პოსტი</p>
+                  <p>3. დააჭირეთ „გამოქვეყნება"</p>
                 </div>
                 <button
                   onClick={handleLoginRequest}

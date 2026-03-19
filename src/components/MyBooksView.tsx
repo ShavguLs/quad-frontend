@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -131,7 +131,7 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
       await fetchMyBooks();
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'RETRY_FAILED');
+      setError(err instanceof Error ? err.message : 'ხელახლა ცდა ვერ მოხერხდა');
     } finally {
       setRetryingBookId(null);
     }
@@ -165,19 +165,19 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
             className="group flex items-center gap-4 text-xs font-black uppercase tracking-[0.3em] hover:text-[#FFFF2E] transition-all"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-2 transition-transform" />
-            [ Back To Studio ]
+            [ უკან ]
           </button>
 
           <div className="flex items-center gap-6">
             <div className="flex flex-col items-end">
-              <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Active Manifests</span>
+              <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">გამოქვეყნებული</span>
               <span className="text-2xl font-black text-[#FFFF2E]">{books.length}</span>
             </div>
             <button 
               onClick={onUploadNew}
               className="bg-[#FFFF2E] text-black px-8 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all flex items-center gap-3"
             >
-              <Plus className="w-4 h-4" /> New Upload
+              <Plus className="w-4 h-4" /> ახალი ატვირთვა
             </button>
           </div>
         </div>
@@ -185,10 +185,10 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
         {/* Header */}
         <div className="border-l-8 border-[#FFFF2E] pl-8 mb-16">
           <h1 className="text-7xl md:text-8xl font-black uppercase tracking-tighter leading-[0.75]">
-              My<br />
-              <span className="text-[#FFFF2E]">Books</span>
+              ჩემი<br />
+              <span className="text-[#FFFF2E]">წიგნები</span>
           </h1>
-          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-600 mt-6 italic">Creator Control Center V1.0</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-600 mt-6 italic">ავტორის გვერდი</p>
         </div>
 
         {/* Controls */}
@@ -197,7 +197,7 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#FFFF2E] transition-colors" />
              <input 
               type="text" 
-              placeholder="Search my books..."
+              placeholder="წიგნის ძიება..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-zinc-950 border-2 border-white/10 p-4 pl-12 text-[10px] font-black uppercase outline-none focus:border-[#FFFF2E] transition-all"
@@ -224,26 +224,25 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
           {loading ? (
             <div className="flex flex-col items-center justify-center py-40 gap-6 opacity-30">
               <Loader2 className="w-16 h-16 animate-spin text-[#FFFF2E]" />
-              <span className="text-xs font-black uppercase tracking-[0.5em]">Loading...</span>
+              <span className="text-xs font-black uppercase tracking-[0.5em]">იტვირთება...</span>
             </div>
           ) : error ? (
             <div className="p-20 border-4 border-red-600/20 bg-red-600/5 text-center space-y-6">
               <AlertCircle className="w-16 h-16 text-red-600 mx-auto" />
-              <h3 className="text-3xl font-black uppercase">Load Failed</h3>
+              <h3 className="text-3xl font-black uppercase">ვერ ჩაიტვირთა</h3>
               <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{error}</p>
-              <button onClick={fetchMyBooks} className="bg-red-600 text-white px-8 py-4 text-[10px] font-black uppercase hover:bg-white hover:text-red-600 transition-all">Try Again</button>
+              <button onClick={fetchMyBooks} className="bg-red-600 text-white px-8 py-4 text-[10px] font-black uppercase hover:bg-white hover:text-red-600 transition-all">სცადე თავიდან</button>
             </div>
           ) : filteredBooks.length === 0 ? (
             <div className="p-24 border-4 border-dashed border-white/10 text-center space-y-8 group">
               <div className="space-y-4">
-                <h3 className="text-3xl font-black uppercase text-zinc-700">No Books Found</h3>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-800">You have not uploaded any books yet.</p>
+                <h3 className="text-3xl font-black uppercase text-zinc-700">წიგნები ვერ მოიძებნა</h3>
               </div>
               <button 
                 onClick={onUploadNew} 
                 className="bg-white text-black px-12 py-5 text-xs font-black uppercase hover:bg-[#FFFF2E] transition-all"
               >
-                [ Start First Upload ]
+                [ ატვირთვის დაწყება ]
               </button>
             </div>
           ) : (
@@ -276,7 +275,7 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
                             }}
                             onKeyDown={(event) => isolateCardActionKeyDown(event, () => navigate(`/draft/${book.id}`))}
                             className="p-2 bg-[#FFFF2E] text-black border border-black/40 hover:bg-white transition-all"
-                            title="Open tuning"
+                            title="პარამეტრები"
                           >
                             <SlidersHorizontal className="w-3.5 h-3.5" />
                           </button>
@@ -288,7 +287,7 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
                             }}
                             onKeyDown={(event) => isolateCardActionKeyDown(event, () => handleEdit(book))}
                             className="p-2 bg-black/80 hover:bg-[#FFFF2E] hover:text-black transition-all"
-                            title="Edit metadata"
+                            title="რედაქტირება"
                           >
                             <Edit3 className="w-3 h-3" />
                           </button>
@@ -300,7 +299,7 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
                              }}
                              onKeyDown={(event) => isolateCardActionKeyDown(event, () => handleDelete(book))}
                              className="p-2 bg-black/80 hover:bg-red-600 transition-all"
-                             title="Delete book"
+                             title="წაშლა"
                            >
                              <Trash2 className="w-3 h-3" />
                            </button>
@@ -343,7 +342,7 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
                             disabled={retryingBookId === book.id}
                             className="px-3 py-1 border border-yellow-300/40 text-yellow-200 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-yellow-300 hover:text-black transition-colors disabled:opacity-60"
                           >
-                            {retryingBookId === book.id ? 'Retrying...' : 'Retry'}
+                            {retryingBookId === book.id ? 'მიმდინარეობს...' : 'ხელახლა'}
                           </button>
                         )}
                       </div>
