@@ -837,10 +837,11 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                         {manifest?.status === 'ready' && manifest.access_mode === 'preview' && book && (
                             <button
                                 onClick={() => (user ? onAddToCart(book) : onLoginRequired())}
-                                className="group relative inline-flex items-center justify-center gap-2 bg-[#FFFF2E] px-4 py-2 text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,46,0.5)] border border-[#FFFF2E] hover:border-white"
+                                className="group relative inline-flex items-center justify-center gap-2 bg-[#FFFF2E] px-4 py-2 text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,46,0.5)] border border-[#FFFF2E] hover:border-white reader-buy-btn"
                             >
                                 <Lock className="w-3.5 h-3.5" />
-                                <span className="relative z-10">{user ? 'სრული წვდომის ყიდვა' : 'შესვლა საყიდლად'}</span>
+                                <span className="relative z-10 hidden md:inline">{user ? 'სრული წვდომის ყიდვა' : 'შესვლა საყიდლად'}</span>
+                                <span className="relative z-10 md:hidden">{user ? 'ყიდვა' : 'შესვლა'}</span>
                             </button>
                         )}
                     </div>
@@ -868,37 +869,37 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
 
                             {/* ── Floating Sidebar Navigation (Focus Mode) ── */}
                             {focusMode && (
-                                <div className="fixed right-4 md:right-8 top-1/2 -translate-y-1/2 z-[60] flex flex-col items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 p-2 md:p-3 rounded-[3rem] shadow-[0_0_40px_rgba(0,0,0,0.7)] transition-opacity duration-300">
+                                <div className="reader-focus-nav fixed bottom-4 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:bottom-auto md:right-8 md:top-1/2 md:-translate-y-1/2 z-[60] flex flex-row md:flex-col items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 p-2 md:p-3 rounded-[3rem] shadow-[0_0_40px_rgba(0,0,0,0.7)] transition-opacity duration-300">
                                     <button
                                         onClick={() => setFocusMode(false)}
                                         title="ფოკუს რეჟიმიდან გასვლა"
-                                        className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full bg-white/5 text-gray-400 hover:bg-[#FFFF2E] hover:text-black hover:shadow-[0_0_15px_rgba(255,255,46,0.3)] transition-all"
+                                        className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full bg-white/5 text-gray-400 hover:bg-[#FFFF2E] hover:text-black hover:shadow-[0_0_15px_rgba(255,255,46,0.3)] transition-all order-4 md:order-none"
                                     >
                                         <Minimize className="w-4 h-4 md:w-5 md:h-5" />
                                     </button>
 
-                                    <div className="w-8 h-[1px] bg-white/10 my-1" />
-
-                                    <button
-                                        onClick={() => goToRelativePage(1)}
-                                        disabled={pageNumber >= Math.max(availablePages, 1)}
-                                        title="შემდეგი გვერდი"
-                                        className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-transparent border border-transparent text-white hover:border-[#FFFF2E] hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_20px_rgba(255,255,46,0.3)] transition-all focus:outline-none disabled:opacity-20 disabled:pointer-events-none"
-                                    >
-                                        <ChevronRight className="h-6 w-6 md:h-8 md:w-8 mr-[-2px]" />
-                                    </button>
-
-                                    <div className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 my-2" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-                                        {pageNumber} / {Math.max(availablePages, 1)}
-                                    </div>
+                                    <div className="hidden md:block w-8 h-[1px] bg-white/10 my-1" />
 
                                     <button
                                         onClick={() => goToRelativePage(-1)}
                                         disabled={pageNumber <= 1}
                                         title="წინა გვერდი"
-                                        className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-transparent border border-transparent text-white hover:border-[#FFFF2E] hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_20px_rgba(255,255,46,0.3)] transition-all focus:outline-none disabled:opacity-20 disabled:pointer-events-none"
+                                        className="flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-full bg-transparent border border-transparent text-white hover:border-[#FFFF2E] hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_20px_rgba(255,255,46,0.3)] transition-all focus:outline-none disabled:opacity-20 disabled:pointer-events-none order-1 md:order-none"
                                     >
                                         <ChevronLeft className="h-6 w-6 md:h-8 md:w-8 ml-[-2px]" />
+                                    </button>
+
+                                    <div className="reader-page-counter text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 my-0 md:my-2 order-2 md:order-none" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+                                        {pageNumber} / {Math.max(availablePages, 1)}
+                                    </div>
+
+                                    <button
+                                        onClick={() => goToRelativePage(1)}
+                                        disabled={pageNumber >= Math.max(availablePages, 1)}
+                                        title="შემდეგი გვერდი"
+                                        className="flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-full bg-transparent border border-transparent text-white hover:border-[#FFFF2E] hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_20px_rgba(255,255,46,0.3)] transition-all focus:outline-none disabled:opacity-20 disabled:pointer-events-none order-3 md:order-none"
+                                    >
+                                        <ChevronRight className="h-6 w-6 md:h-8 md:w-8 mr-[-2px]" />
                                     </button>
                                 </div>
                             )}

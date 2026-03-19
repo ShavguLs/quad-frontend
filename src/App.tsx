@@ -267,7 +267,7 @@ const Navbar = ({ onNavigate, user, isAuthLoading, onSignOut, searchQuery, onSea
               <div className="p-6 bg-black border-t-2 border-white/10">
                 <div className="flex items-center gap-4 text-xs font-black uppercase tracking-widest text-gray-700">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  INK SLAB // ონლაინ
+                  QUADUNI
                 </div>
               </div>
             </motion.div>
@@ -428,6 +428,14 @@ const BookCard = React.forwardRef(({ title, author, price, img, cover_image_url,
 
 const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalogError, isLoading }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
   
   const settings = {
     dots: true,
@@ -574,7 +582,7 @@ const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalo
                 <div key={book.id} className="outline-none">
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                     {/* Book Object Column */}
-                    <div className="col-span-12 lg:col-span-6 flex justify-center lg:justify-start">
+                    <div className="main-book-column col-span-12 lg:col-span-6 flex justify-center lg:justify-start">
                       <motion.div 
                         initial={{ rotate: 10, x: -100, opacity: 0 }}
                         animate={{ rotate: -5, x: 0, opacity: 1 }}
@@ -603,18 +611,18 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                     </div>
 
                     {/* Content Column */}
-                    <div className="col-span-12 lg:col-span-6 space-y-8">
+                    <div className="col-span-12 lg:col-span-6 space-y-8 content-column">
                       <motion.div
                         initial={{ y: 50, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.2, duration: 0.6 }}
                         className="space-y-4"
                       >
-                        <div className="flex items-center gap-4 text-[#FFFF2E]">
+                        <div className="flex items-center gap-4 text-[#FFFF2E] popular-title">
                           <span className="w-12 h-1 bg-[#FFFF2E]" />
                           <span className="text-xs font-black uppercase tracking-[0.5em]">პოპულარული</span>
                         </div>
-                        <h2 className="text-5xl md:text-6xl lg:text-[8vw] font-black uppercase leading-[0.8] tracking-tighter">
+                        <h2 className="content-title-h2 text-5xl md:text-6xl lg:text-[8vw] font-black uppercase leading-[0.8] tracking-tighter">
                           {book.title}
                         </h2>
                         <p className="text-xl font-black uppercase italic text-gray-500">
@@ -626,7 +634,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                         initial={{ y: 30, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.4, duration: 0.6 }}
-                        className="pt-4"
+                        className="pt-4 content-button"
                       >
                         <button 
                           onClick={() => onBookClick(book)}
@@ -669,6 +677,11 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
         .featured-slider .slick-slide { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); opacity: 0.3; transform: scale(0.8) rotate(-2deg); filter: grayscale(1); }
         .featured-slider .slick-center { opacity: 1; transform: scale(1.05) rotate(0deg); filter: grayscale(0); z-index: 10; }
         .brutal-btn { clip-path: polygon(0 0, 100% 0, 100% 70%, 85% 100%, 0 100%); }
+        @media (max-width: 639px) {
+          .featured-slider .slick-list { overflow: hidden !important; }
+          .featured-slider .slick-slide { opacity: 1 !important; transform: none !important; filter: none !important; }
+          .featured-slider .slick-center { transform: none !important; }
+        }
       `}</style>
       
       {/* Background Industrial Elements */}
@@ -690,7 +703,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
             </div>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 collection-nav-buttons">
             <button 
               onClick={() => sliderRef.current?.slickPrev()}
               className="w-16 h-16 bg-white text-black flex items-center justify-center hover:bg-[#FFFF2E] transition-colors brutal-btn cursor-pointer"
@@ -718,9 +731,9 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
             dots={false}
             infinite={true}
             speed={600}
-            slidesToShow={3}
+            slidesToShow={isMobile ? 1 : 3}
             slidesToScroll={1}
-            centerMode={true}
+            centerMode={!isMobile}
             centerPadding="0"
             prevArrow={<CustomPrevArrow />}
             nextArrow={<CustomNextArrow />}
@@ -817,7 +830,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-4 border-[#FFFF2E] bg-black relative shadow-[30px_30px_0px_0px_rgba(255,255,46,0.05)]">
             
             {/* Left Header Block - 50% Symmetry */}
-            <div className="border-b-4 md:border-b-0 md:border-r-4 border-[#FFFF2E] p-8 md:p-12 flex flex-col justify-between bg-zinc-950 relative overflow-hidden">
+            <div className="hidden md:flex border-b-4 md:border-b-0 md:border-r-4 border-[#FFFF2E] p-8 md:p-12 flex-col justify-between bg-zinc-950 relative overflow-hidden">
               {/* Caution Stripe Background */}
               <div className="absolute top-0 left-0 w-full h-3 bg-[#FFFF2E] opacity-40" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 15px, black 15px, black 30px)' }} />
               

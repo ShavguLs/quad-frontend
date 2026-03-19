@@ -63,6 +63,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
       </div>
 
       <div className="relative w-full md:w-1/2 flex flex-col justify-between p-8 border-r-4 border-[#FFFF2E] z-10 bg-black/40 backdrop-blur-sm">
+        <button
+          onClick={onBack}
+          className="md:hidden absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center border-2 border-[#FFFF2E] text-[#FFFF2E] hover:bg-[#FFFF2E] hover:text-black transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
         <div className="space-y-4">
           <motion.div
             initial={{ x: -50, opacity: 0 }}
@@ -77,14 +83,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
         </div>
 
         <div className="space-y-8">
-          <div className="max-w-xs">
+          <div className="max-w-xs hidden md:block">
             <p className="text-[14px] font-black uppercase leading-relaxed text-gray-400">
               შეიყვანეთ ელ-ფოსტა და პაროლი თქვენს ანგარიშზე შესასვლელად.
             </p>
           </div>
           <button
             onClick={onBack}
-            className="group flex items-center gap-4 text-[14px] font-black uppercase tracking-[0.3em] hover:text-[#FFFF2E] transition-colors"
+            className="hidden md:flex group items-center gap-4 text-[14px] font-black uppercase tracking-[0.3em] hover:text-[#FFFF2E] transition-colors"
           >
             <X className="w-4 h-4" /> [ მთავარ გვერდზე დაბრუნება ]
           </button>
@@ -178,7 +184,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
           </div>
 
           <div className="mt-16 pt-16 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex items-center gap-4 opacity-50">
+            <div className="hidden md:flex items-center gap-4 opacity-50">
               <ShieldAlert className="w-8 h-8 text-[#FFFF2E]" />
               <div className="text-[14px] font-black uppercase tracking-widest leading-none">
                 quaduni.com <br /> <span className="text-white">დაცული კავშირი</span>

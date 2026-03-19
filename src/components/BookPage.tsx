@@ -242,14 +242,6 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
               )}
 
               <div className="absolute bottom-8 left-8 right-8 flex justify-between items-end">
-                <div className="space-y-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#FFFF2E]">CAT_REF: {book.id.toString().padStart(4, '0')}</span>
-                  <div className="flex gap-2">
-                    <div className="w-12 h-1 bg-[#FFFF2E]" />
-                    <div className="w-4 h-1 bg-white/20" />
-                    <div className="w-4 h-1 bg-white/20" />
-                  </div>
-                </div>
               </div>
             </motion.div>
 
@@ -291,7 +283,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
 
               </div>
 
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 book-action-container">
                 {(isAuthLoading || loadingOwnership) ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-8 h-8 animate-spin text-white/40" />
@@ -309,7 +301,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                   <>
                     <button
                       onClick={onReadBook}
-                      className="group relative py-5 text-sm font-black uppercase tracking-[0.2em] overflow-hidden transition-all border-2 border-[#FFFF2E] text-[#FFFF2E] hover:bg-[#FFFF2E] hover:text-black"
+                      className="group relative py-5 md:py-5 text-sm font-black uppercase tracking-[0.2em] overflow-hidden transition-all border-2 border-[#FFFF2E] text-[#FFFF2E] hover:bg-[#FFFF2E] hover:text-black book-action-btn"
                     >
                       <div className="relative z-10 flex items-center justify-center gap-3">
                         ფრაგმენტი <BookOpen className="w-5 h-5" />
@@ -317,7 +309,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                     </button>
                     <button
                       onClick={onAddToCart}
-                      className="group relative py-8 text-2xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-[#FFFF2E] text-black hover:bg-white"
+                      className="group relative py-8 md:py-8 text-2xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-[#FFFF2E] text-black hover:bg-white book-action-btn"
                     >
                       <div className="relative z-10 flex items-center justify-center gap-4">
                         ყიდვა <ShoppingBag className="w-8 h-8 group-hover:rotate-12 transition-transform" />
@@ -612,7 +604,6 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-[10px] font-black uppercase text-[#FFFF2E]">მსგავსი მოცემულობა_{index + 1}</div>
                     <div className="text-sm font-black uppercase">{relatedItem.title}</div>
                   </div>
                 </div>

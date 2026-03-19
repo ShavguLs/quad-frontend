@@ -211,7 +211,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
                 </div>
               </div>
               <div className="hidden md:block text-[9px] font-black text-gray-700 tracking-widest">
-                INK SLAB-ის გარანტია
+                QUADUNI-ის გარანტია
               </div>
             </div>
 
@@ -353,7 +353,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
           <div className="flex items-center gap-4">
             <ShieldCheck className="w-12 h-12 text-[#FFFF2E]" />
             <div className="text-[9px] font-black uppercase tracking-[0.2em] leading-tight">
-              შენი შეძენები დაცულია <br /> <span className="text-gray-500">დაშიფვრა: AES-256-GCM // INK SLAB V.4.0.1</span>
+              შენი შეძენები დაცულია <br /> <span className="text-gray-500">დაშიფვრა: AES-256-GCM // QUADUNI </span>
             </div>
           </div>
           <div className="flex items-center gap-8 text-[9px] font-black uppercase tracking-widest italic text-gray-500">
