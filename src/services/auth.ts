@@ -2,6 +2,7 @@ import type { User } from '../types';
 import { clearCsrfToken, ensureCsrfToken } from './api';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://api.quaduni.com';
+const AUTH_SESSION_HINT_KEY = 'quaduni.auth.hasSession';
 
 const getErrorMessage = (data: unknown, fallback: string): string => {
   if (!data || typeof data !== 'object') {
@@ -36,6 +37,33 @@ const getCookieValue = (name: string): string | null => {
 // Refresh state tracking for coordinating concurrent refresh requests
 let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
+
+const getSessionHintStorage = (): Storage | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+};
+
+const hasAuthenticatedSessionHint = (): boolean => {
+  const storage = getSessionHintStorage();
+  return storage?.getItem(AUTH_SESSION_HINT_KEY) === 'true';
+};
+
+const setAuthenticatedSessionHint = (): void => {
+  const storage = getSessionHintStorage();
+  storage?.setItem(AUTH_SESSION_HINT_KEY, 'true');
+};
+
+const clearAuthenticatedSessionHint = (): void => {
+  const storage = getSessionHintStorage();
+  storage?.removeItem(AUTH_SESSION_HINT_KEY);
+};
 
 const buildCsrfHeaders = async (): Promise<Headers> => {
   const headers = new Headers();
@@ -99,23 +127,35 @@ export const auth = {
     });
 
     if (response.status === 401) {
-      // Try to refresh the token
-      const refreshed = await refreshAccessToken();
-      if (!refreshed) {
+      if (!hasAuthenticatedSessionHint()) {
         return null;
       }
 
-      // Retry with refreshed cookies
+      const refreshed = await refreshAccessToken();
+      if (!refreshed) {
+        clearAuthenticatedSessionHint();
+        return null;
+      }
+
       const retryResponse = await fetch(`${API_BASE_URL}/auth/me`, {
         credentials: 'include',
       });
 
       if (!retryResponse.ok) {
+        clearAuthenticatedSessionHint();
         return null;
       }
 
       const data = await retryResponse.json().catch(() => null);
-      return data?.user as User | null;
+      const user = data?.user as User | null;
+
+      if (!user) {
+        clearAuthenticatedSessionHint();
+        return null;
+      }
+
+      setAuthenticatedSessionHint();
+      return user;
     }
 
     if (!response.ok) {
@@ -126,9 +166,11 @@ export const auth = {
     const user = data?.user as User | undefined;
 
     if (!user) {
+      clearAuthenticatedSessionHint();
       return null;
     }
 
+    setAuthenticatedSessionHint();
     return user;
   },
 
@@ -149,8 +191,8 @@ export const auth = {
     }
 
     const data = await response.json();
-    // Ensure CSRF token is loaded after successful login
     await ensureCsrfToken();
+    setAuthenticatedSessionHint();
     return data?.user as User;
   },
 
@@ -191,6 +233,7 @@ export const auth = {
 
     const data = await response.json();
     await ensureCsrfToken();
+    setAuthenticatedSessionHint();
     return data?.user as User;
   },
 
@@ -210,6 +253,7 @@ async function logout(): Promise<void> {
   }).catch(() => undefined);
 
   clearCsrfToken();
+  clearAuthenticatedSessionHint();
 }
 
 export { logout };

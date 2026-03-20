@@ -983,8 +983,25 @@ const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError,
           <h2 className="text-6xl md:text-8xl lg:text-[12vw] font-black uppercase leading-[0.8] tracking-tighter">კატალოგი</h2>
         </header>
 
-        {/* Filter Bar */}
-        <div className="flex flex-wrap items-center gap-x-8 gap-y-4 mb-16 border-y border-white/10 py-8">
+        <div className="md:hidden mb-10">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setFilter(cat)}
+                className={`shrink-0 border px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] transition-all ${
+                  filter === cat
+                    ? 'border-[#FFFF2E] bg-[#FFFF2E] text-black'
+                    : 'border-white/10 bg-white/5 text-gray-400'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="hidden md:flex flex-wrap items-center gap-x-8 gap-y-4 mb-16 border-y border-white/10 py-8">
           <div className="flex items-center gap-2 mr-8">
             <SlidersHorizontal className="w-5 h-5 text-[#FFFF2E]" />
             <span className="font-black uppercase text-xs tracking-widest">ფილტრი:</span>
@@ -1032,7 +1049,6 @@ const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError,
               {filteredBooks.length === 0 && (
                 <div className="col-span-full py-32 text-center border-4 border-dashed border-white/10">
                   <h3 className="text-4xl font-black uppercase text-gray-500 italic">წიგნი ვერ მოიძებნა</h3>
-                  <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-gray-600">სცადეთ სხვა საძიებო სიტყვა</p>
                 </div>
               )}
             </>
