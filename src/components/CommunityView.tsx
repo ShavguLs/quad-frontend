@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import {
-  MessageSquare, Heart, MoreHorizontal, Plus, Zap, Globe,
+  MessageSquare, Heart, MoreHorizontal, Plus, Zap,
   Send, Lock, CheckCircle, AlertCircle, X, Bookmark, BellOff, Trash2, Loader2
 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -414,7 +414,7 @@ const PostComposer: React.FC<ComposerProps> = ({ isAuthenticated, onPost, onLogi
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             disabled={!isAuthenticated || submitting}
-            placeholder={isAuthenticated ? 'რა გაქვს სათქმელი?... (Ctrl+Enter)' : 'პოსტირებისთვის გაიარეთ ავტორიზაცია...'}
+            placeholder={isAuthenticated ? 'რა გაქვს სათქმელი?... (Ctrl+Enter)' : 'პოსტის დასადებად უნდა გაიაროთ ავტორიზაცია...'}
             className="w-full bg-transparent border-b-2 border-white/10 p-2 text-sm font-black uppercase outline-none focus:border-[#FFFF2E] transition-all resize-none min-h-[96px] disabled:opacity-40 disabled:cursor-not-allowed"
             rows={3}
           />
@@ -812,23 +812,6 @@ export const CommunityView: React.FC = () => {
               ))}
             </div>
 
-            {/* Auth status block removed per user request */}
-            <div className="p-6 bg-zinc-900 border-2 border-white/5 space-y-4">
-              <div className="flex items-center gap-2 text-[#FFFF2E]">
-                <Globe className="w-4 h-4" />
-                <span className="text-[10px] font-black uppercase">სტატისტიკა</span>
-              </div>
-              <div className="space-y-2 text-[10px] font-black uppercase leading-tight">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">პოსტები:</span>
-                  <span>{totalCount > 0 ? `${posts.length} / ${totalCount}` : posts.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">სტატუსი:</span>
-                  <span className="text-green-500">ონლაინ</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* ── Main Feed ──────────────────────────────────────────────── */}
@@ -1020,22 +1003,23 @@ export const CommunityView: React.FC = () => {
 
           {/* ── Right Sidebar ───────────────────────────────────────────── */}
           <div className="hidden xl:block w-72 space-y-8">
-            {/* Saved Posts Block */}
-            <div className="p-8 border-2 border-white/5 bg-zinc-900 space-y-6">
-              <h4 className="text-sm font-black uppercase italic border-b-2 border-white/10 pb-4 text-[#FFFF2E]">შენახული პოსტები</h4>
-              <button
-                onClick={() => setActiveTab('SAVED')}
-                className={`w-full flex items-center justify-between p-4 border text-[10px] font-black uppercase transition-all ${activeTab === 'SAVED' ? 'border-[#FFFF2E] bg-[#FFFF2E]/10 text-[#FFFF2E]' : 'border-white/10 text-gray-500 hover:border-white/30 hover:text-white'}`}
-              >
-                <div className="flex items-center gap-2">
-                  <Bookmark className={`w-4 h-4 ${activeTab === 'SAVED' ? 'fill-[#FFFF2E]' : ''}`} />
-                  შენახული პოსტები
-                </div>
-                {savedPosts.size > 0 && (
-                  <span className="bg-[#FFFF2E] text-black px-2 py-0.5 rounded-full">{savedPosts.size}</span>
-                )}
-              </button>
-            </div>
+            {isAuthenticated && (
+              <div className="p-8 border-2 border-white/5 bg-zinc-900 space-y-6">
+                <h4 className="text-sm font-black uppercase italic border-b-2 border-white/10 pb-4 text-[#FFFF2E]">შენახული პოსტები</h4>
+                <button
+                  onClick={() => setActiveTab('SAVED')}
+                  className={`w-full flex items-center justify-between p-4 border text-[10px] font-black uppercase transition-all ${activeTab === 'SAVED' ? 'border-[#FFFF2E] bg-[#FFFF2E]/10 text-[#FFFF2E]' : 'border-white/10 text-gray-500 hover:border-white/30 hover:text-white'}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Bookmark className={`w-4 h-4 ${activeTab === 'SAVED' ? 'fill-[#FFFF2E]' : ''}`} />
+                    შენახული პოსტები
+                  </div>
+                  {savedPosts.size > 0 && (
+                    <span className="bg-[#FFFF2E] text-black px-2 py-0.5 rounded-full">{savedPosts.size}</span>
+                  )}
+                </button>
+              </div>
+            )}
 
             {!isAuthLoading && !isAuthenticated && (
               <motion.div
@@ -1046,14 +1030,14 @@ export const CommunityView: React.FC = () => {
                 <div className="text-[10px] font-black uppercase text-[#FFFF2E] tracking-widest">გახდი წევრი</div>
                 <div className="text-[9px] font-black uppercase text-gray-500 leading-loose space-y-2">
                   <p>1. გაიარეთ ავტორიზაცია</p>
-                  <p>2. დაწერეთ თქვენი პოსტი</p>
+                  <p>2. დაწერეთ პოსტი</p>
                   <p>3. დააჭირეთ „გამოქვეყნება"</p>
                 </div>
                 <button
                   onClick={handleLoginRequest}
                   className="w-full bg-[#FFFF2E] text-black py-2 text-[9px] font-black uppercase tracking-widest hover:bg-white transition-all"
                 >
-                  შესვლა ახლა
+                  შესვლა 
                 </button>
               </motion.div>
             )}
