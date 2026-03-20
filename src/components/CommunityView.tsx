@@ -900,7 +900,8 @@ export const CommunityView: React.FC = () => {
                                 className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 transition-colors"
                               >
                                 <MessageSquare className="w-4 h-4" />
-                                {commentCount} კომენტარი
+                                <span>{commentCount}</span>
+                                <span className="hidden sm:inline">კომენტარი</span>
                               </div>
 
                               {/* Share has been removed per user request */}
