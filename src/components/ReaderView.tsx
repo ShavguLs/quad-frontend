@@ -328,6 +328,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
     const [showSavedPanel, setShowSavedPanel] = useState(false);
     const [saveToast, setSaveToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [focusMode, setFocusMode] = useState(false);
+    const [isMobileViewport, setIsMobileViewport] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return window.matchMedia('(max-width: 767px)').matches;
+    });
 
     const bookTitle = manifest?.title || book?.title || `Book ${bookId}`;
     const { savedPages, isPageSaved, canSaveMore, toggleSavePage, removeSavedPage, clearAllSavedPages, maxSavedPages } =
@@ -466,24 +470,46 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
         [pageFrame.height, pageFrame.width, focusMode],
     );
 
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const mediaQuery = window.matchMedia('(max-width: 767px)');
+        const syncViewport = () => setIsMobileViewport(mediaQuery.matches);
+
+        syncViewport();
+        mediaQuery.addEventListener('change', syncViewport);
+
+        return () => {
+            mediaQuery.removeEventListener('change', syncViewport);
+        };
+    }, []);
+
     // Compute Draft Studio applied styles
     const themeFont = useMemo(() => draftTheme ? getFontById(draftTheme.font_id) : null, [draftTheme]);
     const themePalette = useMemo(() => draftTheme ? getPaletteById(draftTheme.palette_id) : null, [draftTheme]);
     const themeAnimation = useMemo(() => draftTheme ? getAnimationById(draftTheme.animation_id) : null, [draftTheme]);
     const themePaper = useMemo(() => draftTheme ? getPaperById(draftTheme.paper_id) : null, [draftTheme]);
     const themeBackground = useMemo(() => draftTheme ? getBackgroundById(draftTheme.background_id) : null, [draftTheme]);
+    const effectiveBaseFontSize = useMemo(() => {
+        if (!draftTheme) return null;
+        const mobileScale = 0.88;
+        return isMobileViewport
+            ? Math.max(12, draftTheme.base_font_size * mobileScale)
+            : draftTheme.base_font_size;
+    }, [draftTheme, isMobileViewport]);
+
     const pageContentStyle = useMemo<React.CSSProperties>(() => {
-        if (!draftTheme || !themeFont || !themePalette) return {};
+        if (!draftTheme || !themeFont || !themePalette || !effectiveBaseFontSize) return {};
         return {
             fontFamily: themeFont.family,
-            fontSize: `${draftTheme.base_font_size}px`,
+            fontSize: `${effectiveBaseFontSize}px`,
             lineHeight: String(draftTheme.line_height),
             letterSpacing: `${draftTheme.letter_spacing}em`,
             color: themePalette.text,
             maxWidth: `${draftTheme.content_width}px`,
             margin: '0 auto',
         };
-    }, [draftTheme, themeFont, themePalette]);
+    }, [draftTheme, effectiveBaseFontSize, themeFont, themePalette]);
 
     const pageCanvasBgStyle = useMemo<React.CSSProperties>(() => {
         if (!themePalette) return {};
@@ -651,7 +677,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
 
     return (
         <div
-            className={`min-h-screen text-white pt-6 md:pt-8 pb-12 px-4 md:px-8 selection:bg-[#FFFF2E] selection:text-black ${!themePalette ? 'bg-[#0a0a0a]' : ''}`}
+            className={`reader-root min-h-screen text-white pt-3 md:pt-8 pb-6 md:pb-12 px-2 sm:px-3 md:px-8 selection:bg-[#FFFF2E] selection:text-black ${focusMode ? 'reader-root--focus' : ''} ${!themePalette ? 'bg-[#0a0a0a]' : ''}`}
             style={{
                 position: 'relative',
                 ...(themePalette ? { backgroundColor: themePalette.shell } : {}),
@@ -780,9 +806,9 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                 </div>
             )}
 
-            <div className={`container mx-auto relative z-10 transition-all duration-500 ${focusMode ? 'max-w-[100vw] mt-4' : 'max-w-6xl mt-0'}`}>
+            <div className={`container mx-auto w-full relative z-10 transition-all duration-500 ${focusMode ? 'max-w-[100vw] mt-2 md:mt-4' : 'max-w-6xl mt-0'}`}>
                 {/* ── Top Header Bar (Hidden in Focus Mode) ── */}
-                <div className={`relative mb-6 flex-wrap items-center justify-between gap-4 border-b border-white/15 pb-4 ${focusMode ? 'hidden' : 'flex'}`}>
+                <div className={`relative mb-4 md:mb-6 flex-wrap items-center justify-between gap-2 md:gap-4 border-b border-white/15 pb-3 md:pb-4 ${focusMode ? 'hidden' : 'flex'}`}>
                     <button
                         onClick={() => navigate(`/book/${bookId}`)}
                         className="group relative inline-flex items-center justify-center gap-2 bg-red-500 px-4 py-2 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-600 transition-all duration-300 hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-500 hover:border-red-600"
@@ -816,7 +842,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                 id="reader-open-saved-panel"
                                 onClick={() => setShowSavedPanel(true)}
                                 title="შენახული გვერდების ნახვა"
-                                className={`group relative inline-flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition-all ${savedPages.length > 0
+                                className={`group relative inline-flex items-center gap-2 px-3 py-2 text-[11px] md:text-[10px] font-black uppercase tracking-[0.18em] transition-all ${savedPages.length > 0
                                     ? 'border-2 border-[#FFFF2E] text-[#FFFF2E] bg-[#FFFF2E]/5'
                                     : 'border border-white/20 text-gray-400 hover:border-[#FFFF2E] hover:text-[#FFFF2E]'
                                     }`}
@@ -837,7 +863,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                         {manifest?.status === 'ready' && manifest.access_mode === 'preview' && book && (
                             <button
                                 onClick={() => (user ? onAddToCart(book) : onLoginRequired())}
-                                className="group relative inline-flex items-center justify-center gap-2 bg-[#FFFF2E] px-4 py-2 text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,46,0.5)] border border-[#FFFF2E] hover:border-white reader-buy-btn"
+                                className="group relative inline-flex items-center justify-center gap-2 bg-[#FFFF2E] px-4 py-2 text-black text-[11px] md:text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,46,0.5)] border border-[#FFFF2E] hover:border-white reader-buy-btn"
                             >
                                 <Lock className="w-3.5 h-3.5" />
                                 <span className="relative z-10 hidden md:inline">{user ? 'სრული წვდომის ყიდვა' : 'შესვლა საყიდლად'}</span>
@@ -864,11 +890,11 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                 {manifest?.status === 'ready' && (
                     <>
 
-                        <div className={`relative group/nav transition-all duration-500 ${focusMode ? 'flex-1 flex justify-center w-full px-2' : ''}`}>
+                        <div className={`reader-reading-stage relative group/nav transition-all duration-500 ${focusMode ? 'reader-reading-stage--focus flex-1 flex justify-center w-full px-1 md:px-2' : ''}`}>
 
                             {/* ── Floating Sidebar Navigation (Focus Mode) ── */}
                             {focusMode && (
-                                <div className="reader-focus-nav fixed bottom-4 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:bottom-auto md:right-8 md:top-1/2 md:-translate-y-1/2 z-[60] flex flex-row md:flex-col items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 p-2 md:p-3 rounded-[3rem] shadow-[0_0_40px_rgba(0,0,0,0.7)] transition-opacity duration-300">
+                                    <div className="reader-focus-nav fixed bottom-3 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:bottom-auto md:right-8 md:top-1/2 md:-translate-y-1/2 z-[60] flex flex-row md:flex-col items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 p-2 md:p-3 rounded-[3rem] shadow-[0_0_40px_rgba(0,0,0,0.7)] transition-opacity duration-300">
                                     <button
                                         onClick={() => setFocusMode(false)}
                                         title="ფოკუს რეჟიმიდან გასვლა"
@@ -888,7 +914,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                         <ChevronLeft className="h-6 w-6 md:h-8 md:w-8 ml-[-2px]" />
                                     </button>
 
-                                    <div className="reader-page-counter text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 my-0 md:my-2 order-2 md:order-none" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+                                    <div className="reader-page-counter text-[11px] md:text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 my-0 md:my-2 order-2 md:order-none">
                                         {pageNumber} / {Math.max(availablePages, 1)}
                                     </div>
 
@@ -907,7 +933,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                 {/* Wrapper so the ribbon sits outside the overflow:hidden canvas */}
                                 <div className="relative w-full flex justify-center h-full">
                                     <div
-                                        className={`reader-page-canvas ${themePalette ? '' : 'bg-white text-black'} transition-all duration-300`}
+                                        className={`reader-page-canvas ${focusMode ? 'reader-page-canvas--focus' : ''} ${themePalette ? '' : 'bg-white text-black'} transition-all duration-300`}
                                         style={{ ...pageCanvasStyle, ...pageCanvasBgStyle, position: 'relative', overflow: 'hidden' }}
                                         data-paper-effect={themePaper?.effect || 'clean'}
                                     >
@@ -942,7 +968,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
 
                                         {!loadingPage && pageData?.render_mode !== 'image' && (
                                             <div className="reader-page-content" style={pageContentStyle}>
-                                                {draftTheme && themeFont && themePalette && (
+                                                {draftTheme && themeFont && themePalette && effectiveBaseFontSize && (
                                                     <style>{`
                           .reader-page-content * {
                             font-family: ${themeFont.family} !important;
@@ -951,13 +977,13 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                             letter-spacing: ${draftTheme.letter_spacing}em !important;
                           }
                           .reader-page-content p, .reader-page-content span, .reader-page-content div {
-                            font-size: ${draftTheme.base_font_size}px !important;
+                            font-size: ${effectiveBaseFontSize}px !important;
                           }
                           .reader-page-content h1, .reader-page-content h2, .reader-page-content h3 {
-                            font-size: ${draftTheme.base_font_size * 1.5}px !important;
+                            font-size: ${effectiveBaseFontSize * 1.5}px !important;
                           }
                           .reader-page-content h4, .reader-page-content h5, .reader-page-content h6 {
-                            font-size: ${draftTheme.base_font_size * 1.25}px !important;
+                            font-size: ${effectiveBaseFontSize * 1.25}px !important;
                           }
                         `}</style>
                                                 )}
@@ -978,9 +1004,9 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                         </div>
 
                         {!focusMode && (
-                            <div className="mt-6 flex flex-col items-center justify-center gap-4">
+                            <div className="reader-mobile-controls mt-4 md:mt-6 flex flex-col items-center justify-center gap-3 md:gap-4">
                                 {/* ── Page counter & Navigation row ── */}
-                                <div className="flex items-center gap-4 md:gap-8">
+                                <div className="reader-mobile-nav-row flex items-center gap-4 md:gap-8">
                                     <button
                                         id="reader-prev-page"
                                         onClick={() => goToRelativePage(-1)}
@@ -991,7 +1017,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                         <ChevronLeft className="h-6 w-6 md:h-8 md:w-8 -ml-0.5 md:-ml-1" />
                                     </button>
 
-                                    <div className="text-[11px] md:text-xs font-black uppercase tracking-[0.2em] text-gray-300 min-w-[120px] text-center">
+                                    <div className="reader-page-counter text-xs md:text-xs font-black uppercase tracking-[0.2em] text-gray-300 min-w-[120px] text-center">
                                         გვერდი {pageNumber} / {Math.max(availablePages, 1)}
                                     </div>
 
@@ -1007,14 +1033,14 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                 </div>
 
                                 {/* ── Action Row ── */}
-                                <div className="flex flex-col items-center gap-3">
+                                <div className="reader-mobile-actions flex flex-col items-center gap-3 w-full">
 
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
                                         {/* ── Focus Button ── */}
                                         <button
                                             onClick={() => setFocusMode(f => !f)}
                                             title={focusMode ? 'ფოკუს რეჟიმიდან გასვლა' : 'ფოკუს რეჟიმში შეყვანა'}
-                                            className={`inline-flex items-center gap-2 px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors ${focusMode
+                                            className={`inline-flex items-center gap-2 px-3.5 py-2 md:px-3 md:py-1.5 text-[10px] md:text-[9px] font-black uppercase tracking-wider transition-colors ${focusMode
                                                 ? 'bg-[#FFFF2E] text-black border-[1px] border-[#FFFF2E] shadow-[0_0_10px_rgba(255,255,46,0.3)]'
                                                 : 'border border-white/20 text-gray-300 hover:border-[#FFFF2E] hover:text-[#FFFF2E]'
                                                 }`}
@@ -1031,7 +1057,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                                     onClick={handleToggleSave}
                                                     disabled={!canSaveMore && !isPageSaved(pageNumber)}
                                                     title={isPageSaved(pageNumber) ? 'შენახული გვერდის წაშლა' : canSaveMore ? 'გვერდის შენახვა მოგვიანებლად' : `მაქსიმუმ ${maxSavedPages} გვერდი შენახულია`}
-                                                    className={`inline-flex items-center gap-2 px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors ${isPageSaved(pageNumber)
+                                                    className={`inline-flex items-center gap-2 px-3.5 py-2 md:px-3 md:py-1.5 text-[10px] md:text-[9px] font-black uppercase tracking-wider transition-colors ${isPageSaved(pageNumber)
                                                         ? 'bg-[#FFFF2E] text-black border-[1px] border-[#FFFF2E]'
                                                         : canSaveMore
                                                             ? 'border border-white/20 text-gray-300 hover:border-[#FFFF2E] hover:text-[#FFFF2E]'
@@ -1047,7 +1073,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                                     id="reader-mark-position-btn"
                                                     onClick={() => isMarkedPage ? clearPosition() : markPage(pageNumber)}
                                                     title={isMarkedPage ? 'საწყისი პინის წაშლა' : 'ამ გვერდის დაპინება შემდეგ სესიაზე განახლებისთვის'}
-                                                    className={`inline-flex items-center gap-2 px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-colors ${isMarkedPage
+                                                    className={`inline-flex items-center gap-2 px-3.5 py-2 md:px-3 md:py-1.5 text-[10px] md:text-[9px] font-black uppercase tracking-wider transition-colors ${isMarkedPage
                                                         ? 'bg-[#FFFF2E] text-black border-[1px] border-[#FFFF2E] shadow-[0_0_10px_rgba(255,255,46,0.3)]'
                                                         : 'border border-white/20 text-gray-300 hover:border-[#FFFF2E] hover:text-[#FFFF2E]'
                                                         }`}

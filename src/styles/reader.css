@@ -86,15 +86,84 @@
 }
 
 @media (max-width: 767px) {
+  .reader-root--focus {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  .reader-reading-stage {
+    min-height: calc(100dvh - 12rem);
+  }
+
+  .reader-reading-stage--focus {
+    min-height: calc(100dvh - 1.25rem);
+    align-items: stretch;
+  }
+
+  .reader-page-shell {
+    padding-top: 0;
+  }
+
   .reader-page-canvas {
-    --reader-page-max-height: clamp(500px, 85vh, 850px) !important;
+    --reader-page-max-height: none !important;
     width: 100% !important;
+    max-width: none !important;
+    height: clamp(520px, 72dvh, 820px);
+    max-height: none !important;
+    aspect-ratio: auto !important;
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 18px 36px -18px rgba(0, 0, 0, 0.72), 0 8px 18px -8px rgba(0, 0, 0, 0.45);
+  }
+
+  .reader-page-canvas--focus {
+    height: calc(100dvh - 5rem - env(safe-area-inset-bottom, 0px));
+  }
+
+  .reader-page-canvas::after {
+    display: none;
+  }
+
+  .reader-page-content {
+    padding: 1rem 0.9rem;
+    font-size: 14px;
   }
 
   .reader-focus-nav {
-    width: calc(100vw - 2rem);
-    max-width: 400px;
-    justify-content: space-evenly;
+    width: calc(100vw - 1rem);
+    max-width: 420px;
+    justify-content: space-between;
+    border-radius: 999px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem) !important;
+  }
+
+  .reader-page-counter {
+    writing-mode: horizontal-tb !important;
+    transform: none !important;
+    min-width: 74px;
+    text-align: center;
+  }
+
+  .reader-mobile-controls {
+    position: sticky;
+    bottom: 0.5rem;
+    z-index: 45;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.1rem);
+  }
+
+  .reader-mobile-nav-row {
+    width: min(100%, 420px);
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    border-radius: 999px;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .reader-mobile-actions {
+    width: min(100%, 420px);
   }
 }
 

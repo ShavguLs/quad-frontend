@@ -645,7 +645,15 @@ export const CommunityView: React.FC = () => {
     setCommentCounts(prev => ({ ...prev, [post.id]: 0 }));
   };
 
-  const handleLoginRequest = () => navigate('/login');
+  const handleLoginRequest = () => navigate('/login', { state: { from: '/community' } });
+
+  const handleOpenPost = (post: CommunityPost) => {
+    if (!isAuthenticated) {
+      handleLoginRequest();
+      return;
+    }
+    setModalPost(post);
+  };
 
   const toggleLike = async (postId: string | number) => {
     if (!isAuthenticated) {
@@ -693,6 +701,10 @@ export const CommunityView: React.FC = () => {
   };
 
   const handleToggleSave = async (id: string | number) => {
+    if (!isAuthenticated) {
+      handleLoginRequest();
+      return;
+    }
     setActiveMenuId(null);
     const isCurrentlySaved = savedPosts.has(id);
 
@@ -723,6 +735,10 @@ export const CommunityView: React.FC = () => {
   };
 
   const handleMutePost = (id: string | number) => {
+    if (!isAuthenticated) {
+      handleLoginRequest();
+      return;
+    }
     setMutedPosts(prev => {
       const next = new Set(prev);
       next.add(id);
@@ -732,6 +748,10 @@ export const CommunityView: React.FC = () => {
   };
 
   const handleDeletePost = async (id: string | number) => {
+    if (!isAuthenticated) {
+      handleLoginRequest();
+      return;
+    }
     if (!window.confirm('ნამდვილად გსურთ პოსტის წაშლა?')) return;
     try {
       await api.deleteCommunityPost(id);
@@ -851,7 +871,7 @@ export const CommunityView: React.FC = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         key={post.id}
-                        onClick={() => setModalPost(post)}
+                        onClick={() => handleOpenPost(post)}
                         className="bg-zinc-950 border-2 border-white/5 hover:border-white/20 transition-all p-8 relative group cursor-pointer"
                       >
                         {/* Category + timestamp badge */}
@@ -906,6 +926,10 @@ export const CommunityView: React.FC = () => {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
+                                    if (!isAuthenticated) {
+                                      handleLoginRequest();
+                                      return;
+                                    }
                                     setActiveMenuId(activeMenuId === post.id ? null : post.id);
                                   }}
                                   className={`flex items-center justify-center w-8 h-8 rounded-full transition-colors ${activeMenuId === post.id ? 'bg-white/10 text-white' : 'text-gray-700 hover:bg-white/5 hover:text-white'}`}

@@ -1340,6 +1340,12 @@ export default function App() {
   const [isReviewsLoading, setIsReviewsLoading] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+  const loginRedirectPath =
+    typeof (location.state as { from?: unknown } | null)?.from === 'string'
+      ? ((location.state as { from: string }).from.startsWith('/')
+        ? (location.state as { from: string }).from
+        : '/')
+      : '/';
   const isAuthRoute = location.pathname === '/login' || location.pathname === '/register';
   const isChromeHiddenRoute = location.pathname.startsWith('/reader/') || location.pathname.startsWith('/draft/');
 
@@ -1494,7 +1500,7 @@ export default function App() {
               onSwitchToRegister={() => navigate('/register')}
               onSuccess={(authedUser) => {
                 setUser(authedUser);
-                navigate('/');
+                navigate(loginRedirectPath, { replace: true });
               }}
             />
           }

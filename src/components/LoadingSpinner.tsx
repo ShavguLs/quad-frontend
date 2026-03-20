@@ -153,11 +153,6 @@ export const PageLoader: React.FC<PageLoaderProps> = ({
         <p className="text-2xl font-black uppercase tracking-tighter text-white">
           {message}
         </p>
-        <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500">
-          <span className="w-2 h-2 bg-[#FFFF2E] rounded-full animate-pulse" />
-          სადგური აქტიურია
-          <span className="w-2 h-2 bg-[#FFFF2E] rounded-full animate-pulse" />
-        </div>
       </div>
       
       {/* Progress bars */}

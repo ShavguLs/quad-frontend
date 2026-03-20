@@ -199,7 +199,7 @@ export const TermsView: React.FC = () => {
                         <button
                           onClick={() => scrollTo(id)}
                           className={`w-full flex items-center gap-4 px-6 py-5 text-left transition-all group ${
-                            isActive ? 'bg-[#FFFF2E] text-black' : 'hover:bg-white/5 text-white'
+                            isActive ? 'bg-white text-black' : 'hover:bg-white/5 text-white'
                           }`}
                         >
                           <span className={`text-[10px] font-black tracking-widest ${isActive ? 'text-black' : 'text-[#FFFF2E]'}`}>
