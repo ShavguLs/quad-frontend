@@ -795,7 +795,7 @@ export const CommunityView: React.FC = () => {
           <div className="w-full lg:w-64 space-y-8">
             <div className="border-l-4 border-[#FFFF2E] pl-6 space-y-2">
               <h1 className="text-4xl font-black uppercase tracking-tighter">ქომუნითი</h1>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest italic">სათემო სივრცე</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest italic">საერთო სივრცე</p>
             </div>
 
             <div className="space-y-2 pt-8 border-t border-white/10">

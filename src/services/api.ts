@@ -132,6 +132,40 @@ const fetchWithRefresh = async (url: string, options: RequestOptions = {}): Prom
   return response;
 };
 
+const extractApiErrorMessage = (errorBody: unknown): string | null => {
+  if (typeof errorBody === 'string') {
+    const trimmed = errorBody.trim();
+    return trimmed || null;
+  }
+
+  if (Array.isArray(errorBody)) {
+    for (const item of errorBody) {
+      const message = extractApiErrorMessage(item);
+      if (message) return message;
+    }
+    return null;
+  }
+
+  if (errorBody && typeof errorBody === 'object') {
+    const record = errorBody as Record<string, unknown>;
+    const priorityKeys = ['error', 'message', 'detail', 'non_field_errors'];
+
+    for (const key of priorityKeys) {
+      if (key in record) {
+        const message = extractApiErrorMessage(record[key]);
+        if (message) return message;
+      }
+    }
+
+    for (const value of Object.values(record)) {
+      const message = extractApiErrorMessage(value);
+      if (message) return message;
+    }
+  }
+
+  return null;
+};
+
 const request = async <T>(path: string, options: RequestOptions = {}): Promise<T> => {
   if (!API_BASE_URL) {
     throw new Error('BACKEND_NOT_CONFIGURED');
@@ -160,7 +194,7 @@ const request = async <T>(path: string, options: RequestOptions = {}): Promise<T
   if (!response.ok) {
     const contentType = response.headers.get('content-type');
     const errorBody = contentType && contentType.includes('application/json') ? await response.json() : await response.text();
-    const message = typeof errorBody === 'string' ? errorBody : errorBody?.error || errorBody?.message || errorBody?.detail || 'REQUEST_FAILED';
+    const message = extractApiErrorMessage(errorBody) || 'REQUEST_FAILED';
     throw new Error(message);
   }
 
