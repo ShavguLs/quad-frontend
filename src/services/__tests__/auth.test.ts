@@ -47,14 +47,9 @@ describe('auth.getSession', () => {
   });
 
   it('returns null without refreshing for anonymous bootstrap', async () => {
-    fetchSpy.mockResolvedValueOnce(createJsonResponse({ detail: 'Unauthorized' }, 401));
-
     await expect(auth.getSession()).resolves.toBeNull();
 
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining('/auth/me'), {
-      credentials: 'include',
-    });
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it('refreshes and retries when a prior session hint exists', async () => {
@@ -86,6 +81,7 @@ describe('auth.getSession', () => {
   });
 
   it('stores the session hint after a successful session fetch', async () => {
+    localStorage.setItem(AUTH_SESSION_HINT_KEY, 'true');
     fetchSpy.mockResolvedValueOnce(createJsonResponse({ user: mockUser }, 200));
 
     await expect(auth.getSession()).resolves.toEqual(mockUser);

@@ -574,7 +574,7 @@ const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalo
           )}
           {isLoading ? (
             <div className="min-h-[500px] flex items-center justify-center">
-              <PageLoader message="რჩეული იტვირთება..." />
+              <PageLoader message="იტვირთება..." />
             </div>
           ) : hasFeatured ? (
             <Slider {...settings}>

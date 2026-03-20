@@ -122,15 +122,15 @@ export const refreshAccessToken = async (): Promise<boolean> => {
 
 export const auth = {
   async getSession(): Promise<User | null> {
+    if (!hasAuthenticatedSessionHint()) {
+      return null;
+    }
+
     const response = await fetch(`${API_BASE_URL}/auth/me`, {
       credentials: 'include',
     });
 
     if (response.status === 401) {
-      if (!hasAuthenticatedSessionHint()) {
-        return null;
-      }
-
       const refreshed = await refreshAccessToken();
       if (!refreshed) {
         clearAuthenticatedSessionHint();
