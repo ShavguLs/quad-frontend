@@ -585,7 +585,7 @@ export const api = {
 
   async getBook(bookId: string | number): Promise<Book> {
     if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    return request<Book>(`/books/${bookId}/`);
+    return request<Book>(`/books/${bookId}/`, { skipAuth: true });
   },
 
   async getBookAuditLog(bookId: string | number, filters?: AuditLogFilters, limit?: number): Promise<AuditLogResponse> {

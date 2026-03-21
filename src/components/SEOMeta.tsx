@@ -1,16 +1,20 @@
 import { Helmet } from 'react-helmet-async';
+import { resolveOgImage, SITE_NAME, SITE_THEME_COLOR, toAbsoluteUrl } from '../lib/seo';
 
-const SITE_NAME = 'Quaduni';
-const DEFAULT_OG_IMAGE = '/og-default.png';
+type JsonLdBlock = Record<string, unknown>;
 
 interface SEOMetaProps {
   title: string;
   description: string;
   canonical?: string;
   image?: string;
+  ogImageAlt?: string;
   type?: 'website' | 'article' | 'book';
-  jsonLd?: Record<string, unknown>;
+  jsonLd?: JsonLdBlock | JsonLdBlock[];
   noindex?: boolean;
+  robots?: string;
+  themeColor?: string;
+  twitterSite?: string;
 }
 
 export const SEOMeta: React.FC<SEOMetaProps> = ({
@@ -18,39 +22,47 @@ export const SEOMeta: React.FC<SEOMetaProps> = ({
   description,
   canonical,
   image,
+  ogImageAlt,
   type = 'website',
   jsonLd,
   noindex = false,
+  robots,
+  themeColor = SITE_THEME_COLOR,
+  twitterSite,
 }) => {
   const fullTitle = `${title} | ${SITE_NAME}`;
-  const ogImage = image || DEFAULT_OG_IMAGE;
+  const canonicalUrl = canonical ? toAbsoluteUrl(canonical) : undefined;
+  const ogImage = resolveOgImage(image);
+  const robotsContent = robots ?? (noindex ? 'noindex,nofollow' : undefined);
+  const jsonLdBlocks = Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [];
 
   return (
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      {noindex && <meta name="robots" content="noindex,nofollow" />}
-      {canonical && <link rel="canonical" href={canonical} />}
+      {robotsContent && <meta name="robots" content={robotsContent} />}
+      {themeColor && <meta name="theme-color" content={themeColor} />}
+      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
-      {/* Open Graph */}
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content={type} />
       <meta property="og:image" content={ogImage} />
-      {canonical && <meta property="og:url" content={canonical} />}
+      {ogImageAlt && <meta property="og:image:alt" content={ogImageAlt} />}
+      {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
 
-      {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
+      {ogImageAlt && <meta name="twitter:image:alt" content={ogImageAlt} />}
+      {twitterSite && <meta name="twitter:site" content={twitterSite} />}
 
-      {/* JSON-LD Structured Data */}
-      {jsonLd && (
-        <script type="application/ld+json">
-          {JSON.stringify(jsonLd)}
+      {jsonLdBlocks.map((block, index) => (
+        <script key={index} type="application/ld+json">
+          {JSON.stringify(block)}
         </script>
-      )}
+      ))}
     </Helmet>
   );
 };

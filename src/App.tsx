@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Routes, Route, Navigate, Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, ShoppingBag, Menu, ArrowRight, X, SlidersHorizontal, ChevronLeft, ChevronRight, Plus, User, Database, BookOpen, ThumbsUp, ThumbsDown } from 'lucide-react';
 import Slider from 'react-slick';
@@ -19,39 +19,41 @@ import { CommunityView } from './components/CommunityView';
 import { ReaderView } from './components/ReaderView';
 import { TermsView } from './components/TermsView';
 import { SEOMeta } from './components/SEOMeta';
+import { NotFoundView } from './components/NotFoundView';
 import { api } from './services/api';
 import { auth } from './services/auth';
+import { buildHomeJsonLd } from './lib/seo';
 import type { Book, Review, User as AppUser } from './types';
 
 // --- Sub-Components ---
 
-const Navbar = ({ onNavigate, user, isAuthLoading, onSignOut, searchQuery, onSearchChange, cartCount, onOpenCart }) => {
+const Navbar = ({ user, isAuthLoading, onSignOut, searchQuery, onSearchChange, cartCount, onOpenCart }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItems = [
-    { id: 'home', label: 'მთავარი' },
-    { id: 'books', label: 'წიგნები' },
-    { id: 'community', label: 'ქომუნითი' },
-    { id: 'reviews', label: 'შეფასებები' },
+    { id: 'home', label: 'მთავარი', path: '/' },
+    { id: 'books', label: 'წიგნები', path: '/books' },
+    { id: 'community', label: 'ქომუნითი', path: '/community' },
+    { id: 'reviews', label: 'შეფასებები', path: '/reviews' },
   ];
 
   const userItems = [
-    { id: 'profile', label: 'პროფილი', icon: User },
-    { id: 'wallet', label: 'საფულე', icon: ShoppingBag },
-    { id: 'library', label: 'ბიბლიოთეკა', icon: Database },
-    { id: 'my-books', label: 'ჩემი წიგნები', icon: BookOpen },
-    { id: 'upload-book', label: 'ატვირთვა', icon: Plus },
+    { id: 'profile', label: 'პროფილი', icon: User, path: '/profile' },
+    { id: 'wallet', label: 'საფულე', icon: ShoppingBag, path: '/wallet' },
+    { id: 'library', label: 'ბიბლიოთეკა', icon: Database, path: '/library' },
+    { id: 'my-books', label: 'ჩემი წიგნები', icon: BookOpen, path: '/my-books' },
+    { id: 'upload-book', label: 'ატვირთვა', icon: Plus, path: '/upload' },
   ];
 
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-4 md:px-6 py-4 border-b-2 border-white/10 bg-black/95 backdrop-blur-xl font-mono">
         <div className="flex items-center gap-4 lg:gap-12">
-          <h1 className="text-2xl md:text-3xl font-black tracking-[-0.1em] uppercase leading-none cursor-pointer text-white hover:text-[#FFFF2E] transition-colors" onClick={() => onNavigate('home')}>QUADUNI</h1>
+          <Link to="/" className="text-2xl md:text-3xl font-black tracking-[-0.1em] uppercase leading-none text-white hover:text-[#FFFF2E] transition-colors">QUADUNI</Link>
           <div className="hidden lg:flex gap-8">
             {menuItems.map(item => (
-              <button key={item.id} onClick={() => onNavigate(item.id as any)} className="text-xs font-black uppercase tracking-widest hover:line-through transition-all cursor-pointer text-white">{item.label}</button>
+              <Link key={item.id} to={item.path} className="text-xs font-black uppercase tracking-widest hover:line-through transition-all text-white">{item.label}</Link>
             ))}
           </div>
         </div>
@@ -92,17 +94,15 @@ const Navbar = ({ onNavigate, user, isAuthLoading, onSignOut, searchQuery, onSea
                         
                         <div className="p-2 space-y-1 bg-black">
                           {userItems.map((item) => (
-                            <button
+                            <Link
                               key={item.id}
-                              onClick={() => {
-                                onNavigate(item.id as any);
-                                setIsDropdownOpen(false);
-                              }}
+                              to={item.path}
+                              onClick={() => setIsDropdownOpen(false)}
                               className="w-full flex items-center gap-4 px-4 py-4 text-[11px] font-black uppercase tracking-widest hover:bg-[#FFFF2E] hover:text-black transition-all text-left group border border-transparent hover:border-white/20"
                             >
                               <item.icon className="w-4 h-4 text-[#FFFF2E] group-hover:text-black transition-colors" />
                               <span className="text-white group-hover:text-black">{item.label}</span>
-                            </button>
+                            </Link>
                           ))}
                           
                           <div className="h-[2px] bg-white/10 my-2" />
@@ -125,18 +125,18 @@ const Navbar = ({ onNavigate, user, isAuthLoading, onSignOut, searchQuery, onSea
               </div>
             ) : (
               <>
-                <button 
-                  onClick={() => onNavigate('login')}
+                <Link 
+                  to="/login"
                   className="text-[10px] font-black uppercase tracking-widest hover:text-[#FFFF2E] transition-colors cursor-pointer text-white"
                 >
                   შესვლა
-                </button>
-                <button 
-                  onClick={() => onNavigate('register')}
+                </Link>
+                <Link 
+                  to="/register"
                   className="bg-[#FFFF2E] text-black px-3 py-1 text-[10px] font-black uppercase tracking-widest hover:bg-white transition-colors cursor-pointer"
                 >
                   რეგისტრაცია
-                </button>
+                </Link>
               </>
             )}
           </div>
@@ -194,16 +194,14 @@ const Navbar = ({ onNavigate, user, isAuthLoading, onSignOut, searchQuery, onSea
                   <span className="text-[10px] font-black text-[#FFFF2E] uppercase tracking-[0.4em] mb-4 block">ნავიგაცია</span>
                   <div className="grid gap-2">
                     {menuItems.map(item => (
-                      <button 
+                      <Link 
                         key={item.id} 
-                        onClick={() => {
-                          onNavigate(item.id as any);
-                          setIsMobileMenuOpen(false);
-                        }}
+                        to={item.path}
+                        onClick={() => setIsMobileMenuOpen(false)}
                         className="w-full p-4 border-2 border-white/5 bg-black text-left text-lg font-black uppercase hover:border-[#FFFF2E] hover:text-[#FFFF2E] transition-all"
                       >
                         {item.label}
-                      </button>
+                      </Link>
                     ))}
                   </div>
                 </div>
@@ -219,17 +217,15 @@ const Navbar = ({ onNavigate, user, isAuthLoading, onSignOut, searchQuery, onSea
                   ) : user ? (
                     <div className="grid gap-2">
                       {userItems.map(item => (
-                        <button 
+                        <Link 
                           key={item.id} 
-                          onClick={() => {
-                            onNavigate(item.id as any);
-                            setIsMobileMenuOpen(false);
-                          }}
+                          to={item.path}
+                          onClick={() => setIsMobileMenuOpen(false)}
                           className="w-full p-4 border-2 border-white/5 bg-black flex items-center gap-4 text-sm font-black uppercase hover:border-[#FFFF2E] hover:text-[#FFFF2E] transition-all"
                         >
                           <item.icon className="w-5 h-5" />
                           {item.label}
-                        </button>
+                        </Link>
                       ))}
                        <button 
                          onClick={() => {
@@ -244,10 +240,10 @@ const Navbar = ({ onNavigate, user, isAuthLoading, onSignOut, searchQuery, onSea
                      </div>
                    ) : (
                      <div className="grid grid-cols-2 gap-4">
-                       <button onClick={() => onNavigate('login')} className="p-4 border-2 border-white/20 font-black uppercase text-xs hover:border-[#FFFF2E] transition-all">შესვლა</button>
-                       <button onClick={() => onNavigate('register')} className="p-4 bg-[#FFFF2E] text-black font-black uppercase text-xs">რეგისტრაცია</button>
-                     </div>
-                   )}
+                        <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="p-4 border-2 border-white/20 font-black uppercase text-xs hover:border-[#FFFF2E] transition-all text-center">შესვლა</Link>
+                        <Link to="/register" onClick={() => setIsMobileMenuOpen(false)} className="p-4 bg-[#FFFF2E] text-black font-black uppercase text-xs text-center">რეგისტრაცია</Link>
+                      </div>
+                    )}
                  </div>
 
                 <div className="pt-8 border-t border-white/5">
@@ -379,7 +375,7 @@ const CartSidebar = ({ isOpen, onClose, cart, onRemove, onExecuteOrder, isExecut
   );
 };
 
-const BookCard = React.forwardRef(({ title, author, price, img, cover_image_url, tag, oldPrice, onClick, onAddToCart }, ref) => (
+const BookCard = React.forwardRef(({ id, title, author, price, img, cover_image_url, tag, oldPrice, onClick, onAddToCart }, ref) => (
   <motion.div 
     ref={ref}
     layout
@@ -387,29 +383,41 @@ const BookCard = React.forwardRef(({ title, author, price, img, cover_image_url,
     animate={{ opacity: 1, scale: 1 }}
     exit={{ opacity: 0, scale: 0.9 }}
     whileHover={{ y: -10 }}
-    className="group cursor-pointer w-full"
+    className="group w-full"
   >
-    <div className="relative aspect-[3/4] mb-6 overflow-hidden border-2 border-white/5 grayscale group-hover:grayscale-0 transition-all duration-700" onClick={onClick}>
-      <ImageWithFallback src={img || cover_image_url || ''} className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-1000" alt={title} />
-      <div className="absolute inset-0 bg-black/40 opacity-100 group-hover:opacity-0 transition-opacity" />
-      {tag && (
-        <div className={`absolute top-4 left-4 px-3 py-1 text-[10px] font-black uppercase -rotate-6 group-hover:rotate-0 transition-transform z-10 ${
-          tag === 'FREE' ? 'bg-[#FFFF2E] text-black' : 
-          tag === 'SALE' ? 'bg-red-600 text-white' : 'bg-[#FFFF2E] text-black'
-        }`}>
-          {tag}
+    <Link
+      to={`/book/${id}`}
+      state={{ book: { id, title, author, price, img, cover_image_url, tag, oldPrice } }}
+      onClick={onClick}
+      className="block"
+    >
+      <div className="relative aspect-[3/4] mb-6 overflow-hidden border-2 border-white/5 grayscale group-hover:grayscale-0 transition-all duration-700">
+        <ImageWithFallback src={img || cover_image_url || ''} className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-1000" alt={title} />
+        <div className="absolute inset-0 bg-black/40 opacity-100 group-hover:opacity-0 transition-opacity" />
+        {tag && (
+          <div className={`absolute top-4 left-4 px-3 py-1 text-[10px] font-black uppercase -rotate-6 group-hover:rotate-0 transition-transform z-10 ${
+            tag === 'FREE' ? 'bg-[#FFFF2E] text-black' : 
+            tag === 'SALE' ? 'bg-red-600 text-white' : 'bg-[#FFFF2E] text-black'
+          }`}>
+            {tag}
+          </div>
+        )}
+        <div className="absolute bottom-4 right-4 bg-white text-black px-3 py-1 text-xs font-black italic">
+          {oldPrice && <span className="line-through text-gray-400 mr-2">{oldPrice}</span>}
+          {price}
         </div>
-      )}
-      <div className="absolute bottom-4 right-4 bg-white text-black px-3 py-1 text-xs font-black italic">
-        {oldPrice && <span className="line-through text-gray-400 mr-2">{oldPrice}</span>}
-        {price}
       </div>
-    </div>
+    </Link>
     <div className="space-y-1">
-      <div onClick={onClick}>
+      <Link
+        to={`/book/${id}`}
+        state={{ book: { id, title, author, price, img, cover_image_url, tag, oldPrice } }}
+        onClick={onClick}
+        className="block"
+      >
         <span className="text-[10px] font-black text-[#FFFF2E] uppercase tracking-[0.2em]">{author}</span>
         <h3 className="text-2xl font-black uppercase leading-none group-hover:text-[#FFFF2E] transition-colors">{title}</h3>
-      </div>
+      </Link>
       <button 
         onClick={(e) => {
           e.stopPropagation();
@@ -487,6 +495,7 @@ const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalo
         title="Quaduni - რჩეული წიგნები"
         description="Quaduni — ქართული ციფრული წიგნების მაღაზია. აღმოაჩინე, იყიდე და წაიკითხე ქართული წიგნები ონლაინ."
         canonical="https://quaduni.com/"
+        jsonLd={buildHomeJsonLd()}
       />
       <section className="relative min-h-[600px] lg:h-screen lg:min-h-[750px] bg-black overflow-hidden flex flex-col justify-center pt-24 pb-20 lg:pt-20">
         <style>{`
@@ -583,13 +592,18 @@ const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalo
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                     {/* Book Object Column */}
                     <div className="main-book-column col-span-12 lg:col-span-6 flex justify-center lg:justify-start">
+                      <Link
+                        to={`/book/${book.id}`}
+                        state={{ book }}
+                        onClick={() => onBookClick(book)}
+                        className="block relative w-full max-w-[400px] aspect-[3/4] group"
+                      >
                       <motion.div 
                         initial={{ rotate: 10, x: -100, opacity: 0 }}
                         animate={{ rotate: -5, x: 0, opacity: 1 }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
                         whileHover={{ rotate: 0, scale: 1.02 }}
-                        className="relative w-full max-w-[400px] aspect-[3/4] group cursor-pointer"
-                        onClick={() => onBookClick(book)}
+                        className="relative w-full h-full cursor-pointer"
                       >
                         {/* Industrial Shadow */}
                         <div className="absolute inset-0 bg-[#FFFF2E] translate-x-6 translate-y-6 -z-10 transition-transform group-hover:translate-x-4 group-hover:translate-y-4" />
@@ -608,6 +622,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                           რჩეული #{idx + 1}
                         </div>
                       </motion.div>
+                      </Link>
                     </div>
 
                     {/* Content Column */}
@@ -636,15 +651,17 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                         transition={{ delay: 0.4, duration: 0.6 }}
                         className="pt-4 content-button"
                       >
-                        <button 
+                        <Link
+                          to={`/book/${book.id}`}
+                          state={{ book }}
                           onClick={() => onBookClick(book)}
-                          className="group relative bg-white text-black px-12 py-5 font-black uppercase text-xl overflow-hidden"
+                          className="group relative inline-flex bg-white text-black px-12 py-5 font-black uppercase text-xl overflow-hidden"
                         >
                           <span className="relative z-10 flex items-center gap-4">
                             გაიგე მეტი <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                           </span>
                           <div className="absolute inset-0 bg-[#FFFF2E] translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                        </button>
+                        </Link>
                       </motion.div>
                     </div>
                   </div>
@@ -744,9 +761,11 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
           >
             {archiveBooks.map((book, i) => (
               <div key={i} className="px-6 py-12">
-                <div 
+                <Link
+                  to={`/book/${book.id}`}
+                  state={{ book }}
                   onClick={() => onBookClick(book)}
-                  className="relative bg-zinc-900 border-4 border-white group cursor-pointer transition-all duration-500 hover:border-[#FFFF2E]"
+                  className="relative block bg-zinc-900 border-4 border-white group cursor-pointer transition-all duration-500 hover:border-[#FFFF2E]"
                 >
                   {/* Header Strip */}
                     <div className="h-8 bg-white group-hover:bg-[#FFFF2E] flex items-center justify-between px-4 transition-colors">
@@ -791,7 +810,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                   {/* Corner Accents */}
                   <div className="absolute -top-2 -right-2 w-8 h-8 bg-[#FFFF2E] -z-10 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
                   <div className="absolute -bottom-2 -left-2 w-8 h-8 bg-white -z-10 group-hover:-translate-x-2 group-hover:translate-y-2 transition-transform" />
-                </div>
+                </Link>
               </div>
             ))}
           </Slider>
@@ -1109,7 +1128,6 @@ const VoteButtons = ({ reviewId, upvotes = 0, downvotes = 0, userVote, onVote, o
 };
 
 const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading }) => {
-  const navigate = useNavigate();
   const [votingReviewId, setVotingReviewId] = useState<string | number | null>(null);
 
   const handleVote = async (reviewId: string | number, voteType: 1 | -1) => {
@@ -1177,14 +1195,7 @@ const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading }
                 key={review.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`bg-zinc-900 border-2 border-white/5 p-8 flex flex-col gap-6 relative group hover:border-[#FFFF2E]/50 transition-colors ${
-                  review.bookId ? 'cursor-pointer' : ''
-                }`}
-                onClick={() => {
-                  if (review.bookId) {
-                    navigate(`/book/${review.bookId}`);
-                  }
-                }}
+                className="bg-zinc-900 border-2 border-white/5 p-8 flex flex-col gap-6 relative group hover:border-[#FFFF2E]/50 transition-colors"
               >
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
                   {"/".repeat(review.rating)}
@@ -1207,9 +1218,18 @@ const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading }
                 </div>
 
                 <div className="space-y-4">
-                  <div className="inline-block bg-[#FFFF2E] text-black px-2 py-1 text-[10px] font-black uppercase italic">
-                    რეფ: {review.bookTitle}
-                  </div>
+                  {review.bookId ? (
+                    <Link
+                      to={`/book/${review.bookId}`}
+                      className="inline-block bg-[#FFFF2E] text-black px-2 py-1 text-[10px] font-black uppercase italic hover:bg-white transition-colors"
+                    >
+                      რეფ: {review.bookTitle}
+                    </Link>
+                  ) : (
+                    <div className="inline-block bg-[#FFFF2E] text-black px-2 py-1 text-[10px] font-black uppercase italic">
+                      რეფ: {review.bookTitle}
+                    </div>
+                  )}
                   <p className="text-sm font-bold uppercase leading-relaxed tracking-tight text-gray-300">
                     "{review.content}"
                   </p>
@@ -1258,10 +1278,11 @@ const Footer = () => (
       <div>
         <h4 className="font-black uppercase text-xs mb-6 text-[#FFFF2E] tracking-widest">ნავიგაცია</h4>
         <ul className="flex flex-col gap-3 text-sm font-black uppercase">
-          <li><a href="/" className="hover:text-[#FFFF2E] transition-colors">მთავარი</a></li>
-          <li><a href="/books" className="hover:text-[#FFFF2E] transition-colors">კატალოგი</a></li>
-          <li><a href="/register" className="hover:text-[#FFFF2E] transition-colors">რეგისტრაცია</a></li>
-          <li><a href="/login" className="hover:text-[#FFFF2E] transition-colors">შესვლა</a></li>
+          <li><Link to="/" className="hover:text-[#FFFF2E] transition-colors">მთავარი</Link></li>
+          <li><Link to="/books" className="hover:text-[#FFFF2E] transition-colors">კატალოგი</Link></li>
+          <li><Link to="/community" className="hover:text-[#FFFF2E] transition-colors">ქომუნითი</Link></li>
+          <li><Link to="/reviews" className="hover:text-[#FFFF2E] transition-colors">შეფასებები</Link></li>
+          <li><Link to="/terms" className="hover:text-[#FFFF2E] transition-colors">წესები</Link></li>
         </ul>
       </div>
       <div>
@@ -1276,8 +1297,8 @@ const Footer = () => (
     <div className="container mx-auto mt-24 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-black text-gray-700 uppercase tracking-[0.2em]">
       <div>© 2026 QUADUNI.COM. ყველა უფლება დაცულია.</div>
       <div className="flex gap-8">
-        <a href="/terms#privatesoba">პირადი მონაცემების დაცვა</a>
-        <a href="/terms#gayidva">გაყიდვის პირობები</a>
+        <Link to="/terms#privatesoba">პირადი მონაცემების დაცვა</Link>
+        <Link to="/terms#gayidva">გაყიდვის პირობები</Link>
       </div>
     </div>
   </footer>
@@ -1292,30 +1313,156 @@ interface BookDetailRouteProps {
   addToCart: (book: Book) => void;
 }
 
+type BookDetailRouteStatus = 'loading' | 'loaded' | 'notFound' | 'error';
+
 const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, featuredBooks, books, user, isAuthLoading, addToCart }) => {
   const params = useParams();
   const routeLocation = useLocation();
   const navigate = useNavigate();
-  const locationBook = (routeLocation.state as any)?.book as Book | undefined;
+  const locationState = routeLocation.state as { book?: Book } | null;
+  const locationBook = locationState?.book;
   const bookId = params.bookId;
+  const relatedBooks = useMemo(() => [...featuredBooks, ...books], [featuredBooks, books]);
 
-  const book = locationBook
-    || (selectedBook && String(selectedBook.id) === String(bookId) ? selectedBook : null)
-    || [...featuredBooks, ...books].find((item) => String(item.id) === String(bookId));
+  const matchedBook = useMemo(
+    () => locationBook
+      || (selectedBook && String(selectedBook.id) === String(bookId) ? selectedBook : null)
+      || relatedBooks.find((item) => String(item.id) === String(bookId))
+      || null,
+    [locationBook, selectedBook, bookId, relatedBooks],
+  );
 
-  if (!book) {
-    return <Navigate to="/books" replace />;
+  const [resolvedBook, setResolvedBook] = useState<Book | null>(matchedBook);
+  const [routeStatus, setRouteStatus] = useState<BookDetailRouteStatus>(() => {
+    if (matchedBook) return 'loaded';
+    if (bookId) return 'loading';
+    return 'notFound';
+  });
+  const [routeError, setRouteError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (matchedBook) {
+      setResolvedBook(matchedBook);
+      setRouteError(null);
+      setRouteStatus('loaded');
+      return;
+    }
+
+    if (!bookId) {
+      setResolvedBook(null);
+      setRouteError('BOOK_NOT_FOUND');
+      setRouteStatus('notFound');
+      return;
+    }
+
+    let cancelled = false;
+
+    setResolvedBook(null);
+    setRouteError(null);
+    setRouteStatus('loading');
+
+    api.getBook(bookId)
+      .then((fetchedBook) => {
+        if (cancelled) return;
+        setResolvedBook(fetchedBook);
+        setRouteStatus('loaded');
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setResolvedBook(null);
+        const message = error instanceof Error && error.message
+          ? error.message
+          : 'BOOK_NOT_FOUND';
+        const isNotFound = message === 'BOOK_NOT_FOUND'
+          || message === 'Not found.'
+          || message === 'No Book matches the given query.';
+
+        setRouteError(message);
+        setRouteStatus(isNotFound ? 'notFound' : 'error');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [matchedBook, bookId]);
+
+  const isNotFoundError = routeStatus === 'notFound';
+
+  if (routeStatus === 'loading') {
+    return (
+      <div className="min-h-screen bg-black text-white pt-32 pb-24 px-6">
+        <div className="container mx-auto max-w-3xl border-4 border-white bg-white/[0.03] p-8 md:p-12 text-center">
+          <div className="inline-flex items-center gap-3 border-2 border-[#FFFF2E] px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#FFFF2E]">
+            <span className="h-2.5 w-2.5 animate-pulse bg-[#FFFF2E]" />
+            წიგნი იტვირთება
+          </div>
+          <h1 className="mt-8 text-3xl md:text-5xl font-black uppercase tracking-[-0.08em]">ვამზადებთ წიგნის გვერდს</h1>
+          <p className="mt-4 text-sm md:text-base font-bold uppercase tracking-[0.18em] text-white/60">
+            პირდაპირი ბმული აქტიურია - გვერდი ჩაიტვირთება გადამისამართების გარეშე.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!resolvedBook) {
+    return (
+      <div className="min-h-screen bg-black text-white pt-32 pb-24 px-6">
+        <SEOMeta
+          title={isNotFoundError ? 'წიგნი ვერ მოიძებნა' : 'წიგნის გვერდი მიუწვდომელია'}
+          description={isNotFoundError
+            ? 'მოთხოვნილი წიგნის გვერდი ვერ მოიძებნა Quaduni-ზე.'
+            : 'Quaduni-ზე წიგნის დეტალური გვერდი დროებით მიუწვდომელია.'}
+          canonical={`https://quaduni.com${routeLocation.pathname}`}
+          noindex
+        />
+        <div className="container mx-auto max-w-3xl border-4 border-white bg-white/[0.03] p-8 md:p-12">
+          <div className="text-[10px] font-black uppercase tracking-[0.35em] text-[#FFFF2E]">
+            {isNotFoundError ? '404 / წიგნი ვერ მოიძებნა' : 'წიგნის ჩატვირთვა ვერ მოხერხდა'}
+          </div>
+          <h1 className="mt-6 text-3xl md:text-5xl font-black uppercase tracking-[-0.08em]">
+            {isNotFoundError ? 'ეს წიგნი კატალოგში აღარ ჩანს' : 'დეტალური გვერდი დროებით მიუწვდომელია'}
+          </h1>
+          <p className="mt-4 max-w-2xl text-sm md:text-base font-bold uppercase tracking-[0.16em] text-white/60">
+            {isNotFoundError
+              ? 'მისამართი შენარჩუნებულია, რათა ბმული და საძიებო სისტემა სწორად მიუთითებდეს არქივის ჩანაწერზე.'
+              : 'სცადე ხელახლა ცოტა ხანში ან დაბრუნდი არქივში სხვა წიგნების სანახავად.'}
+          </p>
+          {!isNotFoundError && routeError && (
+            <p className="mt-4 text-[10px] font-black uppercase tracking-[0.2em] text-red-400/80">
+              ERROR: {routeError}
+            </p>
+          )}
+          <div className="mt-10 flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={() => navigate('/books')}
+              className="border-4 border-[#FFFF2E] bg-[#FFFF2E] px-6 py-4 text-xs font-black uppercase tracking-[0.25em] text-black transition-transform hover:-translate-y-1"
+            >
+              არქივში დაბრუნება
+            </button>
+            {!isNotFoundError && (
+              <button
+                onClick={() => window.location.reload()}
+                className="border-4 border-white px-6 py-4 text-xs font-black uppercase tracking-[0.25em] text-white transition-colors hover:border-[#FFFF2E] hover:text-[#FFFF2E]"
+              >
+                თავიდან ცდა
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <BookPage
-      book={book}
-      relatedBooks={[...featuredBooks, ...books]}
+      book={resolvedBook}
+      relatedBooks={relatedBooks}
       user={user}
       isAuthLoading={isAuthLoading}
       onBack={() => navigate('/books')}
-      onAddToCart={() => addToCart(book)}
-      onReadBook={() => navigate(`/reader/${book.id}`, { state: { book } })}
+      onAddToCart={() => addToCart(resolvedBook)}
+      onReadBook={() => navigate(`/reader/${resolvedBook.id}`, { state: { book: resolvedBook } })}
       onOpenBook={(nextBook) => navigate(`/book/${nextBook.id}`, { state: { book: nextBook } })}
     />
   );
@@ -1331,10 +1478,17 @@ const BookDraftRoute: React.FC = () => {
   }
 
   return (
-    <BookDraftView
-      bookId={bookId}
-      onBack={() => navigate('/my-books')}
-    />
+    <>
+      <SEOMeta
+        title="წიგნის დრაფტი"
+        description="Quaduni-ს ავტორის სამუშაო სივრცე ინდექსაციისთვის დახურულია."
+        noindex
+      />
+      <BookDraftView
+        bookId={bookId}
+        onBack={() => navigate('/my-books')}
+      />
+    </>
   );
 };
 
@@ -1511,24 +1665,38 @@ export default function App() {
         <Route
           path="/login"
           element={
-            <LoginView
-              onBack={() => navigate('/')}
-              onSwitchToRegister={() => navigate('/register')}
-              onSuccess={(authedUser) => {
-                setUser(authedUser);
-                navigate(loginRedirectPath, { replace: true });
-              }}
-            />
+            <>
+              <SEOMeta
+                title="შესვლა"
+                description="Quaduni-ს ავტორიზაციის გვერდი ინდექსაციისთვის გამორთულია."
+                noindex
+              />
+              <LoginView
+                onBack={() => navigate('/')}
+                onSwitchToRegister={() => navigate('/register')}
+                onSuccess={(authedUser) => {
+                  setUser(authedUser);
+                  navigate(loginRedirectPath, { replace: true });
+                }}
+              />
+            </>
           }
         />
         <Route
           path="/register"
           element={
-            <RegisterView
-              onBack={() => navigate('/')}
-              onSwitchToLogin={() => navigate('/login')}
-              onSuccess={() => navigate('/login')}
-            />
+            <>
+              <SEOMeta
+                title="რეგისტრაცია"
+                description="Quaduni-ს რეგისტრაციის გვერდი ინდექსაციისთვის გამორთულია."
+                noindex
+              />
+              <RegisterView
+                onBack={() => navigate('/')}
+                onSwitchToLogin={() => navigate('/login')}
+                onSuccess={() => navigate('/login')}
+              />
+            </>
           }
         />
         <Route path="*" element={<Navigate to="/login" replace />} />
@@ -1542,7 +1710,6 @@ export default function App() {
     >
       {!isChromeHiddenRoute && (
         <Navbar
-          onNavigate={handleNavigate}
           user={user}
           isAuthLoading={isAuthLoading}
           onSignOut={handleSignOut}
@@ -1573,22 +1740,89 @@ export default function App() {
           <Route
             path="/reader/:bookId"
             element={
-              <ReaderView
-                user={user}
-                onBack={() => navigate(-1)}
-                onAddToCart={addToCart}
-                onLoginRequired={() => navigate('/login')}
-              />
+              <>
+                <SEOMeta
+                  title="წიგნის მკითხველი"
+                  description="Quaduni-ს პირადი მკითხველის გვერდი ინდექსაციისთვის გამორთულია."
+                  noindex
+                />
+                <ReaderView
+                  user={user}
+                  onBack={() => navigate(-1)}
+                  onAddToCart={addToCart}
+                  onLoginRequired={() => navigate('/login')}
+                />
+              </>
             }
           />
-          <Route path="/profile" element={<ProfilePage user={user} onBack={() => navigate('/')} onUserUpdate={setUser} />} />
-          <Route path="/wallet" element={<WalletView user={user} onBack={() => navigate('/')} />} />
-          <Route path="/upload" element={<UploadBookView user={user} onBack={() => navigate('/')} onLoginRequired={() => navigate('/login')} />} />
-          <Route path="/library" element={<LibraryView user={user} onBack={() => navigate('/')} onBookClick={handleBookClick} />} />
-          <Route path="/my-books" element={<MyBooksView user={user} onBack={() => navigate('/')} onUploadNew={() => navigate('/upload')} />} />
+          <Route
+            path="/profile"
+            element={
+              <>
+                <SEOMeta
+                  title="პროფილი"
+                  description="Quaduni-ს ანგარიშის პროფილის გვერდი ინდექსაციისთვის გამორთულია."
+                  noindex
+                />
+                <ProfilePage user={user} onBack={() => navigate('/')} onUserUpdate={setUser} />
+              </>
+            }
+          />
+          <Route
+            path="/wallet"
+            element={
+              <>
+                <SEOMeta
+                  title="საფულე"
+                  description="Quaduni-ს პირადი საფულის გვერდი ინდექსაციისთვის გამორთულია."
+                  noindex
+                />
+                <WalletView user={user} onBack={() => navigate('/')} />
+              </>
+            }
+          />
+          <Route
+            path="/upload"
+            element={
+              <>
+                <SEOMeta
+                  title="წიგნის ატვირთვა"
+                  description="Quaduni-ს ავტორის ატვირთვის გვერდი ინდექსაციისთვის გამორთულია."
+                  noindex
+                />
+                <UploadBookView user={user} onBack={() => navigate('/')} onLoginRequired={() => navigate('/login')} />
+              </>
+            }
+          />
+          <Route
+            path="/library"
+            element={
+              <>
+                <SEOMeta
+                  title="ბიბლიოთეკა"
+                  description="Quaduni-ს პირადი ბიბლიოთეკის გვერდი ინდექსაციისთვის გამორთულია."
+                  noindex
+                />
+                <LibraryView user={user} onBack={() => navigate('/')} onBookClick={handleBookClick} />
+              </>
+            }
+          />
+          <Route
+            path="/my-books"
+            element={
+              <>
+                <SEOMeta
+                  title="ჩემი წიგნები"
+                  description="Quaduni-ს ავტორის წიგნების მართვის გვერდი ინდექსაციისთვის გამორთულია."
+                  noindex
+                />
+                <MyBooksView user={user} onBack={() => navigate('/')} onUploadNew={() => navigate('/upload')} />
+              </>
+            }
+          />
           <Route path="/draft/:bookId" element={<BookDraftRoute />} />
           <Route path="/terms" element={<TermsView />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundView />} />
         </Routes>
       </main>
 

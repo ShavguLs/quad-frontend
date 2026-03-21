@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>Quaduni</title>
+  <rect width="64" height="64" fill="#000000"/>
+  <path d="M13 14h28l10 10v26H13V14zm8 8v20h18V29l-7-7H21zm20 20h2v2h-2v-2z" fill="#ffff2e"/>
+</svg>

@@ -17,6 +17,7 @@ import {
   Percent,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SEOMeta } from './SEOMeta';
 
 interface Section {
   id: string;
@@ -148,6 +149,11 @@ export const TermsView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white pt-24 md:pt-32 pb-24 selection:bg-[#FFFF2E] selection:text-black">
+      <SEOMeta
+        title="წესები და კონფიდენციალურობა"
+        description="Quaduni-ს გამოყენების წესები, კონფიდენციალურობის პოლიტიკა და ციფრული წიგნების გაყიდვის პირობები ერთ გვერდზე."
+        canonical="/terms"
+      />
       <div className="container mx-auto px-4 md:px-6">
 
         {/* Back button */}

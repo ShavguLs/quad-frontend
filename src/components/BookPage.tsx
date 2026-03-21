@@ -1,8 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, ShoppingBag, Info, CheckCircle2, Loader2, Zap, Star, MessageSquare, ThumbsUp, ThumbsDown, Send, X, BookOpen } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { SEOMeta } from './SEOMeta';
+import {
+  buildBookBreadcrumbJsonLd,
+  buildBookJsonLd,
+  getBookCoverImage,
+  getBookPath,
+  normalizePriceValue,
+  resolveOgImage,
+} from '../lib/seo';
 import { api } from '../services/api';
 import type { Book, Review, User } from '../types';
 
@@ -189,26 +198,22 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
     }
   };
 
-  const bookCover = book.cover_image_url || book.coverUrl || book.img;
-  const bookJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Book',
-    name: book.title,
-    author: { '@type': 'Person', name: book.author },
-    ...(book.description && { description: book.description }),
-    ...(bookCover && { image: bookCover }),
-    ...(book.price && { offers: { '@type': 'Offer', price: book.price, priceCurrency: 'GEL' } }),
-  };
+  const bookCover = getBookCoverImage(book);
+  const bookOgImage = resolveOgImage(bookCover);
+  const bookJsonLd = useMemo(() => buildBookJsonLd(book), [book]);
+  const breadcrumbJsonLd = useMemo(() => buildBookBreadcrumbJsonLd(book), [book]);
+  const normalizedPrice = normalizePriceValue(book.price);
 
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-24 selection:bg-[#FFFF2E] selection:text-black">
-      <SEOMeta
-        title={`${book.title} — ${book.author}`}
-        description={book.description || `${book.title} — ${book.author}-ის წიგნი Quaduni-ზე`}
-        image={bookCover}
-        canonical={`https://quaduni.com/book/${book.id}`}
-        type="book"
-        jsonLd={bookJsonLd}
+        <SEOMeta
+          title={`${book.title} — ${book.author}`}
+          description={book.description || `${book.title} — ${book.author}-ის წიგნი Quaduni-ზე`}
+          image={bookOgImage}
+          ogImageAlt={`${book.title} — გარეკანი`}
+          canonical={getBookPath(book.id)}
+          type="book"
+          jsonLd={[bookJsonLd, breadcrumbJsonLd]}
       />
       <div className="container mx-auto px-6">
         {/* Navigation / Breadcrumb */}
@@ -270,7 +275,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
               </div>
 
               <div className="flex items-baseline gap-4 lg:gap-6 border-y-2 border-white/10 py-6 lg:py-8">
-                <span className="text-5xl lg:text-6xl font-black text-[#FFFF2E]">{book.price}</span>
+                <span className="text-5xl lg:text-6xl font-black text-[#FFFF2E]">{normalizedPrice ? `₾${normalizedPrice}` : book.price}</span>
                 {book.oldPrice && (
                   <span className="text-xl lg:text-2xl font-black text-gray-600 line-through italic">{book.oldPrice}</span>
                 )}
@@ -590,12 +595,14 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
           {relatedArtifacts.length === 0 ? (
             <div className="text-sm text-gray-500 uppercase tracking-widest">მსგავსი არტეფაქტები ვერ მოიძებნა</div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {relatedArtifacts.map((relatedItem, index) => (
-                <div
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                {relatedArtifacts.map((relatedItem) => (
+                <Link
                   key={relatedItem.id}
+                  to={`/book/${relatedItem.id}`}
+                  state={{ book: relatedItem }}
                   onClick={() => onOpenBook(relatedItem)}
-                  className="space-y-4 group cursor-pointer opacity-50 hover:opacity-100 transition-opacity"
+                  className="space-y-4 group block cursor-pointer opacity-50 hover:opacity-100 transition-opacity"
                 >
                   <div className="aspect-[3/4] bg-zinc-900 border-2 border-white/10 overflow-hidden relative">
                     <ImageWithFallback src={relatedItem.img || relatedItem.coverUrl || relatedItem.cover_image_url || ''} className="w-full h-full object-cover grayscale brightness-50 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-700" alt={relatedItem.title} />
@@ -606,7 +613,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                   <div className="space-y-1">
                     <div className="text-sm font-black uppercase">{relatedItem.title}</div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}
