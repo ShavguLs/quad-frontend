@@ -5,7 +5,11 @@ import worker, {
   buildBookJsonLd,
   buildBookMetadata,
   buildFallbackMetadata,
+  classifyRoute,
   injectMetadata,
+  isAssetPath,
+  isKnownPrivateSpaRoute,
+  isKnownPublicStaticRoute,
   isPrerenderedBookHtml,
   matchBookPath,
 } from './worker.js';
@@ -32,6 +36,19 @@ const template = `
 </html>
 `;
 
+const notFoundHtml = `
+<!DOCTYPE html>
+<html lang="ka">
+  <head>
+    <title>404 | Quaduni</title>
+    <meta name="robots" content="noindex,nofollow" />
+  </head>
+  <body>
+    <h1>გვერდი ვერ მოიძებნა</h1>
+  </body>
+</html>
+`;
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
@@ -43,6 +60,21 @@ describe('worker book metadata helpers', () => {
     expect(matchBookPath('/book/42/')).toBe('42');
     expect(matchBookPath('/book/42/read')).toBeNull();
     expect(matchBookPath('/catalog')).toBeNull();
+  });
+
+  it('classifies public, private, asset, book, and unknown routes centrally', () => {
+    expect(classifyRoute('/')).toBe('public');
+    expect(classifyRoute('/books')).toBe('public');
+    expect(classifyRoute('/login')).toBe('private');
+    expect(classifyRoute('/reader/42')).toBe('private');
+    expect(classifyRoute('/book/42')).toBe('book');
+    expect(classifyRoute('/assets/index.js')).toBe('asset');
+    expect(classifyRoute('/favicon.svg')).toBe('asset');
+    expect(classifyRoute('/sitemap.xml')).toBe('sitemap');
+    expect(classifyRoute('/definitely-not-real')).toBe('unknown');
+    expect(isKnownPublicStaticRoute('/books/')).toBe(true);
+    expect(isKnownPrivateSpaRoute('/draft/42')).toBe(true);
+    expect(isAssetPath('/robots.txt')).toBe(true);
   });
 
   it('builds book-specific metadata from public book data', () => {
@@ -186,42 +218,144 @@ describe('worker book metadata helpers', () => {
     expect(await response.text()).toBe(prerenderedHtml);
   });
 
-  it('injects metadata for fallback book html and preserves safe noindex for missing books', async () => {
-    const fetchSpy = vi.fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify({
-        id: 7,
-        title: 'ვეფხისტყაოსანი',
-        author: 'შოთა რუსთაველი',
-        description: 'ეპიკური პოემა',
-        price: '12',
-        cover_image_url: '/media/covers/book.png',
-      }), {
-        status: 200,
-        headers: { 'content-type': 'application/json' },
-      }))
-      .mockResolvedValueOnce(new Response(null, { status: 404 }));
+  it('injects metadata for fallback book html when the book exists', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      id: 7,
+      title: 'ვეფხისტყაოსანი',
+      author: 'შოთა რუსთაველი',
+      description: 'ეპიკური პოემა',
+      price: '12',
+      cover_image_url: '/media/covers/book.png',
+    }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    }));
     vi.stubGlobal('fetch', fetchSpy);
 
     const env = {
       ASSETS: {
-        fetch: vi.fn().mockImplementation(() => Promise.resolve(new Response(template, {
-          headers: { 'content-type': 'text/html; charset=utf-8' },
-        }))),
+        fetch: vi.fn().mockImplementation((request) => {
+          const url = new URL(request.url);
+
+          if (url.pathname === '/404.html') {
+            return Promise.resolve(new Response(notFoundHtml, {
+              headers: { 'content-type': 'text/html; charset=utf-8' },
+            }));
+          }
+
+          return Promise.resolve(new Response(template, {
+            headers: { 'content-type': 'text/html; charset=utf-8' },
+          }));
+        }),
       },
     };
 
     const bookResponse = await worker.fetch(new Request('https://quaduni.com/book/7'), env);
     const bookHtml = await bookResponse.text();
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(bookResponse.status).toBe(200);
     expect(bookHtml).toContain('content="https://quaduni.com/media/covers/book.png"');
     expect(bookHtml).toContain('data-seo-og-image-alt property="og:image:alt" content="ვეფხისტყაოსანი — გარეკანი"');
     expect(bookHtml).toContain('"@type":"Book"');
     expect(bookHtml).toContain('"@type":"BreadcrumbList"');
+  });
 
-    const missingResponse = await worker.fetch(new Request('https://quaduni.com/book/999999'), env);
-    const missingHtml = await missingResponse.text();
-    expect(fetchSpy).toHaveBeenCalledTimes(2);
-    expect(missingHtml).toContain('name="robots" content="noindex,nofollow"');
-    expect(missingHtml).not.toContain('application/ld+json');
+  it('returns the prerendered not-found page for unknown routes', async () => {
+    const assetsFetch = vi.fn().mockImplementation((request) => {
+      const url = new URL(request.url);
+
+      if (url.pathname === '/404.html') {
+        return Promise.resolve(new Response(notFoundHtml, {
+          headers: { 'content-type': 'text/html; charset=utf-8' },
+        }));
+      }
+
+      return Promise.resolve(new Response(template, {
+        headers: { 'content-type': 'text/html; charset=utf-8' },
+      }));
+    });
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const response = await worker.fetch(new Request('https://quaduni.com/definitely-not-real'), {
+      ASSETS: { fetch: assetsFetch },
+    });
+    const html = await response.text();
+
+    expect(response.status).toBe(404);
+    expect(html).toContain('<title>404 | Quaduni</title>');
+    expect(assetsFetch).toHaveBeenCalledTimes(1);
+    expect(assetsFetch.mock.calls[0][0].url).toBe('https://quaduni.com/404.html');
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('returns a hard 404 for missing books instead of soft metadata fallback', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(new Response(null, { status: 404 }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const assetsFetch = vi.fn().mockImplementation((request) => {
+      const url = new URL(request.url);
+
+      if (url.pathname === '/404.html') {
+        return Promise.resolve(new Response(notFoundHtml, {
+          headers: { 'content-type': 'text/html; charset=utf-8' },
+        }));
+      }
+
+      return Promise.resolve(new Response(template, {
+        headers: { 'content-type': 'text/html; charset=utf-8' },
+      }));
+    });
+
+    const response = await worker.fetch(new Request('https://quaduni.com/book/999999'), {
+      ASSETS: { fetch: assetsFetch },
+    });
+    const html = await response.text();
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(response.status).toBe(404);
+    expect(assetsFetch).toHaveBeenCalledTimes(2);
+    expect(html).toContain('name="robots" content="noindex,nofollow"');
+    expect(html).toContain('<title>404 | Quaduni</title>');
+    expect(html).not.toContain('application/ld+json');
+  });
+
+  it('keeps known public and private spa routes on the asset-serving path', async () => {
+    const assetsFetch = vi.fn().mockResolvedValue(new Response(template, {
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    }));
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const publicResponse = await worker.fetch(new Request('https://quaduni.com/books'), {
+      ASSETS: { fetch: assetsFetch },
+    });
+    const privateResponse = await worker.fetch(new Request('https://quaduni.com/login'), {
+      ASSETS: { fetch: assetsFetch },
+    });
+
+    expect(publicResponse.status).toBe(200);
+    expect(privateResponse.status).toBe(200);
+    expect(assetsFetch).toHaveBeenCalledTimes(2);
+    expect(assetsFetch.mock.calls[0][0].url).toBe('https://quaduni.com/books');
+    expect(assetsFetch.mock.calls[1][0].url).toBe('https://quaduni.com/login');
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('still proxies sitemap requests through the worker', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(new Response('<urlset></urlset>', {
+      status: 200,
+      headers: { 'content-type': 'application/xml' },
+    }));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const response = await worker.fetch(new Request('https://quaduni.com/sitemap.xml'), {
+      ASSETS: { fetch: vi.fn() },
+    });
+
+    expect(response.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy.mock.calls[0][0]).toBe('https://api.quaduni.com/sitemap.xml');
+    expect(response.headers.get('content-type')).toBe('application/xml; charset=utf-8');
   });
 });

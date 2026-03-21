@@ -5,6 +5,18 @@ const DEFAULT_SHELL_TITLE = 'Quaduni — ციფრული წიგნე�
 const DEFAULT_SHELL_CANONICAL = `${SITE_URL}/`;
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
 const DEFAULT_OG_IMAGE_ALT = 'Quaduni — ციფრული წიგნების პლატფორმა';
+const KNOWN_PUBLIC_STATIC_ROUTES = new Set(['/', '/books', '/community', '/reviews', '/terms']);
+const KNOWN_PRIVATE_STATIC_ROUTES = new Set([
+  '/login',
+  '/register',
+  '/profile',
+  '/wallet',
+  '/upload',
+  '/library',
+  '/my-books',
+]);
+const PRIVATE_DYNAMIC_ROUTE_PATTERNS = [/^\/reader\/[^/]+\/?$/, /^\/draft\/[^/]+\/?$/];
+const FILE_EXTENSION_PATTERN = /\/[^/]+\.[a-z0-9]+$/i;
 
 function getSitemapUrl(env) {
   return env.SITEMAP_PROXY_URL || DEFAULT_SITEMAP_URL;
@@ -17,6 +29,56 @@ function getBookApiBaseUrl(env) {
 function matchBookPath(pathname) {
   const match = pathname.match(/^\/book\/([^/]+)\/?$/);
   return match ? decodeURIComponent(match[1]) : null;
+}
+
+function normalizeRoutePath(pathname) {
+  if (pathname.length > 1 && pathname.endsWith('/')) {
+    return pathname.replace(/\/+$/, '');
+  }
+
+  return pathname;
+}
+
+function isAssetPath(pathname) {
+  return FILE_EXTENSION_PATTERN.test(pathname);
+}
+
+function isKnownPublicStaticRoute(pathname) {
+  return KNOWN_PUBLIC_STATIC_ROUTES.has(normalizeRoutePath(pathname));
+}
+
+function isKnownPrivateSpaRoute(pathname) {
+  const normalizedPath = normalizeRoutePath(pathname);
+
+  if (KNOWN_PRIVATE_STATIC_ROUTES.has(normalizedPath)) {
+    return true;
+  }
+
+  return PRIVATE_DYNAMIC_ROUTE_PATTERNS.some((pattern) => pattern.test(pathname));
+}
+
+function classifyRoute(pathname) {
+  if (pathname === '/sitemap.xml') {
+    return 'sitemap';
+  }
+
+  if (isAssetPath(pathname)) {
+    return 'asset';
+  }
+
+  if (matchBookPath(pathname)) {
+    return 'book';
+  }
+
+  if (isKnownPublicStaticRoute(pathname)) {
+    return 'public';
+  }
+
+  if (isKnownPrivateSpaRoute(pathname)) {
+    return 'private';
+  }
+
+  return 'unknown';
 }
 
 function escapeHtml(value) {
@@ -302,6 +364,26 @@ function isHtmlResponse(response) {
   return contentType.includes('text/html');
 }
 
+async function renderNotFoundPage(request, env) {
+  const notFoundRequest = new Request(new URL('/404.html', request.url), request);
+  const notFoundResponse = await env.ASSETS.fetch(notFoundRequest);
+  const headers = new Headers(notFoundResponse.headers);
+  headers.set('content-type', 'text/html; charset=utf-8');
+
+  if (!notFoundResponse.ok || !isHtmlResponse(notFoundResponse)) {
+    return new Response('<!DOCTYPE html><html lang="ka"><head><meta charset="utf-8" /><meta name="robots" content="noindex,nofollow" /><title>404 | Quaduni</title></head><body><h1>404</h1></body></html>', {
+      status: 404,
+      headers,
+    });
+  }
+
+  return new Response(await notFoundResponse.text(), {
+    status: 404,
+    statusText: 'Not Found',
+    headers,
+  });
+}
+
 async function injectBookPageMetadata(request, env) {
   const url = new URL(request.url);
   const bookId = matchBookPath(url.pathname);
@@ -327,15 +409,17 @@ async function injectBookPageMetadata(request, env) {
   }
 
   const book = await fetchBookData(bookId, env).catch(() => null);
-  const metadata = book
-    ? {
-        ...buildBookMetadata(book, url.pathname),
-        jsonLd: [
-          buildBookJsonLd(book, url.pathname),
-          buildBookBreadcrumbJsonLd(book, url.pathname),
-        ],
-      }
-    : buildFallbackMetadata(url.pathname);
+  if (!book) {
+    return renderNotFoundPage(request, env);
+  }
+
+  const metadata = {
+    ...buildBookMetadata(book, url.pathname),
+    jsonLd: [
+      buildBookJsonLd(book, url.pathname),
+      buildBookBreadcrumbJsonLd(book, url.pathname),
+    ],
+  };
   const injectedHtml = injectMetadata(assetHtml, metadata);
   const headers = new Headers(assetResponse.headers);
   headers.set('content-type', 'text/html; charset=utf-8');
@@ -350,13 +434,18 @@ async function injectBookPageMetadata(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const routeType = classifyRoute(url.pathname);
 
-    if (url.pathname === '/sitemap.xml') {
+    if (routeType === 'sitemap') {
       return proxySitemap(request, env);
     }
 
-    if (request.method === 'GET' && matchBookPath(url.pathname)) {
+    if (request.method === 'GET' && routeType === 'book') {
       return injectBookPageMetadata(request, env);
+    }
+
+    if (routeType === 'unknown') {
+      return renderNotFoundPage(request, env);
     }
 
     return env.ASSETS.fetch(request);
@@ -369,7 +458,12 @@ export {
   buildBookJsonLd,
   buildFallbackMetadata,
   injectMetadata,
+  isAssetPath,
+  isKnownPrivateSpaRoute,
+  isKnownPublicStaticRoute,
   isPrerenderedBookHtml,
+  classifyRoute,
   matchBookPath,
   normalizeDescription,
+  normalizeRoutePath,
 };

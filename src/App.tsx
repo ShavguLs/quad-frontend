@@ -492,7 +492,7 @@ export const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks,
   return (
     <>
       <SEOMeta
-        title="Quaduni - რჩეული წიგნები"
+        title="რჩეული წიგნები"
         description="Quaduni — ქართული ციფრული წიგნების მაღაზია. აღმოაჩინე, იყიდე და წაიკითხე ქართული წიგნები ონლაინ."
         canonical="https://quaduni.com/"
         jsonLd={buildHomeJsonLd()}

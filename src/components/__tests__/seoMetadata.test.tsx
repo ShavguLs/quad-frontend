@@ -233,7 +233,7 @@ describe('SEO metadata', () => {
   it('can emit multiple site-level schema blocks for the home page', async () => {
     renderWithHelmet(
       <SEOMeta
-        title="Quaduni - რჩეული წიგნები"
+        title="რჩეული წიგნები"
         description="Quaduni — ქართული ციფრული წიგნების მაღაზია. აღმოაჩინე, იყიდე და წაიკითხე ქართული წიგნები ონლაინ."
         canonical="/"
         jsonLd={buildHomeJsonLd()}
@@ -261,7 +261,7 @@ describe('SEO metadata', () => {
     );
 
     await waitFor(() => {
-      expect(document.title).toBe('Quaduni - რჩეული წიგნები | Quaduni');
+      expect(document.title).toBe('რჩეული წიგნები | Quaduni');
     });
 
     const headings = document.querySelectorAll('h1');
@@ -276,5 +276,11 @@ describe('SEO metadata', () => {
     expect(indexHtml).toContain('property="og:image:width" content="1200"');
     expect(indexHtml).toContain('property="og:image:height" content="630"');
     expect(indexHtml).toContain('name="twitter:image" content="https://quaduni.com/og-default.png"');
+  });
+
+  it('points robots.txt at the backend-owned sitemap', () => {
+    const robotsTxt = readFileSync('public/robots.txt', 'utf-8');
+
+    expect(robotsTxt).toContain('Sitemap: https://api.quaduni.com/sitemap.xml');
   });
 });

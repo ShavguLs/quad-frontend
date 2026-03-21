@@ -10,54 +10,37 @@ const DEFAULT_OG_IMAGE_HEIGHT = 630;
 const SITE_THEME_COLOR = '#000000';
 const DIST_DIR = path.resolve(process.cwd(), 'dist');
 const DIST_INDEX_PATH = path.join(DIST_DIR, 'index.html');
+const PRERENDER_REPORT_PATH = path.join(DIST_DIR, 'prerender-report.json');
 const API_BASE_URL = (process.env.VITE_API_BASE_URL || process.env.SEO_PRERENDER_API_BASE_URL || 'https://api.quaduni.com').replace(/\/+$/, '');
+const MAX_FULL_BOOK_PRERENDER_COUNT = Number.parseInt(process.env.SEO_MAX_FULL_BOOK_PRERENDER_COUNT || '750', 10);
+const MAX_FULL_BOOK_PRERENDER_DURATION_MS = Number.parseInt(process.env.SEO_MAX_FULL_BOOK_PRERENDER_DURATION_MS || '180000', 10);
 
 const STATIC_ROUTES = [
   {
     path: '/',
-    title: 'Quaduni - რჩეული წიგნები',
+    title: 'რჩეული წიგნები',
     description: 'Quaduni — ქართული ციფრული წიგნების მაღაზია. აღმოაჩინე, იყიდე და წაიკითხე ქართული წიგნები ონლაინ.',
     jsonLd: buildHomeJsonLd(),
-    sitemap: {
-      changefreq: 'daily',
-      priority: '1.0',
-    },
   },
   {
     path: '/books',
     title: 'კატალოგი',
     description: 'ქართული წიგნების სრული კატალოგი — ზინები, ესსეები, ხელოვნება და არქივი. იპოვე შენი შემდეგი საკითხავი.',
-    sitemap: {
-      changefreq: 'daily',
-      priority: '0.9',
-    },
   },
   {
     path: '/community',
     title: 'ქომუნითი',
     description: 'Quaduni-ს საზოგადოება — დისკუსიები, განცხადებები და ხელოვნება ქართველი მკითხველებისა და ავტორებისთვის.',
-    sitemap: {
-      changefreq: 'daily',
-      priority: '0.7',
-    },
   },
   {
     path: '/reviews',
     title: 'შეფასებები',
     description: 'მკითხველთა შეფასებები და რეცენზიები ქართულ წიგნებზე. გაიგე რას ფიქრობს საზოგადოება.',
-    sitemap: {
-      changefreq: 'daily',
-      priority: '0.7',
-    },
   },
   {
     path: '/terms',
     title: 'წესები და კონფიდენციალურობა',
     description: 'Quaduni-ს გამოყენების წესები, კონფიდენციალურობის პოლიტიკა და ციფრული წიგნების გაყიდვის პირობები ერთ გვერდზე.',
-    sitemap: {
-      changefreq: 'monthly',
-      priority: '0.4',
-    },
   },
 ];
 
@@ -267,6 +250,26 @@ function buildBookBreadcrumbJsonLd(book) {
   };
 }
 
+function isPublicBook(book) {
+  if (!book || typeof book !== 'object') {
+    return false;
+  }
+
+  if ('status' in book && book.status && book.status !== 'published') {
+    return false;
+  }
+
+  if ('is_visible' in book && book.is_visible === false) {
+    return false;
+  }
+
+  if ('isVisible' in book && book.isVisible === false) {
+    return false;
+  }
+
+  return book.id !== undefined && book.id !== null;
+}
+
 async function fetchPaginatedCollection(initialUrl, errorLabel) {
   const collectedItems = [];
   let nextUrl = initialUrl;
@@ -443,6 +446,35 @@ function escapeAttribute(value) {
   return escapeHtml(value);
 }
 
+function ensureIncludes(html, pattern, label, routePath) {
+  if (!pattern.test(html)) {
+    throw new Error(`[prerender] missing ${label} for ${routePath}`);
+  }
+}
+
+function validateStaticRouteHtml(route, html) {
+  ensureIncludes(html, /<title data-seo-title>[^<]+<\/title>/i, 'title', route.path);
+  ensureIncludes(html, /<meta data-seo-description name="description" content="[^"]+"\s*\/>/i, 'description meta', route.path);
+  ensureIncludes(html, /<link data-seo-canonical rel="canonical" href="[^"]+"\s*\/>/i, 'canonical link', route.path);
+  ensureIncludes(html, /<meta data-seo-og-title property="og:title" content="[^"]+"\s*\/>/i, 'og:title', route.path);
+  ensureIncludes(html, /<meta data-seo-og-description property="og:description" content="[^"]+"\s*\/>/i, 'og:description', route.path);
+  ensureIncludes(html, /<meta data-seo-og-image property="og:image" content="[^"]+"\s*\/>/i, 'og:image', route.path);
+  ensureIncludes(html, /<meta data-seo-twitter-title name="twitter:title" content="[^"]+"\s*\/>/i, 'twitter:title', route.path);
+  ensureIncludes(html, /<meta data-seo-twitter-description name="twitter:description" content="[^"]+"\s*\/>/i, 'twitter:description', route.path);
+  ensureIncludes(html, /<meta data-seo-twitter-image name="twitter:image" content="[^"]+"\s*\/>/i, 'twitter:image', route.path);
+
+  if (route.jsonLd) {
+    ensureIncludes(html, /<script type="application\/ld\+json">[\s\S]+?<\/script>/i, 'json-ld', route.path);
+  }
+}
+
+function validateBookRouteHtml(routePath, html) {
+  validateStaticRouteHtml({ path: routePath }, html);
+  ensureIncludes(html, /<meta data-seo-og-type property="og:type" content="book"\s*\/>/i, 'og:type book', routePath);
+  ensureIncludes(html, /"@type":"Book"/i, 'book json-ld', routePath);
+  ensureIncludes(html, /"@type":"BreadcrumbList"/i, 'breadcrumb json-ld', routePath);
+}
+
 async function writeRouteHtml(routePath, html) {
   const normalizedPath = routePath === '/' ? '' : routePath.replace(/^\//, '');
   const outputDir = path.join(DIST_DIR, normalizedPath);
@@ -450,58 +482,21 @@ async function writeRouteHtml(routePath, html) {
   await writeFile(path.join(outputDir, 'index.html'), html, 'utf8');
 }
 
-function formatSitemapDate(value) {
-  if (!value) {
-    return new Date().toISOString().slice(0, 10);
-  }
-
-  const parsedDate = new Date(value);
-  return Number.isNaN(parsedDate.getTime())
-    ? new Date().toISOString().slice(0, 10)
-    : parsedDate.toISOString().slice(0, 10);
-}
-
-function escapeXml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-function buildSitemapXml(entries) {
-  const urlEntries = entries.map((entry) => [
-    '  <url>',
-    `    <loc>${escapeXml(toAbsoluteUrl(entry.path))}</loc>`,
-    `    <lastmod>${escapeXml(formatSitemapDate(entry.lastmod))}</lastmod>`,
-    `    <changefreq>${escapeXml(entry.changefreq)}</changefreq>`,
-    `    <priority>${escapeXml(entry.priority)}</priority>`,
-    '  </url>',
-  ].join('\n')).join('\n');
-
-  return [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    urlEntries,
-    '</urlset>',
-  ].join('\n');
+async function writePrerenderReport(report) {
+  await writeFile(PRERENDER_REPORT_PATH, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
 }
 
 async function main() {
+  const startedAt = Date.now();
   const baseHtml = await readFile(DIST_INDEX_PATH, 'utf8');
-  const books = await fetchAllBooks();
+  const fetchedBooks = await fetchAllBooks();
+  const books = fetchedBooks.filter(isPublicBook);
   const reviews = await fetchAllReviews();
   const reviewsByBook = groupReviewsByBook(reviews);
-  const sitemapEntries = STATIC_ROUTES.map((route) => ({
-    path: route.path,
-    lastmod: new Date().toISOString(),
-    changefreq: route.sitemap.changefreq,
-    priority: route.sitemap.priority,
-  }));
 
   for (const route of STATIC_ROUTES) {
     const html = buildSeoHtml(baseHtml, route);
+    validateStaticRouteHtml(route, html);
     await writeRouteHtml(route.path, html);
   }
 
@@ -536,13 +531,8 @@ async function main() {
       reviewContentHtml: buildReviewContentHtml(bookReviews),
     });
 
+    validateBookRouteHtml(`/book/${book.id}`, html);
     await writeRouteHtml(`/book/${book.id}`, html);
-    sitemapEntries.push({
-      path: `/book/${book.id}`,
-      lastmod: book.updated_at || book.created_at || book.createdAt,
-      changefreq: 'weekly',
-      priority: '0.8',
-    });
 
     await writeRouteHtml(
       `/reader/${book.id}`,
@@ -565,7 +555,33 @@ async function main() {
     );
   }
 
-  await writeFile(path.join(DIST_DIR, 'sitemap.xml'), buildSitemapXml(sitemapEntries), 'utf8');
+  const durationMs = Date.now() - startedAt;
+  const exceedsBookThreshold = Number.isFinite(MAX_FULL_BOOK_PRERENDER_COUNT) && books.length > MAX_FULL_BOOK_PRERENDER_COUNT;
+  const exceedsDurationThreshold = Number.isFinite(MAX_FULL_BOOK_PRERENDER_DURATION_MS) && durationMs > MAX_FULL_BOOK_PRERENDER_DURATION_MS;
+
+  await writePrerenderReport({
+    generatedAt: new Date().toISOString(),
+    apiBaseUrl: API_BASE_URL,
+    staticRoutePaths: STATIC_ROUTES.map((route) => route.path),
+    staticRouteCount: STATIC_ROUTES.length,
+    privateRouteCount: PRIVATE_ROUTES.length,
+    prerenderedBookCount: books.length,
+    prerenderedBookPathsSample: books.slice(0, 10).map((book) => `/book/${book.id}`),
+    reviewCount: reviews.length,
+    durationMs,
+    thresholds: {
+      maxFullBookPrerenderCount: MAX_FULL_BOOK_PRERENDER_COUNT,
+      maxFullBookPrerenderDurationMs: MAX_FULL_BOOK_PRERENDER_DURATION_MS,
+    },
+    shouldRevisitTieredPrerendering: exceedsBookThreshold || exceedsDurationThreshold,
+    revisitReasons: [
+      ...(exceedsBookThreshold ? [`book_count>${MAX_FULL_BOOK_PRERENDER_COUNT}`] : []),
+      ...(exceedsDurationThreshold ? [`duration_ms>${MAX_FULL_BOOK_PRERENDER_DURATION_MS}`] : []),
+    ],
+    recommendedNextMode: exceedsBookThreshold || exceedsDurationThreshold ? 'tiered-prerender-or-hybrid-meta-injection' : 'full-book-prerender',
+    sitemapOwner: 'backend',
+    sitemapUrl: 'https://api.quaduni.com/sitemap.xml',
+  });
 }
 
 main().catch((error) => {
