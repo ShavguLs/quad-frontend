@@ -1,7 +1,10 @@
 const DEFAULT_SITEMAP_URL = 'https://api.quaduni.com/sitemap.xml';
 const DEFAULT_BOOK_API_BASE_URL = 'https://api.quaduni.com';
 const SITE_URL = 'https://quaduni.com';
-const DEFAULT_OG_IMAGE = 'https://cdn-icons-png.flaticon.com/512/14931/14931711.png';
+const DEFAULT_SHELL_TITLE = 'Quaduni — ციფრული წიგნების მაღაზია';
+const DEFAULT_SHELL_CANONICAL = `${SITE_URL}/`;
+const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
+const DEFAULT_OG_IMAGE_ALT = 'Quaduni — ციფრული წიგნების პლატფორმა';
 
 function getSitemapUrl(env) {
   return env.SITEMAP_PROXY_URL || DEFAULT_SITEMAP_URL;
@@ -58,23 +61,51 @@ function buildFallbackMetadata(pathname) {
     ogTitle: title,
     ogDescription: description,
     ogImage: DEFAULT_OG_IMAGE,
+    ogImageAlt: DEFAULT_OG_IMAGE_ALT,
     ogUrl: canonical,
     twitterTitle: title,
     twitterDescription: description,
     twitterImage: DEFAULT_OG_IMAGE,
+    twitterImageAlt: DEFAULT_OG_IMAGE_ALT,
     ogType: 'website',
     robots: 'noindex,nofollow',
   };
 }
 
-function buildBookMetadata(book, pathname, apiBaseUrl = DEFAULT_BOOK_API_BASE_URL) {
+function normalizePriceValue(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value.toString();
+  }
+
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    return undefined;
+  }
+
+  const cleanedValue = trimmedValue.replace(/[^\d.,-]/g, '');
+  if (!cleanedValue) {
+    return undefined;
+  }
+
+  const normalizedValue = cleanedValue.includes(',') && !cleanedValue.includes('.')
+    ? cleanedValue.replace(',', '.')
+    : cleanedValue.replace(/,/g, '');
+
+  return Number.isFinite(Number.parseFloat(normalizedValue)) ? normalizedValue : undefined;
+}
+
+function buildBookMetadata(book, pathname) {
   const canonical = new URL(pathname, SITE_URL).toString();
   const title = `${book.title} — ${book.author} | Quaduni`;
   const description = normalizeDescription(
     book.description,
     `${book.title} — ${book.author}-ის წიგნი Quaduni-ზე`
   );
-  const image = toAbsoluteUrl(book.cover_image_url || book.coverUrl || book.img, apiBaseUrl);
+  const image = toAbsoluteUrl(book.cover_image_url || book.coverUrl || book.img);
 
   return {
     title,
@@ -83,12 +114,82 @@ function buildBookMetadata(book, pathname, apiBaseUrl = DEFAULT_BOOK_API_BASE_UR
     ogTitle: title,
     ogDescription: description,
     ogImage: image,
+    ogImageAlt: `${book.title} — გარეკანი`,
     ogUrl: canonical,
     twitterTitle: title,
     twitterDescription: description,
     twitterImage: image,
+    twitterImageAlt: `${book.title} — გარეკანი`,
     ogType: 'book',
     robots: 'index,follow',
+  };
+}
+
+function buildBookJsonLd(book, pathname) {
+  const canonical = new URL(pathname, SITE_URL).toString();
+  const price = normalizePriceValue(book.price);
+  const image = toAbsoluteUrl(book.cover_image_url || book.coverUrl || book.img);
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Book',
+    name: book.title,
+    url: canonical,
+    inLanguage: 'ka',
+    author: {
+      '@type': 'Person',
+      name: book.author,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Quaduni',
+      url: SITE_URL,
+    },
+    bookFormat: 'https://schema.org/EBook',
+    image,
+    ...(book.description ? { description: book.description } : {}),
+    ...(book.created_at || book.createdAt
+      ? { datePublished: book.created_at || book.createdAt }
+      : {}),
+    ...(book.updated_at ? { dateModified: book.updated_at } : {}),
+    ...(price
+      ? {
+          offers: {
+            '@type': 'Offer',
+            price,
+            priceCurrency: 'GEL',
+            url: canonical,
+            availability: 'https://schema.org/InStock',
+          },
+        }
+      : {}),
+  };
+}
+
+function buildBookBreadcrumbJsonLd(book, pathname) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'მთავარი',
+        item: SITE_URL,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'წიგნები',
+        item: new URL('/books', SITE_URL).toString(),
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: book.title,
+        item: new URL(pathname, SITE_URL).toString(),
+      },
+    ],
   };
 }
 
@@ -106,6 +207,45 @@ function replaceTagAttribute(documentHtml, marker, attributeName, value) {
   );
 }
 
+function extractMarkedTitle(documentHtml) {
+  const match = documentHtml.match(/<title[^>]*data-seo-title[^>]*>([\s\S]*?)<\/title>/i);
+  return match ? match[1].trim() : null;
+}
+
+function extractTagAttribute(documentHtml, marker, attributeName) {
+  const match = documentHtml.match(
+    new RegExp(`<(?:meta|link)[^>]*${marker}[^>]*\\b${attributeName}="([^"]*)"`, 'i')
+  );
+  return match ? match[1] : null;
+}
+
+function isPrerenderedBookHtml(documentHtml, pathname) {
+  const title = extractMarkedTitle(documentHtml);
+  const canonical = extractTagAttribute(documentHtml, 'data-seo-canonical', 'href');
+  const expectedCanonical = new URL(pathname, SITE_URL).toString();
+
+  if (canonical === expectedCanonical) {
+    return true;
+  }
+
+  return Boolean(title && title !== DEFAULT_SHELL_TITLE && canonical !== DEFAULT_SHELL_CANONICAL);
+}
+
+function injectJsonLd(documentHtml, blocks) {
+  const normalizedBlocks = Array.isArray(blocks) ? blocks : blocks ? [blocks] : [];
+  let html = documentHtml.replace(/\s*<script[^>]*type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/gi, '');
+
+  if (normalizedBlocks.length === 0) {
+    return html;
+  }
+
+  const scripts = normalizedBlocks
+    .map((block) => `    <script type="application/ld+json">${JSON.stringify(block)}</script>`)
+    .join('\n');
+
+  return html.replace('</head>', `${scripts}\n  </head>`);
+}
+
 function injectMetadata(documentHtml, metadata) {
   let html = documentHtml;
   html = replaceTitle(html, 'data-seo-title', metadata.title);
@@ -116,11 +256,13 @@ function injectMetadata(documentHtml, metadata) {
   html = replaceTagAttribute(html, 'data-seo-og-description', 'content', metadata.ogDescription);
   html = replaceTagAttribute(html, 'data-seo-og-type', 'content', metadata.ogType);
   html = replaceTagAttribute(html, 'data-seo-og-image', 'content', metadata.ogImage);
+  html = replaceTagAttribute(html, 'data-seo-og-image-alt', 'content', metadata.ogImageAlt);
   html = replaceTagAttribute(html, 'data-seo-og-url', 'content', metadata.ogUrl);
   html = replaceTagAttribute(html, 'data-seo-twitter-title', 'content', metadata.twitterTitle);
   html = replaceTagAttribute(html, 'data-seo-twitter-description', 'content', metadata.twitterDescription);
   html = replaceTagAttribute(html, 'data-seo-twitter-image', 'content', metadata.twitterImage);
-  return html;
+  html = replaceTagAttribute(html, 'data-seo-twitter-image-alt', 'content', metadata.twitterImageAlt);
+  return injectJsonLd(html, metadata.jsonLd);
 }
 
 async function proxySitemap(request, env) {
@@ -167,19 +309,34 @@ async function injectBookPageMetadata(request, env) {
     return env.ASSETS.fetch(request);
   }
 
-  const [assetResponse, book] = await Promise.all([
-    env.ASSETS.fetch(request),
-    fetchBookData(bookId, env).catch(() => null),
-  ]);
-
+  const assetResponse = await env.ASSETS.fetch(request);
   if (!assetResponse.ok || !isHtmlResponse(assetResponse)) {
     return assetResponse;
   }
 
+  const assetHtml = await assetResponse.text();
+  if (isPrerenderedBookHtml(assetHtml, url.pathname)) {
+    const headers = new Headers(assetResponse.headers);
+    headers.set('content-type', 'text/html; charset=utf-8');
+
+    return new Response(assetHtml, {
+      status: assetResponse.status,
+      statusText: assetResponse.statusText,
+      headers,
+    });
+  }
+
+  const book = await fetchBookData(bookId, env).catch(() => null);
   const metadata = book
-    ? buildBookMetadata(book, url.pathname, getBookApiBaseUrl(env))
+    ? {
+        ...buildBookMetadata(book, url.pathname),
+        jsonLd: [
+          buildBookJsonLd(book, url.pathname),
+          buildBookBreadcrumbJsonLd(book, url.pathname),
+        ],
+      }
     : buildFallbackMetadata(url.pathname);
-  const injectedHtml = injectMetadata(await assetResponse.text(), metadata);
+  const injectedHtml = injectMetadata(assetHtml, metadata);
   const headers = new Headers(assetResponse.headers);
   headers.set('content-type', 'text/html; charset=utf-8');
 
@@ -208,8 +365,11 @@ export default {
 
 export {
   buildBookMetadata,
+  buildBookBreadcrumbJsonLd,
+  buildBookJsonLd,
   buildFallbackMetadata,
   injectMetadata,
+  isPrerenderedBookHtml,
   matchBookPath,
   normalizeDescription,
 };

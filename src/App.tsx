@@ -434,7 +434,7 @@ const BookCard = React.forwardRef(({ id, title, author, price, img, cover_image_
 
 // --- Pages ---
 
-const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalogError, isLoading }) => {
+export const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalogError, isLoading }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
 
@@ -498,6 +498,7 @@ const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalo
         jsonLd={buildHomeJsonLd()}
       />
       <section className="relative min-h-[600px] lg:h-screen lg:min-h-[750px] bg-black overflow-hidden flex flex-col justify-center pt-24 pb-20 lg:pt-20">
+        <h1 className="sr-only">Quaduni — ქართული ციფრული წიგნების მაღაზია</h1>
         <style>{`
           /* Slick Structural Styles */
           .slick-slider { position: relative; display: block; box-sizing: border-box; user-select: none; touch-action: pan-y; -webkit-tap-highlight-color: transparent; }
@@ -549,10 +550,11 @@ const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalo
                 transition={{ duration: 0.8, ease: "circOut" }}
                 className="absolute inset-0"
               >
-                <ImageWithFallback 
-                  src={featuredBooks[currentSlide]?.img || featuredBooks[currentSlide]?.cover_image_url || ''} 
-                  className="w-full h-full object-cover mix-blend-screen" 
+                <ImageWithFallback
+                  src={featuredBooks[currentSlide]?.img || featuredBooks[currentSlide]?.cover_image_url || ''}
+                  className="w-full h-full object-cover mix-blend-screen"
                   alt="Dynamic Background"
+                  loading="eager"
                 />
               </motion.div>
             )}
@@ -560,10 +562,11 @@ const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalo
           
           {/* Static Zine Overlays */}
           <div className="absolute inset-0 opacity-20 grayscale contrast-200 pointer-events-none mix-blend-overlay">
-            <ImageWithFallback 
-              src="https://images.unsplash.com/photo-1698913463089-6c95fd110e83?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080" 
-              className="w-full h-full object-cover" 
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1698913463089-6c95fd110e83?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
+              className="w-full h-full object-cover"
               alt="Texture"
+              loading="eager"
             />
           </div>
           
@@ -610,10 +613,11 @@ const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks, catalo
                         
                         {/* Book Cover */}
                         <div className="w-full h-full border-4 border-white overflow-hidden bg-zinc-900">
-                          <ImageWithFallback 
+                          <ImageWithFallback
 src={book.img || book.coverUrl || book.cover_image_url || ''}
-                            className="w-full h-full object-cover grayscale brightness-110 group-hover:grayscale-0 transition-all duration-1000" 
-                            alt={book.title} 
+                            className="w-full h-full object-cover grayscale brightness-110 group-hover:grayscale-0 transition-all duration-1000"
+                            alt={book.title}
+                            loading="eager"
                           />
                         </div>
                         

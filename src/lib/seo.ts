@@ -1,10 +1,25 @@
-import type { Book } from '../types';
+import type { Book, Review } from '../types';
 
 export const SITE_NAME = 'Quaduni';
 export const SITE_URL = 'https://quaduni.com';
 export const SITE_THEME_COLOR = '#000000';
 export const DEFAULT_OG_IMAGE_PATH = '/og-default.png';
 export const DEFAULT_OG_IMAGE_URL = new URL(DEFAULT_OG_IMAGE_PATH, SITE_URL).toString();
+export const DEFAULT_OG_IMAGE_WIDTH = 1200;
+export const DEFAULT_OG_IMAGE_HEIGHT = 630;
+
+export interface AggregateRatingInput {
+  ratingValue: number | string;
+  reviewCount: number | string;
+  bestRating?: number | string;
+}
+
+export interface ReviewSchemaInput {
+  authorName: string;
+  datePublished: string;
+  reviewBody: string;
+  rating: number | string;
+}
 
 export const hasUsableImage = (value?: string | null): value is string => (
   typeof value === 'string' && value.trim().length > 0
@@ -31,6 +46,8 @@ export const toAbsoluteUrl = (value: string): string => {
 export const resolveOgImage = (image?: string | null): string => (
   hasUsableImage(image) ? toAbsoluteUrl(image) : DEFAULT_OG_IMAGE_URL
 );
+
+export const isDefaultOgImage = (image?: string | null): boolean => resolveOgImage(image) === DEFAULT_OG_IMAGE_URL;
 
 export const getBookCoverImage = (book: Pick<Book, 'cover_image_url' | 'coverUrl' | 'img'>): string | undefined => {
   const coverImage = [book.cover_image_url, book.coverUrl, book.img].find(hasUsableImage);
@@ -70,10 +87,52 @@ export const normalizePriceValue = (value?: string | number | null): string | un
 
 export const getBookPath = (bookId: string | number): string => `/book/${bookId}`;
 
-export const buildBookJsonLd = (book: Book): Record<string, unknown> => {
+export const getAggregateRatingFromReviews = (reviews: Review[]): AggregateRatingInput | undefined => {
+  if (reviews.length === 0) {
+    return undefined;
+  }
+
+  const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+  const averageRating = totalRating / reviews.length;
+
+  return {
+    ratingValue: Number(averageRating.toFixed(1)),
+    reviewCount: reviews.length,
+    bestRating: 5,
+  };
+};
+
+export const buildAggregateRatingJsonLd = (
+  aggregateRating?: AggregateRatingInput,
+): Record<string, unknown> | undefined => {
+  if (!aggregateRating) {
+    return undefined;
+  }
+
+  const ratingValue = Number(aggregateRating.ratingValue);
+  const reviewCount = Number(aggregateRating.reviewCount);
+  const bestRating = Number(aggregateRating.bestRating ?? 5);
+
+  if (!Number.isFinite(ratingValue) || !Number.isFinite(reviewCount) || reviewCount <= 0) {
+    return undefined;
+  }
+
+  return {
+    '@type': 'AggregateRating',
+    ratingValue: Number(ratingValue.toFixed(1)).toString(),
+    reviewCount: Math.trunc(reviewCount).toString(),
+    bestRating: Number.isFinite(bestRating) ? bestRating.toString() : '5',
+  };
+};
+
+export const buildBookJsonLd = (
+  book: Book,
+  options?: { aggregateRating?: AggregateRatingInput },
+): Record<string, unknown> => {
   const canonicalUrl = toAbsoluteUrl(getBookPath(book.id));
   const bookCover = getBookCoverImage(book);
   const price = normalizePriceValue(book.price);
+  const aggregateRating = buildAggregateRatingJsonLd(options?.aggregateRating);
 
   return {
     '@context': 'https://schema.org',
@@ -110,8 +169,33 @@ export const buildBookJsonLd = (book: Book): Record<string, unknown> => {
           },
         }
       : {}),
+    ...(aggregateRating ? { aggregateRating } : {}),
   };
 };
+
+export const buildBookReviewJsonLd = (
+  book: Pick<Book, 'id' | 'title'>,
+  review: ReviewSchemaInput,
+): Record<string, unknown> => ({
+  '@context': 'https://schema.org',
+  '@type': 'Review',
+  itemReviewed: {
+    '@type': 'Book',
+    name: book.title,
+    url: toAbsoluteUrl(getBookPath(book.id)),
+  },
+  author: {
+    '@type': 'Person',
+    name: review.authorName,
+  },
+  datePublished: review.datePublished,
+  reviewBody: review.reviewBody,
+  reviewRating: {
+    '@type': 'Rating',
+    ratingValue: String(review.rating),
+    bestRating: '5',
+  },
+});
 
 export const buildBookBreadcrumbJsonLd = (book: Pick<Book, 'id' | 'title'>): Record<string, unknown> => ({
   '@context': 'https://schema.org',

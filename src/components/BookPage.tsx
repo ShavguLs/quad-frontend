@@ -4,9 +4,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, ShoppingBag, Info, CheckCircle2, Loader2, Zap, Star, MessageSquare, ThumbsUp, ThumbsDown, Send, X, BookOpen } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { SEOMeta } from './SEOMeta';
+import { Breadcrumbs } from './Breadcrumbs';
 import {
+  buildBookReviewJsonLd,
   buildBookBreadcrumbJsonLd,
   buildBookJsonLd,
+  getAggregateRatingFromReviews,
   getBookCoverImage,
   getBookPath,
   normalizePriceValue,
@@ -200,8 +203,18 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
 
   const bookCover = getBookCoverImage(book);
   const bookOgImage = resolveOgImage(bookCover);
-  const bookJsonLd = useMemo(() => buildBookJsonLd(book), [book]);
+  const aggregateRating = useMemo(() => getAggregateRatingFromReviews(reviews), [reviews]);
+  const bookJsonLd = useMemo(() => buildBookJsonLd(book, { aggregateRating }), [aggregateRating, book]);
   const breadcrumbJsonLd = useMemo(() => buildBookBreadcrumbJsonLd(book), [book]);
+  const reviewJsonLd = useMemo(
+    () => reviews.slice(0, 5).map((review) => buildBookReviewJsonLd(book, {
+      authorName: review.user,
+      datePublished: review.date,
+      reviewBody: review.content,
+      rating: review.rating,
+    })),
+    [book, reviews],
+  );
   const normalizedPrice = normalizePriceValue(book.price);
 
   return (
@@ -213,10 +226,21 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
           ogImageAlt={`${book.title} — გარეკანი`}
           canonical={getBookPath(book.id)}
           type="book"
-          jsonLd={[bookJsonLd, breadcrumbJsonLd]}
+          jsonLd={[bookJsonLd, breadcrumbJsonLd, ...reviewJsonLd]}
       />
       <div className="container mx-auto px-6">
-        {/* Navigation / Breadcrumb */}
+        {/* Breadcrumb Navigation */}
+        <div className="mb-8">
+          <Breadcrumbs
+            items={[
+              { label: 'მთავარი', path: '/' },
+              { label: 'წიგნები', path: '/books' },
+              { label: book.title }
+            ]}
+          />
+        </div>
+
+        {/* Back Button */}
         <button
           onClick={onBack}
           className="group flex items-center gap-4 text-xs font-black uppercase tracking-[0.3em] mb-12 hover:text-[#FFFF2E] transition-colors"
