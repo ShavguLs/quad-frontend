@@ -663,10 +663,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
         }
     };
 
-    const desktopNavButtonClass = 'reader-desktop-nav-button hidden md:flex items-center justify-center rounded-full border border-white/10 bg-black/45 text-white shadow-[0_14px_40px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#FFFF2E]/80 hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_30px_rgba(255,255,46,0.18)] focus:outline-none disabled:pointer-events-none disabled:opacity-20';
-    const desktopActionButtonBaseClass = 'reader-desktop-action-button inline-flex items-center justify-center gap-3 rounded-full border px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300';
-
-
     if (loadingManifest) {
         return (
             <div
@@ -932,84 +928,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                 </div>
                             )}
 
-                            {!focusMode && (
-                                <>
-                                    <button
-                                        id="reader-prev-page-desktop"
-                                        onClick={() => goToRelativePage(-1)}
-                                        disabled={pageNumber <= 1}
-                                        title="წინა გვერდი"
-                                        className={`${desktopNavButtonClass} reader-desktop-nav reader-desktop-nav--prev`}
-                                    >
-                                        <ChevronLeft className="h-8 w-8 ml-[-2px]" />
-                                    </button>
-
-                                    <button
-                                        id="reader-next-page-desktop"
-                                        onClick={() => goToRelativePage(1)}
-                                        disabled={pageNumber >= Math.max(availablePages, 1)}
-                                        title="შემდეგი გვერდი"
-                                        className={`${desktopNavButtonClass} reader-desktop-nav reader-desktop-nav--next`}
-                                    >
-                                        <ChevronRight className="h-8 w-8 mr-[-2px]" />
-                                    </button>
-
-                                    <div className="reader-desktop-rail hidden md:flex">
-                                        <div className="reader-desktop-rail-card">
-                                            <div className="reader-desktop-page-meter">
-                                                <span className="reader-desktop-page-meter-label">გვერდი</span>
-                                                <div className="reader-desktop-page-meter-numbers">
-                                                    <strong className="reader-desktop-page-meter-value">{pageNumber}</strong>
-                                                    <span className="reader-desktop-page-meter-total">/ {Math.max(availablePages, 1)}</span>
-                                                </div>
-                                            </div>
-
-                                            <button
-                                                onClick={() => setFocusMode((f) => !f)}
-                                                title={focusMode ? 'ფოკუს რეჟიმიდან გასვლა' : 'ფოკუს რეჟიმში შეყვანა'}
-                                                className={`${desktopActionButtonBaseClass} border-white/12 bg-white/6 text-white hover:border-[#FFFF2E]/80 hover:bg-[#FFFF2E]/10 hover:text-[#FFFF2E]`}
-                                            >
-                                                <Maximize className="h-4 w-4" />
-                                                <span>ფოკუსი</span>
-                                            </button>
-
-                                            {manifest.access_mode !== 'preview' && (
-                                                <>
-                                                    <button
-                                                        id="reader-save-page-btn-desktop"
-                                                        onClick={handleToggleSave}
-                                                        disabled={!canSaveMore && !isPageSaved(pageNumber)}
-                                                        title={isPageSaved(pageNumber) ? 'შენახული გვერდის წაშლა' : canSaveMore ? 'გვერდის შენახვა მოგვიანებლად' : `მაქსიმუმ ${maxSavedPages} გვერდი შენახულია`}
-                                                        className={`${desktopActionButtonBaseClass} ${isPageSaved(pageNumber)
-                                                            ? 'border-[#FFFF2E] bg-[#FFFF2E] text-black shadow-[0_0_24px_rgba(255,255,46,0.2)]'
-                                                            : canSaveMore
-                                                                ? 'border-white/12 bg-white/6 text-white hover:border-[#FFFF2E]/80 hover:bg-[#FFFF2E]/10 hover:text-[#FFFF2E]'
-                                                                : 'border-white/10 bg-white/[0.03] text-gray-500'
-                                                            }`}
-                                                    >
-                                                        {isPageSaved(pageNumber) ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
-                                                        <span>შენახვა</span>
-                                                    </button>
-
-                                                    <button
-                                                        id="reader-mark-position-btn-desktop"
-                                                        onClick={() => isMarkedPage ? clearPosition() : markPage(pageNumber)}
-                                                        title={isMarkedPage ? 'საწყისი პინის წაშლა' : 'ამ გვერდის დაპინება შემდეგ სესიაზე განახლებისთვის'}
-                                                        className={`${desktopActionButtonBaseClass} ${isMarkedPage
-                                                            ? 'border-[#FFFF2E] bg-[#FFFF2E] text-black shadow-[0_0_24px_rgba(255,255,46,0.2)]'
-                                                            : 'border-white/12 bg-white/6 text-white hover:border-[#FFFF2E]/80 hover:bg-[#FFFF2E]/10 hover:text-[#FFFF2E]'
-                                                            }`}
-                                                    >
-                                                        <MapPin className="h-4 w-4" />
-                                                        <span>{isMarkedPage ? 'დაპინულია' : 'პინი'}</span>
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
                             <div className="reader-page-shell w-full max-w-[100vw] flex justify-center">
                                 {/* Wrapper so the ribbon sits outside the overflow:hidden canvas */}
                                 <div className="relative w-full flex justify-center h-full">
@@ -1084,7 +1002,79 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                             </div>
                         </div>
 
-                        {!focusMode && (
+                        {!focusMode && !isMobileViewport && (
+                            <div className="mt-6 hidden md:flex items-center justify-center px-4">
+                                <div className="flex w-full max-w-4xl flex-wrap items-center justify-center gap-3 border border-white/12 bg-black/35 px-4 py-3 text-white shadow-[0_18px_48px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+                                    <button
+                                        id="reader-prev-page-desktop"
+                                        onClick={() => goToRelativePage(-1)}
+                                        disabled={pageNumber <= 1}
+                                        title="წინა გვერდი"
+                                        className="inline-flex h-11 w-11 items-center justify-center border border-white/12 bg-black/45 transition-all duration-300 hover:border-[#FFFF2E] hover:text-[#FFFF2E] disabled:pointer-events-none disabled:opacity-20"
+                                    >
+                                        <ChevronLeft className="h-6 w-6" />
+                                    </button>
+
+                                    <div className="min-w-[150px] px-2 text-center text-xs font-black uppercase tracking-[0.22em] text-gray-300">
+                                        გვერდი {pageNumber} / {Math.max(availablePages, 1)}
+                                    </div>
+
+                                    <button
+                                        id="reader-next-page-desktop"
+                                        onClick={() => goToRelativePage(1)}
+                                        disabled={pageNumber >= Math.max(availablePages, 1)}
+                                        title="შემდეგი გვერდი"
+                                        className="inline-flex h-11 w-11 items-center justify-center border border-white/12 bg-black/45 transition-all duration-300 hover:border-[#FFFF2E] hover:text-[#FFFF2E] disabled:pointer-events-none disabled:opacity-20"
+                                    >
+                                        <ChevronRight className="h-6 w-6" />
+                                    </button>
+
+                                    <button
+                                        onClick={() => setFocusMode((f) => !f)}
+                                        title={focusMode ? 'ფოკუს რეჟიმიდან გასვლა' : 'ფოკუს რეჟიმში შეყვანა'}
+                                        className="inline-flex items-center gap-2 border border-white/12 bg-white/6 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300 hover:border-[#FFFF2E]/80 hover:bg-[#FFFF2E]/10 hover:text-[#FFFF2E]"
+                                    >
+                                        <Maximize className="h-4 w-4" />
+                                        <span>ფოკუსი</span>
+                                    </button>
+
+                                    {manifest.access_mode !== 'preview' && (
+                                        <>
+                                            <button
+                                                id="reader-save-page-btn-desktop"
+                                                onClick={handleToggleSave}
+                                                disabled={!canSaveMore && !isPageSaved(pageNumber)}
+                                                title={isPageSaved(pageNumber) ? 'შენახული გვერდის წაშლა' : canSaveMore ? 'გვერდის შენახვა მოგვიანებლად' : `მაქსიმუმ ${maxSavedPages} გვერდი შენახულია`}
+                                                className={`inline-flex items-center gap-2 border px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300 ${isPageSaved(pageNumber)
+                                                    ? 'border-[#FFFF2E] bg-[#FFFF2E] text-black shadow-[0_0_24px_rgba(255,255,46,0.2)]'
+                                                    : canSaveMore
+                                                        ? 'border-white/12 bg-white/6 text-white hover:border-[#FFFF2E]/80 hover:bg-[#FFFF2E]/10 hover:text-[#FFFF2E]'
+                                                        : 'border-white/10 bg-white/[0.03] text-gray-500'
+                                                    }`}
+                                            >
+                                                {isPageSaved(pageNumber) ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
+                                                <span>შენახვა</span>
+                                            </button>
+
+                                            <button
+                                                id="reader-mark-position-btn-desktop"
+                                                onClick={() => isMarkedPage ? clearPosition() : markPage(pageNumber)}
+                                                title={isMarkedPage ? 'საწყისი პინის წაშლა' : 'ამ გვერდის დაპინება შემდეგ სესიაზე განახლებისთვის'}
+                                                className={`inline-flex items-center gap-2 border px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300 ${isMarkedPage
+                                                    ? 'border-[#FFFF2E] bg-[#FFFF2E] text-black shadow-[0_0_24px_rgba(255,255,46,0.2)]'
+                                                    : 'border-white/12 bg-white/6 text-white hover:border-[#FFFF2E]/80 hover:bg-[#FFFF2E]/10 hover:text-[#FFFF2E]'
+                                                    }`}
+                                            >
+                                                <MapPin className="h-4 w-4" />
+                                                <span>{isMarkedPage ? 'დაპინულია' : 'პინი'}</span>
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {!focusMode && isMobileViewport && (
                             <div className="reader-mobile-controls mt-4 flex flex-col items-center justify-center gap-3 md:hidden">
                                 {/* ── Page counter & Navigation row ── */}
                                 <div className="reader-mobile-nav-row flex items-center gap-4 md:gap-8">
