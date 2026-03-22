@@ -369,8 +369,8 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
 
         {/* Reviews Section */}
         <div className="mt-24 pt-16 border-t-2 border-white/10">
-          <div className="mb-8 flex items-center justify-between max-sm:flex-col max-sm:items-start max-sm:gap-4">
-            <h3 className="flex items-center gap-4 text-3xl font-black uppercase tracking-tighter max-sm:flex-wrap">
+          <div className="rws-mob mb-8 flex items-center justify-between max-sm:flex-col max-sm:items-stretch max-sm:gap-4">
+            <h3 className="flex items-center gap-4 text-3xl font-black uppercase tracking-tighter max-sm:flex-wrap max-sm:text-2xl">
               <MessageSquare className="w-8 h-8 text-[#FFFF2E]" />
               შეფასებები
               <span className="text-lg text-gray-500">({reviews.length})</span>
@@ -380,7 +380,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
             {canRead && !showReviewForm && (
               <button
                 onClick={() => userReview ? handleEditReview() : setShowReviewForm(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-[#FFFF2E] text-black font-black uppercase text-xs tracking-wider hover:bg-white transition-colors max-sm:w-full max-sm:justify-center"
+                className="flex items-center gap-2 px-6 py-3 bg-[#FFFF2E] text-black font-black uppercase text-xs tracking-wider hover:bg-white transition-colors max-sm:w-full max-sm:justify-center max-sm:mt-2 shrink-0"
               >
                 {userReview ? (
                   <>
