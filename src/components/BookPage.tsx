@@ -369,18 +369,18 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
 
         {/* Reviews Section */}
         <div className="mt-24 pt-16 border-t-2 border-white/10">
-          <div className="rws-mob mb-8 flex items-center justify-between max-sm:flex-col max-sm:items-stretch max-sm:gap-4">
-            <h3 className="flex items-center gap-4 text-3xl font-black uppercase tracking-tighter max-sm:flex-wrap max-sm:text-2xl">
-              <MessageSquare className="w-8 h-8 text-[#FFFF2E]" />
+          <div className="rws-mob mb-8 flex flex-row items-center justify-between gap-4 sm:flex-row sm:items-center sm:justify-between max-sm:flex-col max-sm:items-start max-sm:gap-6">
+            <h3 className="flex items-center gap-4 text-3xl font-black uppercase tracking-tighter max-sm:text-2xl max-sm:w-full">
+              <MessageSquare className="w-8 h-8 text-[#FFFF2E] max-sm:w-6 max-sm:h-6" />
               შეფასებები
-              <span className="text-lg text-gray-500">({reviews.length})</span>
+              <span className="text-lg text-gray-500 max-sm:text-base">({reviews.length})</span>
             </h3>
 
             {/* Add Review Button - Only for owners */}
             {canRead && !showReviewForm && (
               <button
                 onClick={() => userReview ? handleEditReview() : setShowReviewForm(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-[#FFFF2E] text-black font-black uppercase text-xs tracking-wider hover:bg-white transition-colors max-sm:w-full max-sm:justify-center max-sm:mt-2 shrink-0"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-[#FFFF2E] text-black font-black uppercase text-xs tracking-wider hover:bg-white transition-colors whitespace-nowrap max-sm:w-full max-sm:py-4"
               >
                 {userReview ? (
                   <>
