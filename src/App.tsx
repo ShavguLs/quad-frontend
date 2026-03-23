@@ -1357,16 +1357,6 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
   const [routeError, setRouteError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (matchedBook) {
-      // Only update if the book ID has actually changed
-      if (!resolvedBook || String(resolvedBook.id) !== String(matchedBook.id)) {
-        setResolvedBook(matchedBook);
-        setRouteError(null);
-        setRouteStatus('loaded');
-      }
-      return;
-    }
-
     if (!bookId) {
       setResolvedBook(null);
       setRouteError('BOOK_NOT_FOUND');
@@ -1376,19 +1366,31 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
 
     let cancelled = false;
 
-    setResolvedBook(null);
-    setRouteError(null);
-    setRouteStatus('loading');
+    if (matchedBook) {
+      setResolvedBook((currentBook) => {
+        if (!currentBook || String(currentBook.id) !== String(matchedBook.id)) {
+          return matchedBook;
+        }
+
+        return currentBook;
+      });
+      setRouteError(null);
+      setRouteStatus('loaded');
+    } else {
+      setResolvedBook(null);
+      setRouteError(null);
+      setRouteStatus('loading');
+    }
 
     api.getBook(bookId)
       .then((fetchedBook) => {
         if (cancelled) return;
         setResolvedBook(fetchedBook);
+        setRouteError(null);
         setRouteStatus('loaded');
       })
       .catch((error: unknown) => {
         if (cancelled) return;
-        setResolvedBook(null);
         const message = error instanceof Error && error.message
           ? error.message
           : 'BOOK_NOT_FOUND';
@@ -1396,6 +1398,13 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
           || message === 'Not found.'
           || message === 'No Book matches the given query.';
 
+        if (matchedBook) {
+          setRouteError(message);
+          setRouteStatus('loaded');
+          return;
+        }
+
+        setResolvedBook(null);
         setRouteError(message);
         setRouteStatus(isNotFound ? 'notFound' : 'error');
       });
