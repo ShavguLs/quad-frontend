@@ -1358,9 +1358,12 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
 
   useEffect(() => {
     if (matchedBook) {
-      setResolvedBook(matchedBook);
-      setRouteError(null);
-      setRouteStatus('loaded');
+      // Only update if the book ID has actually changed
+      if (!resolvedBook || String(resolvedBook.id) !== String(matchedBook.id)) {
+        setResolvedBook(matchedBook);
+        setRouteError(null);
+        setRouteStatus('loaded');
+      }
       return;
     }
 
