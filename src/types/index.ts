@@ -13,6 +13,7 @@ export interface User {
 
 export interface Book {
   id: string | number;
+  url_slug?: string;
   title: string;
   author: string;
   price: string;

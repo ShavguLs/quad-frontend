@@ -5,6 +5,7 @@ import { useSavedPages } from '../hooks/useSavedPages';
 import { useReadingSession } from '../hooks/useReadingSession';
 import { useReadingPosition } from '../hooks/useReadingPosition';
 import { api } from '../services/api';
+import { getBookPath } from '../lib/seo';
 import { sanitizeBookHTML } from '../services/htmlSanitizer';
 import type { Book, ReaderManifest, ReaderPageResponse, User as AppUser } from '../types';
 import {
@@ -809,7 +810,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                 {/* ── Top Header Bar (Hidden in Focus Mode) ── */}
                 <div className={`relative mb-4 md:mb-6 flex-wrap items-center justify-between gap-2 md:gap-4 border-b border-white/15 pb-3 md:pb-4 ${focusMode ? 'hidden' : 'flex'}`}>
                     <button
-                        onClick={() => navigate(`/book/${bookId}`)}
+                        onClick={() => navigate(getBookPath(book ?? { id: bookId ?? '' }), { state: book ? { book } : undefined })}
                         className="group relative inline-flex items-center justify-center gap-2 bg-red-500 px-4 py-2 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-600 transition-all duration-300 hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-500 hover:border-red-600"
                     >
                         <LogOut className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />

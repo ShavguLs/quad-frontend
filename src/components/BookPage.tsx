@@ -224,7 +224,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
           description={book.description || `${book.title} — ${book.author}-ის წიგნი Quaduni-ზე`}
           image={bookOgImage}
           ogImageAlt={`${book.title} — გარეკანი`}
-          canonical={getBookPath(book.id)}
+          canonical={getBookPath(book)}
           type="book"
           jsonLd={[bookJsonLd, breadcrumbJsonLd, ...reviewJsonLd]}
       />
@@ -623,7 +623,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                 {relatedArtifacts.map((relatedItem) => (
                 <Link
                   key={relatedItem.id}
-                  to={`/book/${relatedItem.id}`}
+                  to={getBookPath(relatedItem)}
                   state={{ book: relatedItem }}
                   onClick={() => onOpenBook(relatedItem)}
                   className="space-y-4 group block cursor-pointer opacity-50 hover:opacity-100 transition-opacity"

@@ -85,7 +85,17 @@ export const normalizePriceValue = (value?: string | number | null): string | un
   return normalizedValue;
 };
 
-export const getBookPath = (bookId: string | number): string => `/book/${bookId}`;
+type BookPathInput = Pick<Book, 'id' | 'url_slug'> | string | number;
+
+export const getBookPath = (bookOrId: BookPathInput, urlSlug?: string | null): string => {
+  if (typeof bookOrId === 'string' || typeof bookOrId === 'number') {
+    const slug = typeof urlSlug === 'string' ? urlSlug.trim() : '';
+    return slug ? `/book/${slug}--${bookOrId}` : `/book/${bookOrId}`;
+  }
+
+  const slug = typeof bookOrId.url_slug === 'string' ? bookOrId.url_slug.trim() : '';
+  return slug ? `/book/${slug}--${bookOrId.id}` : `/book/${bookOrId.id}`;
+};
 
 export const getAggregateRatingFromReviews = (reviews: Review[]): AggregateRatingInput | undefined => {
   if (reviews.length === 0) {
@@ -129,7 +139,7 @@ export const buildBookJsonLd = (
   book: Book,
   options?: { aggregateRating?: AggregateRatingInput },
 ): Record<string, unknown> => {
-  const canonicalUrl = toAbsoluteUrl(getBookPath(book.id));
+  const canonicalUrl = toAbsoluteUrl(getBookPath(book));
   const bookCover = getBookCoverImage(book);
   const price = normalizePriceValue(book.price);
   const aggregateRating = buildAggregateRatingJsonLd(options?.aggregateRating);
@@ -174,7 +184,7 @@ export const buildBookJsonLd = (
 };
 
 export const buildBookReviewJsonLd = (
-  book: Pick<Book, 'id' | 'title'>,
+  book: Pick<Book, 'id' | 'title' | 'url_slug'>,
   review: ReviewSchemaInput,
 ): Record<string, unknown> => ({
   '@context': 'https://schema.org',
@@ -182,7 +192,7 @@ export const buildBookReviewJsonLd = (
   itemReviewed: {
     '@type': 'Book',
     name: book.title,
-    url: toAbsoluteUrl(getBookPath(book.id)),
+    url: toAbsoluteUrl(getBookPath(book)),
   },
   author: {
     '@type': 'Person',
@@ -197,7 +207,7 @@ export const buildBookReviewJsonLd = (
   },
 });
 
-export const buildBookBreadcrumbJsonLd = (book: Pick<Book, 'id' | 'title'>): Record<string, unknown> => ({
+export const buildBookBreadcrumbJsonLd = (book: Pick<Book, 'id' | 'title' | 'url_slug'>): Record<string, unknown> => ({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
@@ -217,7 +227,7 @@ export const buildBookBreadcrumbJsonLd = (book: Pick<Book, 'id' | 'title'>): Rec
       '@type': 'ListItem',
       position: 3,
       name: book.title,
-      item: toAbsoluteUrl(getBookPath(book.id)),
+      item: toAbsoluteUrl(getBookPath(book)),
     },
   ],
 });

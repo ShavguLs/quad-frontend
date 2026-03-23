@@ -47,6 +47,7 @@ const getJsonLdScripts = (): Record<string, unknown>[] => Array.from(document.he
 
 const createBook = (overrides: Partial<Book> = {}): Book => ({
   id: 1,
+  url_slug: 'ტესტ-ავტორი-ტესტ-წიგნი',
   title: 'ტესტ წიგნი',
   author: 'ტესტ ავტორი',
   price: '12',
@@ -223,7 +224,7 @@ describe('SEO metadata', () => {
       expect(((bookJsonLd as { offers?: { price?: string } }).offers)?.price).toBe('12.50');
       expect(((bookJsonLd as { aggregateRating?: { ratingValue?: string; reviewCount?: string } }).aggregateRating)?.ratingValue).toBe('4.5');
       expect(((bookJsonLd as { aggregateRating?: { reviewCount?: string } }).aggregateRating)?.reviewCount).toBe('2');
-      expect(bookJsonLd.url).toBe('https://quaduni.com/book/77');
+      expect(bookJsonLd.url).toBe(`https://quaduni.com${encodeURI('/book/ტესტ-ავტორი-ტესტ-წიგნი--77')}`);
       expect(bookJsonLd.inLanguage).toBe('ka');
       expect(breadcrumbJsonLd['@type']).toBe('BreadcrumbList');
       expect(reviewJsonLd['@type']).toBe('Review');

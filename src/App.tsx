@@ -22,7 +22,8 @@ import { SEOMeta } from './components/SEOMeta';
 import { NotFoundView } from './components/NotFoundView';
 import { api } from './services/api';
 import { auth } from './services/auth';
-import { buildHomeJsonLd } from './lib/seo';
+import { buildHomeJsonLd, getBookPath } from './lib/seo';
+import { parseBookRouteId } from './lib/routing';
 import type { Book, Review, User as AppUser } from './types';
 
 // --- Sub-Components ---
@@ -375,7 +376,7 @@ const CartSidebar = ({ isOpen, onClose, cart, onRemove, onExecuteOrder, isExecut
   );
 };
 
-const BookCard = React.forwardRef(({ id, title, author, price, img, cover_image_url, tag, oldPrice, onClick, onAddToCart }, ref) => (
+const BookCard = React.forwardRef(({ id, url_slug, title, author, price, img, cover_image_url, tag, oldPrice, onClick, onAddToCart }, ref) => (
   <motion.div 
     ref={ref}
     layout
@@ -386,8 +387,8 @@ const BookCard = React.forwardRef(({ id, title, author, price, img, cover_image_
     className="group w-full"
   >
     <Link
-      to={`/book/${id}`}
-      state={{ book: { id, title, author, price, img, cover_image_url, tag, oldPrice } }}
+      to={getBookPath(id, url_slug)}
+      state={{ book: { id, url_slug, title, author, price, img, cover_image_url, tag, oldPrice } }}
       onClick={onClick}
       className="block"
     >
@@ -410,8 +411,8 @@ const BookCard = React.forwardRef(({ id, title, author, price, img, cover_image_
     </Link>
     <div className="space-y-1">
       <Link
-        to={`/book/${id}`}
-        state={{ book: { id, title, author, price, img, cover_image_url, tag, oldPrice } }}
+        to={getBookPath(id, url_slug)}
+        state={{ book: { id, url_slug, title, author, price, img, cover_image_url, tag, oldPrice } }}
         onClick={onClick}
         className="block"
       >
@@ -596,7 +597,7 @@ export const HomePage = ({ onNavigate, onBookClick, featuredBooks, archiveBooks,
                     {/* Book Object Column */}
                     <div className="main-book-column col-span-12 lg:col-span-6 flex justify-center lg:justify-start">
                       <Link
-                        to={`/book/${book.id}`}
+                        to={getBookPath(book)}
                         state={{ book }}
                         onClick={() => onBookClick(book)}
                         className="block relative w-full max-w-[400px] aspect-[3/4] group"
@@ -656,7 +657,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                         className="pt-4 content-button"
                       >
                         <Link
-                          to={`/book/${book.id}`}
+                          to={getBookPath(book)}
                           state={{ book }}
                           onClick={() => onBookClick(book)}
                           className="group relative inline-flex bg-white text-black px-12 py-5 font-black uppercase text-xl overflow-hidden"
@@ -766,7 +767,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
             {archiveBooks.map((book, i) => (
               <div key={i} className="px-6 py-12">
                 <Link
-                  to={`/book/${book.id}`}
+                  to={getBookPath(book)}
                   state={{ book }}
                   onClick={() => onBookClick(book)}
                   className="relative block bg-zinc-900 border-4 border-white group cursor-pointer transition-all duration-500 hover:border-[#FFFF2E]"
@@ -1131,8 +1132,12 @@ const VoteButtons = ({ reviewId, upvotes = 0, downvotes = 0, userVote, onVote, o
   );
 };
 
-const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading }) => {
+const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading, knownBooks }) => {
   const [votingReviewId, setVotingReviewId] = useState<string | number | null>(null);
+  const booksById = useMemo(
+    () => new Map((knownBooks as Book[]).map((book) => [String(book.id), book])),
+    [knownBooks],
+  );
 
   const handleVote = async (reviewId: string | number, voteType: 1 | -1) => {
     if (!user) return;
@@ -1194,7 +1199,10 @@ const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading }
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {reviews.map((review) => (
+            {reviews.map((review) => {
+              const linkedBook = review.bookId ? booksById.get(String(review.bookId)) : undefined;
+
+              return (
               <motion.div
                 key={review.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -1224,7 +1232,7 @@ const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading }
                 <div className="space-y-4">
                   {review.bookId ? (
                     <Link
-                      to={`/book/${review.bookId}`}
+                      to={getBookPath(linkedBook ?? { id: review.bookId })}
                       className="inline-block bg-[#FFFF2E] text-black px-2 py-1 text-[10px] font-black uppercase italic hover:bg-white transition-colors"
                     >
                       რეფ: {review.bookTitle}
@@ -1254,7 +1262,8 @@ const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading }
                   </div>
                 </div>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -1325,11 +1334,14 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
   const navigate = useNavigate();
   const locationState = routeLocation.state as { book?: Book } | null;
   const locationBook = locationState?.book;
-  const bookId = params.bookId;
+  const bookPath = params.bookId;
+  const bookId = useMemo(() => parseBookRouteId(bookPath), [bookPath]);
   const relatedBooks = useMemo(() => [...featuredBooks, ...books], [featuredBooks, books]);
 
   const matchedBook = useMemo(
-    () => locationBook
+    () => (locationBook && bookId && String(locationBook.id) === String(bookId)
+      ? locationBook
+      : null)
       || (selectedBook && String(selectedBook.id) === String(bookId) ? selectedBook : null)
       || relatedBooks.find((item) => String(item.id) === String(bookId))
       || null,
@@ -1389,6 +1401,20 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
       cancelled = true;
     };
   }, [matchedBook, bookId]);
+
+  useEffect(() => {
+    if (!resolvedBook) {
+      return;
+    }
+
+    const canonicalPath = getBookPath(resolvedBook);
+    if (routeLocation.pathname !== canonicalPath) {
+      navigate(canonicalPath, {
+        replace: true,
+        state: { book: resolvedBook },
+      });
+    }
+  }, [navigate, resolvedBook, routeLocation.pathname]);
 
   const isNotFoundError = routeStatus === 'notFound';
 
@@ -1467,7 +1493,7 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
       onBack={() => navigate('/books')}
       onAddToCart={() => addToCart(resolvedBook)}
       onReadBook={() => navigate(`/reader/${resolvedBook.id}`, { state: { book: resolvedBook } })}
-      onOpenBook={(nextBook) => navigate(`/book/${nextBook.id}`, { state: { book: nextBook } })}
+      onOpenBook={(nextBook) => navigate(getBookPath(nextBook), { state: { book: nextBook } })}
     />
   );
 };
@@ -1616,7 +1642,7 @@ export default function App() {
 
   const handleBookClick = (book: any) => {
     setSelectedBook(book);
-    navigate(`/book/${book.id}`, { state: { book } });
+    navigate(getBookPath(book), { state: { book } });
   };
 
   const handleSearchChange = (query: string) => {
@@ -1746,7 +1772,7 @@ export default function App() {
           <Route path="/" element={<HomePage onNavigate={handleNavigate} onBookClick={handleBookClick} featuredBooks={featuredBooks} archiveBooks={featuredBooks} catalogError={catalogError} isLoading={isCatalogLoading} />} />
           <Route path="/books" element={<BooksPage onBookClick={handleBookClick} searchQuery={searchQuery} books={books} onAddToCart={addToCart} catalogError={catalogError} isLoading={isCatalogLoading} />} />
           <Route path="/community" element={<CommunityView />} />
-          <Route path="/reviews" element={<ReviewsPage reviews={reviews} reviewsError={reviewsError} user={user} onReviewsChange={() => loadReviews()} isLoading={isReviewsLoading} />} />
+          <Route path="/reviews" element={<ReviewsPage reviews={reviews} reviewsError={reviewsError} user={user} onReviewsChange={() => loadReviews()} isLoading={isReviewsLoading} knownBooks={[...featuredBooks, ...books]} />} />
           <Route path="/book/:bookId" element={<BookDetailRoute selectedBook={selectedBook} featuredBooks={featuredBooks} books={books} user={user} isAuthLoading={isAuthLoading} addToCart={addToCart} />} />
           <Route
             path="/reader/:bookId"
