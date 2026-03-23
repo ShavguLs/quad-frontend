@@ -651,9 +651,11 @@ export const api = {
   async getReadingPosition(bookId: string | number): Promise<{ id: number; page_number: number; updated_at: string } | null> {
     if (!hasApi) return null;
     try {
-      return await request(`/books/${bookId}/reading-position/`);
+      const result = await request<{ id: number; page_number: number | null; updated_at: string } | { page_number: null }>(`/books/${bookId}/reading-position/`);
+      if (!result || result.page_number === null) return null;
+      return result;
     } catch {
-      return null; // 404 = no position set
+      return null;
     }
   },
 
