@@ -1514,14 +1514,21 @@ export default function App() {
   const [isReviewsLoading, setIsReviewsLoading] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+  const normalizedPathname = useMemo(() => {
+    if (location.pathname === '/') {
+      return location.pathname;
+    }
+
+    return location.pathname.replace(/\/+$/, '');
+  }, [location.pathname]);
   const loginRedirectPath =
     typeof (location.state as { from?: unknown } | null)?.from === 'string'
       ? ((location.state as { from: string }).from.startsWith('/')
         ? (location.state as { from: string }).from
         : '/')
       : '/';
-  const isAuthRoute = location.pathname === '/login' || location.pathname === '/register';
-  const isChromeHiddenRoute = location.pathname.startsWith('/reader/') || location.pathname.startsWith('/draft/');
+  const isAuthRoute = normalizedPathname === '/login' || normalizedPathname === '/register';
+  const isChromeHiddenRoute = normalizedPathname.startsWith('/reader/') || normalizedPathname.startsWith('/draft/');
 
   const routeMap = useMemo(() => ({
     home: '/',
@@ -1614,7 +1621,7 @@ export default function App() {
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
-    if (location.pathname !== '/books' && query.trim() !== '') {
+    if (normalizedPathname !== '/books' && query.trim() !== '') {
       navigate('/books');
     }
   };
