@@ -364,6 +364,17 @@ function isHtmlResponse(response) {
   return contentType.includes('text/html');
 }
 
+function withCrossOriginOpenerPolicy(response) {
+  const headers = new Headers(response.headers);
+  headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 async function renderNotFoundPage(request, env) {
   const notFoundRequest = new Request(new URL('/404.html', request.url), request);
   const notFoundResponse = await env.ASSETS.fetch(notFoundRequest);
@@ -401,11 +412,11 @@ async function injectBookPageMetadata(request, env) {
     const headers = new Headers(assetResponse.headers);
     headers.set('content-type', 'text/html; charset=utf-8');
 
-    return new Response(assetHtml, {
+    return withCrossOriginOpenerPolicy(new Response(assetHtml, {
       status: assetResponse.status,
       statusText: assetResponse.statusText,
       headers,
-    });
+    }));
   }
 
   const book = await fetchBookData(bookId, env).catch(() => null);
@@ -424,11 +435,11 @@ async function injectBookPageMetadata(request, env) {
   const headers = new Headers(assetResponse.headers);
   headers.set('content-type', 'text/html; charset=utf-8');
 
-  return new Response(injectedHtml, {
+  return withCrossOriginOpenerPolicy(new Response(injectedHtml, {
     status: assetResponse.status,
     statusText: assetResponse.statusText,
     headers,
-  });
+  }));
 }
 
 export default {
@@ -437,18 +448,18 @@ export default {
     const routeType = classifyRoute(url.pathname);
 
     if (routeType === 'sitemap') {
-      return proxySitemap(request, env);
+      return withCrossOriginOpenerPolicy(await proxySitemap(request, env));
     }
 
     if (request.method === 'GET' && routeType === 'book') {
-      return injectBookPageMetadata(request, env);
+      return withCrossOriginOpenerPolicy(await injectBookPageMetadata(request, env));
     }
 
     if (routeType === 'unknown') {
-      return renderNotFoundPage(request, env);
+      return withCrossOriginOpenerPolicy(await renderNotFoundPage(request, env));
     }
 
-    return env.ASSETS.fetch(request);
+    return withCrossOriginOpenerPolicy(await env.ASSETS.fetch(request));
   },
 };
 
