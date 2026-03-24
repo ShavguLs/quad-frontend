@@ -1328,6 +1328,14 @@ interface BookDetailRouteProps {
 
 type BookDetailRouteStatus = 'loading' | 'loaded' | 'notFound' | 'error';
 
+const shouldHydrateBookDetails = (book: Book): boolean => {
+  const hasDescription = typeof book.description === 'string' && book.description.trim().length > 0;
+  const hasCategory = typeof book.category === 'string' && book.category.trim().length > 0;
+  const hasPageCount = book.total_pages != null || book.totalPages != null || Array.isArray(book.pages);
+
+  return !hasDescription || !hasCategory || !hasPageCount;
+};
+
 const normalizeComparablePath = (path: string): string => {
   let decodedPath = path;
 
@@ -1363,6 +1371,10 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
       || null,
     [locationBook, selectedBook, bookId, relatedBooks],
   );
+  const needsHydration = useMemo(
+    () => (matchedBook ? shouldHydrateBookDetails(matchedBook) : false),
+    [matchedBook],
+  );
 
   const [resolvedBook, setResolvedBook] = useState<Book | null>(matchedBook);
   const [routeStatus, setRouteStatus] = useState<BookDetailRouteStatus>(() => {
@@ -1392,6 +1404,29 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
       });
       setRouteError(null);
       setRouteStatus('loaded');
+
+      if (!needsHydration) {
+        return () => {
+          cancelled = true;
+        };
+      }
+
+      api.getBook(bookId)
+        .then((fetchedBook) => {
+          if (cancelled) return;
+          setResolvedBook(fetchedBook);
+          setRouteError(null);
+          setRouteStatus('loaded');
+        })
+        .catch((error: unknown) => {
+          if (cancelled) return;
+          const message = error instanceof Error && error.message
+            ? error.message
+            : 'BOOK_NOT_FOUND';
+          setRouteError(message);
+          setRouteStatus('loaded');
+        });
+
       return () => {
         cancelled = true;
       };
@@ -1431,7 +1466,7 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
     return () => {
       cancelled = true;
     };
-  }, [matchedBook, bookId]);
+  }, [matchedBook, bookId, needsHydration]);
 
   useEffect(() => {
     if (!resolvedBook) {

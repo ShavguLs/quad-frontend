@@ -13,6 +13,15 @@ const mockBook = {
   price: '10',
   description: 'ქართული კლასიკა',
   category: 'წიგნები',
+  total_pages: 320,
+};
+
+const partialStateBook = {
+  id: 14,
+  url_slug: 'შოთა-რუსთაველი-ვეფხისტყაოსანი',
+  title: 'ვეფხისტყაოსანი',
+  author: 'შოთა რუსთაველი',
+  price: '10',
 };
 
 const apiMock = vi.hoisted(() => ({
@@ -124,6 +133,21 @@ describe('book route redirects', () => {
       expect(apiMock.getBooks).toHaveBeenCalled();
     });
     expect(apiMock.getBook).not.toHaveBeenCalled();
+  });
+
+  it('hydrates canonical slug routes when location state has partial book data', async () => {
+    renderAppAt({
+      pathname: '/book/შოთა-რუსთაველი-ვეფხისტყაოსანი--14',
+      state: { book: partialStateBook },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location-path').textContent).toBe('/book/შოთა-რუსთაველი-ვეფხისტყაოსანი--14');
+    });
+
+    await waitFor(() => {
+      expect(apiMock.getBook).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('shows the existing not-found state for malformed routes without an id', async () => {
