@@ -46,9 +46,9 @@ const LocationDisplay = () => {
   return <div data-testid="location-path">{location.pathname}</div>;
 };
 
-const renderAppAt = (initialPath: string) => render(
+const renderAppAt = (initialEntry: string | { pathname: string; state?: { book?: typeof mockBook } }) => render(
   <HelmetProvider>
-    <MemoryRouter initialEntries={[initialPath]}>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <App />
       <LocationDisplay />
     </MemoryRouter>
@@ -96,6 +96,8 @@ describe('book route redirects', () => {
     await waitFor(() => {
       expect(screen.getByTestId('location-path').textContent).toBe('/book/შოთა-რუსთაველი-ვეფხისტყაოსანი--14');
     });
+
+    expect(apiMock.getBook).toHaveBeenCalledTimes(1);
   });
 
   it('redirects mismatched slug routes to the canonical slug route', async () => {
@@ -104,14 +106,24 @@ describe('book route redirects', () => {
     await waitFor(() => {
       expect(screen.getByTestId('location-path').textContent).toBe('/book/შოთა-რუსთაველი-ვეფხისტყაოსანი--14');
     });
+
+    expect(apiMock.getBook).toHaveBeenCalledTimes(1);
   });
 
   it('keeps canonical slug routes stable', async () => {
-    renderAppAt('/book/შოთა-რუსთაველი-ვეფხისტყაოსანი--14');
+    renderAppAt({
+      pathname: '/book/შოთა-რუსთაველი-ვეფხისტყაოსანი--14',
+      state: { book: mockBook },
+    });
 
     await waitFor(() => {
       expect(screen.getByTestId('location-path').textContent).toBe('/book/შოთა-რუსთაველი-ვეფხისტყაოსანი--14');
     });
+
+    await waitFor(() => {
+      expect(apiMock.getBooks).toHaveBeenCalled();
+    });
+    expect(apiMock.getBook).not.toHaveBeenCalled();
   });
 
   it('shows the existing not-found state for malformed routes without an id', async () => {

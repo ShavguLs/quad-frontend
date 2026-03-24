@@ -1328,6 +1328,22 @@ interface BookDetailRouteProps {
 
 type BookDetailRouteStatus = 'loading' | 'loaded' | 'notFound' | 'error';
 
+const normalizeComparablePath = (path: string): string => {
+  let decodedPath = path;
+
+  try {
+    decodedPath = decodeURI(path);
+  } catch {
+    decodedPath = path;
+  }
+
+  if (decodedPath === '/') {
+    return decodedPath;
+  }
+
+  return decodedPath.replace(/\/+$/, '');
+};
+
 const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, featuredBooks, books, user, isAuthLoading, addToCart }) => {
   const params = useParams();
   const routeLocation = useLocation();
@@ -1376,11 +1392,14 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
       });
       setRouteError(null);
       setRouteStatus('loaded');
-    } else {
-      setResolvedBook(null);
-      setRouteError(null);
-      setRouteStatus('loading');
+      return () => {
+        cancelled = true;
+      };
     }
+
+    setResolvedBook(null);
+    setRouteError(null);
+    setRouteStatus('loading');
 
     api.getBook(bookId)
       .then((fetchedBook) => {
@@ -1420,7 +1439,10 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
     }
 
     const canonicalPath = getBookPath(resolvedBook);
-    if (routeLocation.pathname !== canonicalPath) {
+    const currentNormalizedPath = normalizeComparablePath(routeLocation.pathname);
+    const canonicalNormalizedPath = normalizeComparablePath(canonicalPath);
+
+    if (currentNormalizedPath !== canonicalNormalizedPath) {
       navigate(canonicalPath, {
         replace: true,
         state: { book: resolvedBook },
