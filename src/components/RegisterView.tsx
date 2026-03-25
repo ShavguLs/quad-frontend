@@ -61,7 +61,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onBack, onSwitchToLo
               <span className="bg-[#FFFF2E] text-black px-2 py-1 text-[14px] font-black uppercase">QUADUNI.COM</span>
               <span className="text-[14px] font-black uppercase text-gray-500">რეგისტრაცია</span>
             </div>
-            <h1 className="text-6xl md:text-9xl font-black uppercase leading-[0.75] tracking-tighter">
+            <h1 className="text-6xl md:text-9xl font-black uppercase leading-[1] tracking-tighter">
               შექმენი <br /> <span className="text-[#FFFF2E]">ანგარიში.</span>
             </h1>
           </div>

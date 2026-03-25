@@ -75,24 +75,22 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
             animate={{ x: 0, opacity: 1 }}
             className="inline-block bg-[#FFFF2E] text-black px-4 py-2 text-[14px] font-black uppercase italic -rotate-2"
           >
-            quaduni.com // შესვლა
+            quaduni.com
           </motion.div>
-          <h1 className="text-[12vw] md:text-[8vw] font-black uppercase leading-[0.75] tracking-tighter text-[#FFFF2E] mix-blend-difference">
-            კეთილი<br />იყოს.
+          <h1 className="text-[12vw] md:text-[8vw] font-black uppercase leading-[1] tracking-tighter text-[#FFFF2E] mix-blend-difference">
+            შესვლა
           </h1>
+          <p className="text-2xl md:text-3xl font-black uppercase leading-tight text-white/90 max-w-xl">
+            თქვენი წიგნების სამყარო ერთ ადგილზე — გაიარეთ ავტორიზაცია და განაგრძეთ კითხვა.
+          </p>
         </div>
 
         <div className="space-y-8">
-          <div className="max-w-xs hidden md:block">
-            <p className="text-[14px] font-black uppercase leading-relaxed text-gray-400">
-              შეიყვანეთ ელ-ფოსტა და პაროლი თქვენს ანგარიშზე შესასვლელად.
-            </p>
-          </div>
           <button
             onClick={onBack}
             className="hidden md:flex group items-center gap-4 text-[14px] font-black uppercase tracking-[0.3em] hover:text-[#FFFF2E] transition-colors"
           >
-            <X className="w-4 h-4" /> [ მთავარ გვერდზე დაბრუნება ]
+            <X className="w-14 h-14" /> [ მთავარ გვერდზე დაბრუნება ]
           </button>
         </div>
       </div>
@@ -118,8 +116,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
                 {...register("email", { required: true })}
                 disabled={loading}
                 type="email"
-                className="w-full bg-transparent border-b-4 border-white/20 pb-4 text-4xl md:text-5xl font-black uppercase outline-none focus:border-[#FFFF2E] transition-all placeholder:text-zinc-900 disabled:opacity-50"
-                placeholder="თქვენი@ელფოსტა.კომ"
+                className="w-full bg-transparent border-b-4 border-white/20 pb-4 text-4xl md:text-5xl font-black uppercase outline-none focus:border-[#FFFF2E] transition-all disabled:opacity-50"
+                placeholder="name@gmail.com"
               />
             </div>
 
@@ -131,7 +129,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBack, onSwitchToRegister
                 {...register("password", { required: true })}
                 disabled={loading}
                 type="password"
-                className="w-full bg-transparent border-b-4 border-white/20 pb-4 text-4xl md:text-5xl font-black uppercase outline-none focus:border-[#FFFF2E] transition-all placeholder:text-zinc-900 disabled:opacity-50"
+                className="w-full bg-transparent border-b-4 border-white/20 pb-4 text-4xl md:text-5xl font-black uppercase outline-none focus:border-[#FFFF2E] transition-all disabled:opacity-50"
                 placeholder="********"
               />
             </div>

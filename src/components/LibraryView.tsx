@@ -148,7 +148,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, onBookClick, u
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-12 mb-12 md:mb-20 border-l-4 md:border-l-8 border-[#FFFF2E] pl-4 md:pl-8">
           <div>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-[0.75]">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-[1]">
               შეძენილი<br />
               <span className="text-[#FFFF2E]">წიგნები</span>
             </h1>

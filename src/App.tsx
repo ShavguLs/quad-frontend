@@ -32,6 +32,28 @@ const Navbar = ({ user, isAuthLoading, onSignOut, searchQuery, onSearchChange, c
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  useEffect(() => {
+    if (!isMobileMenuOpen || typeof window === 'undefined') {
+      return;
+    }
+
+    const isMobileViewport = window.matchMedia('(max-width: 1023px)').matches;
+    if (!isMobileViewport) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    const previousTouchAction = document.body.style.touchAction;
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.touchAction = previousTouchAction;
+    };
+  }, [isMobileMenuOpen]);
+
   const menuItems = [
     { id: 'home', label: 'მთავარი', path: '/' },
     { id: 'books', label: 'წიგნები', path: '/books' },
@@ -191,6 +213,19 @@ const Navbar = ({ user, isAuthLoading, onSignOut, searchQuery, onSearchChange, c
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-12">
+                <div className="pb-8 border-b border-white/5">
+                  <div className="flex items-center bg-black border-2 border-white/10 px-4 py-3 group focus-within:border-[#FFFF2E] transition-all">
+                    <input 
+                      type="text" 
+                      value={searchQuery}
+                      onChange={(e) => onSearchChange(e.target.value)}
+                      placeholder="წიგნის ძიება..."
+                      className="bg-transparent text-sm font-black uppercase outline-none flex-1 placeholder:text-gray-800 tracking-widest text-white" 
+                    />
+                    <Search className="w-5 h-5 text-gray-800 group-focus-within:text-[#FFFF2E]" />
+                  </div>
+                </div>
+
                 <div className="space-y-4">
                   <span className="text-[10px] font-black text-[#FFFF2E] uppercase tracking-[0.4em] mb-4 block">ნავიგაცია</span>
                   <div className="grid gap-2">
@@ -247,18 +282,6 @@ const Navbar = ({ user, isAuthLoading, onSignOut, searchQuery, onSearchChange, c
                     )}
                  </div>
 
-                <div className="pt-8 border-t border-white/5">
-                   <div className="flex items-center bg-black border-2 border-white/10 px-4 py-3 group focus-within:border-[#FFFF2E] transition-all">
-                    <input 
-                      type="text" 
-                      value={searchQuery}
-                      onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="წიგნის ძიება..."
-                      className="bg-transparent text-sm font-black uppercase outline-none flex-1 placeholder:text-gray-800 tracking-widest text-white" 
-                    />
-                    <Search className="w-5 h-5 text-gray-800 group-focus-within:text-[#FFFF2E]" />
-                  </div>
-                </div>
               </div>
 
               <div className="p-6 bg-black border-t-2 border-white/10">
@@ -709,14 +732,14 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
       {/* Background Industrial Elements */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute top-10 left-10 text-9xl font-black">01</div>
-        <div className="absolute bottom-10 right-10 text-9xl font-black">04</div>
+        <div className="absolute bottom-10 right-10 text-9xl font-black">02</div>
         <div className="w-full h-full" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #333 0, #333 1px, transparent 0, transparent 50%)', backgroundSize: '10px 10px' }} />
       </div>
 
       <div className="container mx-auto px-6 mb-12 md:mb-20 relative z-10">
         <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
           <div className="border-l-4 md:border-l-8 border-[#FFFF2E] pl-4 md:pl-8">
-            <h2 className="text-6xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter leading-[0.75]">
+            <h2 className="text-6xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter leading-[1]">
               რჩეული<br />
               <span className="text-[#FFFF2E]">კოლექცია</span>
             </h2>
@@ -845,11 +868,11 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
         <div className="flex flex-col gap-0 relative">
           
           {/* Giant Background Header - Now Outlined/Ghosted */}
-          <div className="absolute -top-32 -right-10 z-0 select-none pointer-events-none">
-            <h2 className="text-[30vw] font-black text-white/[0.02] uppercase leading-none rotate-6 tracking-tighter" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.1)', color: 'transparent' }}>
-              ᲙᲐᲕᲨᲘᲠᲘ
+          {/* <div className="absolute -top-32 -right-10 z-0 select-none pointer-events-none">
+            <h2 className="text-[30vw] font-black text-white/[0.02] uppercase leading-none rotate-1 tracking-tighter" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.1)', color: 'transparent' }}>
+              QUADUNI
             </h2>
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-4 border-[#FFFF2E] bg-black relative shadow-[30px_30px_0px_0px_rgba(255,255,46,0.05)]">
             
@@ -863,7 +886,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                   <div className="w-3 h-3 bg-red-600 rounded-full animate-ping" />
                   <span className="text-[10px] font-black text-[#FFFF2E] uppercase tracking-[0.4em]">დაგვიკავშირდით</span>
                 </div>
-                <h2 className="text-6xl lg:text-8xl font-black uppercase leading-[0.75] tracking-tighter mb-8">
+                <h2 className="text-6xl lg:text-8xl font-black uppercase leading-[1] tracking-tighter mb-8">
                   მოგვწერეთ<br />
                   <span className="text-[#FFFF2E]">ახლავე</span><br />
                   .
@@ -972,7 +995,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
           100% { transform: translateX(-33.33%); }
         }
         .animate-marquee {
-          animation: marquee 15s linear infinite;
+          animation: marquee 30s linear infinite;
         }
       `}</style>
     </section>

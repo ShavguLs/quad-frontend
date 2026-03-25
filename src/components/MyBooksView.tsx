@@ -168,7 +168,7 @@ export const MyBooksView: React.FC<MyBooksViewProps> = ({ onBack, onUploadNew, u
 
         {/* Header */}
         <div className="border-l-8 border-[#FFFF2E] pl-8 mb-16">
-          <h1 className="text-7xl md:text-8xl font-black uppercase tracking-tighter leading-[0.75]">
+          <h1 className="text-7xl md:text-8xl font-black uppercase tracking-tighter leading-[1]">
               ჩემი<br />
               <span className="text-[#FFFF2E]">წიგნები</span>
           </h1>
