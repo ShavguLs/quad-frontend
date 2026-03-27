@@ -2,16 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, 
-  ArrowUpRight, 
   ArrowDownLeft, 
   Wallet, 
   Zap, 
   TrendingUp, 
   ShieldCheck,
   CreditCard,
-  ArrowRight,
-  Phone,
-  Mail
+  ArrowRight
 } from 'lucide-react';
 import { api } from '../services/api';
 import type { User as AppUser, WalletStats, WalletTransaction } from '../types';
@@ -23,7 +20,7 @@ interface WalletViewProps {
 
 export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
   const TRANSACTIONS_PER_PAGE = 8;
-  const [activeTab, setActiveTab] = useState<'overview' | 'deposit' | 'withdraw'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'deposit'>('overview');
   const [amount, setAmount] = useState('');
   const [stats, setStats] = useState<WalletStats | null>(null);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
@@ -31,6 +28,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [depositFeedback, setDepositFeedback] = useState<{ tone: 'success' | 'error' | 'pending'; message: string } | null>(null);
 
   const totalTransactionPages = Math.max(1, Math.ceil(transactions.length / TRANSACTIONS_PER_PAGE));
   const visibleTransactions = transactions.slice(
@@ -50,6 +48,33 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
       setLoading(true);
       setError(null);
       try {
+        const params = new URLSearchParams(window.location.search);
+        const orderId = params.get('order');
+
+        if (orderId) {
+          try {
+            const depositStatus = await api.getDepositStatus(orderId);
+            if (!cancelled) {
+              if (depositStatus.status === 'COMPLETED') {
+                setDepositFeedback({ tone: 'success', message: 'თანხა წარმატებით ჩაირიცხა თქვენს ბალანსზე.' });
+              } else if (depositStatus.status === 'FAILED') {
+                setDepositFeedback({ tone: 'error', message: 'გადახდა ვერ დადასტურდა. თანხა ბალანსზე არ ჩაირიცხა.' });
+              } else {
+                setDepositFeedback({ tone: 'pending', message: 'გადახდა ჯერ მუშავდება. სტატუსი მალე განახლდება.' });
+              }
+            }
+          } catch (statusError: unknown) {
+            if (!cancelled) {
+              setDepositFeedback({
+                tone: 'pending',
+                message: statusError instanceof Error ? statusError.message : 'გადახდის სტატუსის განახლება ვერ მოხერხდა.',
+              });
+            }
+          } finally {
+            window.history.replaceState({}, '', '/wallet');
+          }
+        }
+
         const [statsData, txData] = await Promise.all([
           api.getWalletStats(),
           api.getWalletTransactions()
@@ -58,8 +83,8 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
         setStats(statsData);
         setTransactions(txData || []);
         setTransactionsPage(1);
-      } catch (err: any) {
-        if (!cancelled) setError(err.message || 'საფულე მიუწვდომელია');
+      } catch (err: unknown) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'საფულე მიუწვდომელია');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -88,17 +113,12 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
     setError(null);
     try {
       const result = await api.deposit(parseFloat(amount));
-      // Refresh wallet data
-      const statsData = await api.getWalletStats();
-      const txData = await api.getWalletTransactions();
-      setStats(statsData);
-      setTransactions(txData || []);
-      setTransactionsPage(1);
-      setAmount('');
-      setActiveTab('overview');
-      alert(`თანხის შეტანა წარმატებულია! დაემატა ${result.amount}. ახალი ბალანსი: ${result.new_balance}`);
-    } catch (err: any) {
-      setError(err.message || 'თანხის შეტანა ვერ მოხერხდა');
+      if (!result.checkoutUrl) {
+        throw new Error('გადახდის ბმული ვერ მოიძებნა');
+      }
+      window.location.assign(result.checkoutUrl);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'თანხის შეტანა ვერ მოხერხდა');
     } finally {
       setProcessing(false);
     }
@@ -169,11 +189,10 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                 {[
                   { id: 'overview', label: 'ისტორია', icon: ShieldCheck },
                   { id: 'deposit', label: 'თანხის შეტანა', icon: ArrowDownLeft },
-                  { id: 'withdraw', label: 'გამოტანა', icon: ArrowUpRight },
                 ].map((tab) => (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
+                    onClick={() => setActiveTab(tab.id as 'overview' | 'deposit')}
                     className={`flex-1 py-6 px-4 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all border-r-4 border-white last:border-r-0 ${
                       activeTab === tab.id ? 'bg-[#FFFF2E] text-black' : 'hover:bg-white/5'
                     }`}
@@ -203,6 +222,18 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                         </div>
                       </div>
 
+                      {depositFeedback && (
+                        <div className={`p-4 border-2 text-[10px] font-black uppercase tracking-widest ${
+                          depositFeedback.tone === 'success'
+                            ? 'border-green-500/40 bg-green-500/10 text-green-300'
+                            : depositFeedback.tone === 'error'
+                              ? 'border-red-500/40 bg-red-500/10 text-red-300'
+                              : 'border-[#FFFF2E]/40 bg-[#FFFF2E]/10 text-[#FFFF2E]'
+                        }`}>
+                          {depositFeedback.message}
+                        </div>
+                      )}
+
                       <div className="space-y-4">
                         {loading ? (
                           <div className="p-8 border-2 border-dashed border-white/10 text-center text-[10px] font-black uppercase tracking-widest text-gray-500">
@@ -224,8 +255,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                                   tx.type === 'SALE' ? 'border-[#FFFF2E] text-[#FFFF2E]' : 
                                   tx.type === 'DEPOSIT' ? 'border-blue-500 text-blue-500' : 'border-red-500 text-red-500'
                                 }`}>
-                                     {tx.type === 'გაყიდვა' ? <TrendingUp className="w-5 h-5" /> : 
-                                    tx.type === 'შეტანა' ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                                  {tx.type === 'SALE' ? <TrendingUp className="w-5 h-5" /> : <ArrowDownLeft className="w-5 h-5" />}
                                 </div>
                                 <div>
                                   <h4 className="font-black uppercase text-sm tracking-tight">{tx.label}</h4>
@@ -239,7 +269,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                                 <div className={`text-xl font-black ${tx.amount.startsWith('+') ? 'text-white' : 'text-red-500'}`}>
                                   {tx.amount}
                                 </div>
-                                <span className={`text-[8px] font-black uppercase ${tx.status === 'მოლოდინში' ? 'text-[#FFFF2E]' : 'text-gray-600'}`}>
+                                <span className={`text-[8px] font-black uppercase ${tx.status === 'PENDING' ? 'text-[#FFFF2E]' : 'text-gray-600'}`}>
                                   [{tx.status}]
                                 </span>
                               </div>
@@ -285,7 +315,7 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                       <div className="text-center space-y-4">
                         <h3 className="text-4xl font-black uppercase italic">თანხის შეტანა</h3>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 leading-relaxed">
-                          შეიყვანეთ სასურველი თანხა და დაამატეთ ბალანსზე. თანხა ხელმისაწვდომია დადასტურებისთანავე.
+                          შეიყვანეთ სასურველი თანხა. გადახდა გაგრძელდება Keepz-ის დაცულ გვერდზე და ბალანსი ჩაირიცხება მხოლოდ დადასტურების შემდეგ.
                         </p>
                       </div>
 
@@ -334,55 +364,9 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                         <div className="flex items-center gap-4 opacity-30 grayscale justify-center">
                           <CreditCard className="w-6 h-6" />
                           <ShieldCheck className="w-6 h-6" />
-                          <span className="text-[10px] font-black">დაცული გადახდა</span>
+                          <span className="text-[10px] font-black">Keepz დაცული გადახდა</span>
                         </div>
                       </div>
-                    </motion.div>
-                  )}
-
-                  {activeTab === 'withdraw' && (
-                    <motion.div
-                      key="withdraw"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      className="max-w-md mx-auto py-12 space-y-12"
-                    >
-                      <div className="text-center space-y-4">
-                        <h3 className="text-4xl font-black uppercase italic">თანხის გამოტანა</h3>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 leading-relaxed">
-                          თანხის გამოსატანად დაგვიკავშირდით პირდაპირ. ქვემოთ მოცემულია საკონტაქტო ინფორმაცია.
-                        </p>
-                      </div>
-
-                      <div className="space-y-6">
-                        <a
-                          href="tel:+995591286699"
-                          className="flex items-center gap-6 p-6 border-4 border-white/10 bg-black/50 hover:border-[#FFFF2E] transition-all group"
-                        >
-                          <div className="w-14 h-14 flex items-center justify-center text-[#FFFF2E]">
-                            <Phone className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">ტელეფონი</div>
-                            <div className="text-2xl font-black group-hover:text-[#FFFF2E] transition-colors">+995 591 286 699</div>
-                          </div>
-                        </a>
-
-                        <a
-                          href="mailto:support@quaduni.com"
-                          className="flex items-center gap-6 p-6 border-4 border-white/10 bg-black/50 hover:border-[#FFFF2E] transition-all group"
-                        >
-                          <div className="w-14 h-14 flex items-center justify-center text-[#FFFF2E]">
-                            <Mail className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">ელ-ფოსტა</div>
-                            <div className="text-2xl font-black group-hover:text-[#FFFF2E] transition-colors">support@quaduni.com</div>
-                          </div>
-                        </a>
-                      </div>
-
                     </motion.div>
                   )}
                 </AnimatePresence>

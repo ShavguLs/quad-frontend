@@ -130,6 +130,21 @@ export interface WalletTransaction {
   label: string;
 }
 
+export interface DepositInitiateResponse {
+  message: string;
+  orderId: string;
+  checkoutUrl: string;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED';
+}
+
+export interface DepositStatusResponse {
+  orderId: string;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  providerStatus: string;
+  credited: boolean;
+  amount: string;
+}
+
 export interface UploadBookPayload {
   title: string;
   author: string;

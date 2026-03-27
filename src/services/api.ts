@@ -8,6 +8,8 @@ import type {
   MyBook,
   WalletStats,
   WalletTransaction,
+  DepositInitiateResponse,
+  DepositStatusResponse,
   UploadBookPayload,
   UploadBookFiles,
   PaginatedResponse,
@@ -379,12 +381,17 @@ export const api = {
     return request<WalletTransaction[]>('/wallet/transactions/');
   },
 
-  async deposit(amount: number): Promise<{ message: string; amount: string; new_balance: string }> {
+  async deposit(amount: number): Promise<DepositInitiateResponse> {
     if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    return request('/wallet/deposit/', {
+    return request<DepositInitiateResponse>('/wallet/deposit/', {
       method: 'POST',
       body: JSON.stringify({ amount }),
     });
+  },
+
+  async getDepositStatus(orderId: string): Promise<DepositStatusResponse> {
+    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
+    return request<DepositStatusResponse>(`/wallet/deposit/status/?order_id=${encodeURIComponent(orderId)}`);
   },
 
   async createOrder(payload: { bookId: Book['id'] }): Promise<Order> {
