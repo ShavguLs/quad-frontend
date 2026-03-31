@@ -12,11 +12,9 @@ import {
     getFontById,
     getPaletteById,
     getAnimationById,
-    getPaperById,
     getBackgroundById,
 } from '../constants/draftStudioTheme';
 import type { DraftStudioTheme, AnimationEffect } from '../constants/draftStudioTheme';
-import { PaperTextureOverlay } from './PaperTextureOverlay';
 
 /* ── Reader Animation Overlay ── */
 const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string }> = ({ effect, accent }) => {
@@ -489,7 +487,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
     const themeFont = useMemo(() => draftTheme ? getFontById(draftTheme.font_id) : null, [draftTheme]);
     const themePalette = useMemo(() => draftTheme ? getPaletteById(draftTheme.palette_id) : null, [draftTheme]);
     const themeAnimation = useMemo(() => draftTheme ? getAnimationById(draftTheme.animation_id) : null, [draftTheme]);
-    const themePaper = useMemo(() => draftTheme ? getPaperById(draftTheme.paper_id) : null, [draftTheme]);
     const themeBackground = useMemo(() => draftTheme ? getBackgroundById(draftTheme.background_id) : null, [draftTheme]);
     const effectiveBaseFontSize = useMemo(() => {
         if (!draftTheme) return null;
@@ -935,10 +932,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                     <div
                                         className={`reader-page-canvas ${focusMode ? 'reader-page-canvas--focus' : ''} ${themePalette ? '' : 'bg-white text-black'} transition-all duration-300`}
                                         style={{ ...pageCanvasStyle, ...pageCanvasBgStyle, position: 'relative', overflow: 'hidden' }}
-                                        data-paper-effect={themePaper?.effect || 'clean'}
+                                        data-paper-effect="clean"
                                     >
-                                        {themePaper && <PaperTextureOverlay effect={themePaper.effect} />}
-
                                         {loadingPage && (
                                             <div className="absolute inset-0 z-10 p-8 md:p-12 flex flex-col gap-6" style={{ background: themePalette?.shell ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.03)' }}>
                                                 {/* Skeleton pulsating effect overlaying entire paper */}

@@ -12,7 +12,6 @@ import {
   Zap,
   Loader2,
   CheckCircle,
-  FileText,
   Image,
 } from 'lucide-react';
 import { api } from '../services/api';
@@ -20,18 +19,16 @@ import {
   fontOptions,
   paletteOptions,
   animationOptions,
-  paperOptions,
   backgroundOptions,
 } from '../constants/draftStudioTheme';
 import type { AnimationEffect } from '../constants/draftStudioTheme';
-import { PaperTextureOverlay } from './PaperTextureOverlay';
 
 interface BookDraftViewProps {
   bookId: string;
   onBack: () => void;
 }
 
-type DraftTab = 'fonts' | 'colors' | 'animations' | 'papers' | 'backgrounds';
+type DraftTab = 'fonts' | 'colors' | 'animations' | 'backgrounds';
 
 
 /* ── Animation Overlay Component ── */
@@ -408,7 +405,6 @@ const tabConfig: { key: DraftTab; label: string; icon: React.ElementType }[] = [
   { key: 'fonts', label: 'შრიფტი', icon: Type },
   { key: 'colors', label: 'ფერები', icon: Palette },
   { key: 'animations', label: 'ანიმაცია', icon: Sparkles },
-  { key: 'papers', label: 'ფურცელი', icon: FileText },
   { key: 'backgrounds', label: 'ფონი', icon: Image },
 ];
 
@@ -417,7 +413,6 @@ export const BookDraftView: React.FC<BookDraftViewProps> = ({ bookId, onBack }) 
   const [selectedFontId, setSelectedFontId] = useState<string>('bpg-mtavruli');
   const [selectedPaletteId, setSelectedPaletteId] = useState<string>('paper-ivory');
   const [selectedAnimationId, setSelectedAnimationId] = useState<string>('none');
-  const [selectedPaperId, setSelectedPaperId] = useState<string>('clean');
   const [selectedBackgroundId, setSelectedBackgroundId] = useState<string>('none');
 
   // Layout defaults preserved for backend payload but hidden from UI
@@ -443,7 +438,6 @@ export const BookDraftView: React.FC<BookDraftViewProps> = ({ bookId, onBack }) 
         if (data.font_id && typeof data.font_id === 'string') setSelectedFontId(data.font_id);
         if (data.palette_id && typeof data.palette_id === 'string') setSelectedPaletteId(data.palette_id);
         if (data.animation_id && typeof data.animation_id === 'string') setSelectedAnimationId(data.animation_id);
-        if (data.paper_id && typeof data.paper_id === 'string') setSelectedPaperId(data.paper_id);
         if (data.background_id && typeof data.background_id === 'string') {
           setSelectedBackgroundId(data.background_id);
         } else if (data.css_variables && (data.css_variables as any).background_id) {
@@ -473,7 +467,6 @@ export const BookDraftView: React.FC<BookDraftViewProps> = ({ bookId, onBack }) 
         font_id: selectedFontId,
         palette_id: selectedPaletteId,
         animation_id: selectedAnimationId,
-        paper_id: selectedPaperId,
         background_id: selectedBackgroundId,
         base_font_size: baseFontSize,
         line_height: lineHeight,
@@ -488,7 +481,7 @@ export const BookDraftView: React.FC<BookDraftViewProps> = ({ bookId, onBack }) 
     } finally {
       setIsSaving(false);
     }
-  }, [bookId, selectedFontId, selectedPaletteId, selectedAnimationId, selectedPaperId, selectedBackgroundId, baseFontSize, lineHeight, letterSpacing, contentWidth]);
+  }, [bookId, selectedFontId, selectedPaletteId, selectedAnimationId, selectedBackgroundId, baseFontSize, lineHeight, letterSpacing, contentWidth]);
 
   const selectedFont = useMemo(
     () => fontOptions.find((item) => item.id === selectedFontId) ?? fontOptions[0],
@@ -501,10 +494,6 @@ export const BookDraftView: React.FC<BookDraftViewProps> = ({ bookId, onBack }) 
   const selectedAnimation = useMemo(
     () => animationOptions.find((item) => item.id === selectedAnimationId) ?? animationOptions[0],
     [selectedAnimationId],
-  );
-  const selectedPaper = useMemo(
-    () => paperOptions.find((item) => item.id === selectedPaperId) ?? paperOptions[0],
-    [selectedPaperId],
   );
   const selectedBackground = useMemo(
     () => backgroundOptions.find((item) => item.id === selectedBackgroundId) ?? backgroundOptions[0],
@@ -610,15 +599,14 @@ export const BookDraftView: React.FC<BookDraftViewProps> = ({ bookId, onBack }) 
                 </div>
 
                 {/* Page Surface */}
-                <div className="relative z-10 p-4 md:p-8 flex-1">
-                  <div className="mx-auto relative" style={{ maxWidth: `${contentWidth}px` }}>
-                    <PaperTextureOverlay effect={selectedPaper.effect} />
-                    <article
-                      className="border-2 border-black/10 p-8 md:p-12 relative"
-                      data-paper-effect={selectedPaper.effect}
-                      style={{
-                        backgroundColor: selectedPalette.page,
-                        color: selectedPalette.text,
+                  <div className="relative z-10 p-4 md:p-8 flex-1">
+                    <div className="mx-auto relative" style={{ maxWidth: `${contentWidth}px` }}>
+                      <article
+                        className="border-2 border-black/10 p-8 md:p-12 relative"
+                        data-paper-effect="clean"
+                        style={{
+                          backgroundColor: selectedPalette.page,
+                          color: selectedPalette.text,
                         fontFamily: selectedFont.family,
                         fontSize: `${baseFontSize}px`,
                         lineHeight,
@@ -878,40 +866,6 @@ export const BookDraftView: React.FC<BookDraftViewProps> = ({ bookId, onBack }) 
                           </span>
                         </button>
                       ))}
-                    </>
-                  )}
-
-                  {/* ---- PAPERS TAB ---- */}
-                  {activeTab === 'papers' && (
-                    <>
-                      <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FFFF2E] flex items-center gap-2 mb-6">
-                        <div className="w-6 h-[2px] bg-[#FFFF2E]" />
-                        ფურცლის ტექსტურა
-                      </h3>
-                      <div className="space-y-3">
-                        {paperOptions.map((option) => (
-                          <button
-                            key={option.id}
-                            onClick={() => setSelectedPaperId(option.id)}
-                            className={`w-full text-left p-4 border-2 transition-all ${selectedPaperId === option.id
-                              ? 'bg-[#FFFF2E]/10 border-[#FFFF2E]'
-                              : 'border-white/10 bg-black/30 hover:border-white/20'
-                              }`}
-                          >
-                            <div className="flex justify-between items-center">
-                              <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${selectedPaperId === option.id ? 'text-[#FFFF2E]' : 'text-white'}`}>
-                                {option.label}
-                              </span>
-                              {selectedPaperId === option.id && (
-                                <Check className="w-4 h-4 text-[#FFFF2E]" />
-                              )}
-                            </div>
-                            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide mt-1 block">
-                              {option.note}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
                     </>
                   )}
 

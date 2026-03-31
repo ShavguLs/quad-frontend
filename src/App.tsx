@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Routes, Route, Navigate, Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Search, ShoppingBag, Menu, ArrowRight, X, SlidersHorizontal, ChevronLeft, ChevronRight, Plus, User, Database, BookOpen, ThumbsUp, ThumbsDown } from 'lucide-react';
 import Slider from 'react-slick';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
@@ -1615,6 +1616,7 @@ const BookDraftRoute: React.FC = () => {
 };
 
 export default function App() {
+  const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) || '464354709574-cg69doav97v5ee8ie2u37j0nfkuthqv7.apps.googleusercontent.com';
   const [selectedBook, setSelectedBook] = useState<any>(null);
   const [user, setUser] = useState<AppUser | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -1794,7 +1796,7 @@ export default function App() {
         <Route
           path="/login"
           element={
-            <>
+            <GoogleOAuthProvider clientId={googleClientId}>
               <SEOMeta
                 title="შესვლა"
                 description="Quaduni-ს ავტორიზაციის გვერდი ინდექსაციისთვის გამორთულია."
@@ -1808,7 +1810,7 @@ export default function App() {
                   navigate(loginRedirectPath, { replace: true });
                 }}
               />
-            </>
+            </GoogleOAuthProvider>
           }
         />
         <Route
