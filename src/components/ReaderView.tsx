@@ -274,7 +274,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
     >
       {themeBackground?.url && <div className="reader-bg-dimmer" />}
 
-      <header className="reader-header" style={{ color: themePalette ? themePalette.text : '#596060' }}>
+      <header className={`reader-header ${focusMode ? 'reader-header--hidden' : ''}`} style={{ color: themePalette ? themePalette.text : '#596060' }}>
         <div className="reader-header-left">
           <button className="reader-action" onClick={onBack}>
             <ChevronLeft className="h-3.5 w-3.5" />

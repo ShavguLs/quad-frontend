@@ -22,6 +22,12 @@
   justify-content: space-between;
   padding: 1rem 1.5rem;
   z-index: 50;
+  background-color: rgb(247, 241, 223);
+}
+
+.reader-header--hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .reader-header-left,
