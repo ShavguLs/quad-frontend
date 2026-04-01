@@ -16,21 +16,92 @@ import {
 } from '../constants/draftStudioTheme';
 import type { DraftStudioTheme, AnimationEffect } from '../constants/draftStudioTheme';
 
+interface AmbientParticle {
+    id: number;
+    x: number;
+    y: number;
+    size: number;
+    delay: number;
+    duration: number;
+}
+
+interface FlareParticle extends AmbientParticle {
+    kind: 'flare';
+}
+
+interface SnowParticle extends AmbientParticle {
+    kind: 'snow';
+}
+
+interface SparkleParticle extends AmbientParticle {
+    kind: 'sparkle';
+    originX: number;
+}
+
+interface VortexStarParticle {
+    id: string;
+    kind: 'star';
+    x: number;
+    y: number;
+    size: number;
+    opacity: number;
+    duration: number;
+    delay: number;
+}
+
+interface VortexNebulaParticle {
+    id: string;
+    kind: 'nebula';
+    x: number;
+    y: number;
+    size: number;
+    opacity: number;
+    color: string;
+}
+
+interface VortexCometParticle {
+    id: string;
+    kind: 'comet';
+    y: number;
+    duration: number;
+    delay: number;
+    length: number;
+}
+
+interface VortexCoreParticle {
+    id: 'core';
+    kind: 'core';
+    x: number;
+    y: number;
+}
+
+type ReaderOverlayParticle =
+    | FlareParticle
+    | SnowParticle
+    | SparkleParticle
+    | VortexStarParticle
+    | VortexNebulaParticle
+    | VortexCometParticle
+    | VortexCoreParticle;
+
+const isNebulaParticle = (particle: ReaderOverlayParticle): particle is VortexNebulaParticle => particle.kind === 'nebula';
+const isCoreParticle = (particle: ReaderOverlayParticle): particle is VortexCoreParticle => particle.kind === 'core';
+const isStarParticle = (particle: ReaderOverlayParticle): particle is VortexStarParticle => particle.kind === 'star';
+const isCometParticle = (particle: ReaderOverlayParticle): particle is VortexCometParticle => particle.kind === 'comet';
+
 /* ── Reader Animation Overlay ── */
 const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string }> = ({ effect, accent }) => {
     if (effect === 'none') return null;
 
-    const particles = useMemo(() => {
+    const particles = useMemo<ReaderOverlayParticle[]>(() => {
         if (effect === 'snow') {
             return Array.from({ length: 45 }, (_, i) => {
                 const dur = 8 + Math.random() * 10;
                 return {
+                    kind: 'snow' as const,
                     id: i,
                     x: Math.random() * 100,
                     y: -5,
-                    originX: 0,
-                    originY: 0,
-                    isPlanet: false,
                     size: 6 + Math.random() * 5,
                     delay: -(Math.random() * dur),
                     duration: dur,
@@ -41,12 +112,10 @@ const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string
             return Array.from({ length: 5 }, (_, i) => {
                 const dur = 15 + Math.random() * 15;
                 return {
+                    kind: 'flare' as const,
                     id: i,
                     x: Math.random() * 100,
                     y: Math.random() * 100,
-                    originX: 0,
-                    originY: 0,
-                    isPlanet: false,
                     size: 30 + Math.random() * 40,
                     delay: -(Math.random() * dur),
                     duration: dur,
@@ -56,7 +125,7 @@ const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string
         if (effect === 'vortex') {
             const stars = Array.from({ length: 72 }, (_, i) => ({
                 id: `star-${i}`,
-                type: 'star',
+                kind: 'star' as const,
                 x: Math.random() * 100,
                 y: Math.random() * 100,
                 size: 0.8 + Math.random() * 2.2,
@@ -66,14 +135,14 @@ const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string
             }));
 
             const nebulae = [
-                { id: 'nebula-1', type: 'nebula', x: 22, y: 24, size: 420, opacity: 0.16, color: '#2f7fff' },
-                { id: 'nebula-2', type: 'nebula', x: 78, y: 70, size: 460, opacity: 0.14, color: '#8c4bff' },
-                { id: 'nebula-3', type: 'nebula', x: 52, y: 48, size: 360, opacity: 0.1, color: '#42d7ff' },
+                { id: 'nebula-1', kind: 'nebula' as const, x: 22, y: 24, size: 420, opacity: 0.16, color: '#2f7fff' },
+                { id: 'nebula-2', kind: 'nebula' as const, x: 78, y: 70, size: 460, opacity: 0.14, color: '#8c4bff' },
+                { id: 'nebula-3', kind: 'nebula' as const, x: 52, y: 48, size: 360, opacity: 0.1, color: '#42d7ff' },
             ];
 
             const comets = Array.from({ length: 4 }, (_, i) => ({
                 id: `comet-${i}`,
-                type: 'comet',
+                kind: 'comet' as const,
                 y: 8 + Math.random() * 55,
                 duration: 5 + Math.random() * 4,
                 delay: i * 2.8 + Math.random() * 2,
@@ -84,19 +153,18 @@ const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string
                 ...stars,
                 ...nebulae,
                 ...comets,
-                { id: 'core', type: 'core', x: 50, y: 50 },
+                { id: 'core', kind: 'core' as const, x: 50, y: 50 },
             ];
         }
         if (effect === 'sparkle') {
             return Array.from({ length: 45 }, (_, i) => {
                 const dur = 2.5 + Math.random() * 3;
                 return {
+                    kind: 'sparkle' as const,
                     id: i,
                     x: Math.random() * 100,
                     y: 70 + Math.random() * 40,
                     originX: (Math.random() - 0.5) * 20,
-                    originY: 0,
-                    isPlanet: false,
                     size: 2 + Math.random() * 4,
                     delay: -(Math.random() * dur),
                     duration: dur,
@@ -108,7 +176,7 @@ const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string
 
     return (
         <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 10 }}>
-            {effect === 'flare' && particles.map((p: any) => (
+            {effect === 'flare' && particles.filter((p): p is FlareParticle => p.kind === 'flare').map((p) => (
                 <div
                     key={p.id}
                     style={{
@@ -127,7 +195,7 @@ const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string
                 />
             ))}
 
-            {effect === 'snow' && particles.map((p: any) => (
+            {effect === 'snow' && particles.filter((p): p is SnowParticle => p.kind === 'snow').map((p) => (
                 <div
                     key={p.id}
                     style={{
@@ -155,7 +223,7 @@ const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string
                         }}
                     />
 
-                    {particles.filter((p: any) => p.type === 'nebula').map((p: any) => (
+                    {particles.filter(isNebulaParticle).map((p) => (
                         <div
                             key={p.id}
                             style={{
@@ -174,7 +242,7 @@ const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string
                         />
                     ))}
 
-                    {particles.filter((p: any) => p.type === 'core').map((p: any) => (
+                    {particles.filter(isCoreParticle).map((p) => (
                         <div
                             key={p.id}
                             style={{
@@ -193,7 +261,7 @@ const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string
                         />
                     ))}
 
-                    {particles.filter((p: any) => p.type === 'star').map((p: any) => (
+                    {particles.filter(isStarParticle).map((p) => (
                         <div
                             key={p.id}
                             style={{
@@ -212,7 +280,7 @@ const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string
                         />
                     ))}
 
-                    {particles.filter((p: any) => p.type === 'comet').map((p: any) => (
+                    {particles.filter(isCometParticle).map((p) => (
                         <div
                             key={p.id}
                             style={{
@@ -231,7 +299,7 @@ const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string
                 </>
             )}
 
-            {effect === 'sparkle' && particles.map((p: any) => (
+            {effect === 'sparkle' && particles.filter((p): p is SparkleParticle => p.kind === 'sparkle').map((p) => (
                 <div
                     key={p.id}
                     style={{
@@ -247,8 +315,8 @@ const ReaderAnimationOverlay: React.FC<{ effect: AnimationEffect; accent: string
                         mixBlendMode: 'screen',
                         animation: `readerSparkle ${p.duration}s ease-in ${p.delay}s infinite`,
                         willChange: 'transform, opacity',
-                        ['--drift' as any]: `${p.originX}vw`,
-                    }}
+                        '--drift': `${p.originX}vw`,
+                    } as React.CSSProperties & { '--drift': string }}
                 />
             ))}
 
@@ -312,6 +380,21 @@ interface ReaderViewProps {
     onAddToCart: (book: Book) => void;
     onLoginRequired: () => void;
 }
+
+interface ThemeCssVariables {
+    background_id?: string;
+}
+
+const getBackgroundIdFromCssVariables = (value: unknown): string | null => {
+    if (!value || typeof value !== 'object') {
+        return null;
+    }
+
+    const cssVars = value as ThemeCssVariables;
+    return typeof cssVars.background_id === 'string' && cssVars.background_id.length > 0
+        ? cssVars.background_id
+        : null;
+};
 
 export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLoginRequired }) => {
     const navigate = useNavigate();
@@ -516,6 +599,20 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
         };
     }, [themePalette]);
 
+    const usingDraftTheme = Boolean(themePalette);
+    const rootShellColor = themePalette?.shell || '#fcf9f0';
+    const rootTextColor = themePalette?.text || '#1c1c17';
+    const warmAccent = '#8d4d36';
+    const warmSecondary = '#536441';
+    const panelColor = usingDraftTheme ? (themePalette?.page || '#f6f3ea') : '#f6f3ea';
+    const panelSoftColor = usingDraftTheme ? (themePalette?.shell || '#fcf9f0') : '#fcf9f0';
+    const panelBorderColor = '#c9c6bd';
+    const mutedTextColor = usingDraftTheme ? (themePalette?.text || '#474740') : '#474740';
+    const pageProgressPercent = useMemo(() => {
+        const maxPage = Math.max(availablePages, 1);
+        return Math.min(100, Math.max(0, (pageNumber / maxPage) * 100));
+    }, [availablePages, pageNumber]);
+
     useEffect(() => {
         if (!bookId) return;
 
@@ -594,7 +691,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                     paper_id: (data.paper_id as string) || 'clean',
                     background_id: (data.background_id as string) ||
                         (data.paper_background !== 'white' ? data.paper_background as string : null) ||
-                        ((data.css_variables as any)?.background_id) || 'none',
+                        getBackgroundIdFromCssVariables(data.css_variables) || 'none',
                     base_font_size: (data.base_font_size as number) || 17,
                     line_height: (data.line_height as number) || 1.75,
                     letter_spacing: (data.letter_spacing as number) || 0.01,
@@ -664,30 +761,32 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
     if (loadingManifest) {
         return (
             <div
-                className={`min-h-screen text-white pt-28 pb-20 px-6 flex items-center justify-center ${themePalette ? '' : 'bg-black'}`}
-                style={themePalette ? { backgroundColor: themePalette.shell } : undefined}
+                className="min-h-screen pt-28 pb-20 px-6 flex items-center justify-center"
+                style={{ backgroundColor: rootShellColor, color: rootTextColor }}
             >
-                <Loader2 className="w-10 h-10 animate-spin text-[#FFFF2E]" />
+                <Loader2 className="w-10 h-10 animate-spin" style={{ color: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent }} />
             </div>
         );
     }
 
     return (
         <div
-            className={`reader-root min-h-screen text-white pt-3 md:pt-8 pb-6 md:pb-12 px-2 sm:px-3 md:px-8 selection:bg-[#FFFF2E] selection:text-black ${focusMode ? 'reader-root--focus' : ''} ${!themePalette ? 'bg-[#0a0a0a]' : ''}`}
+            className={`reader-root min-h-screen pt-3 md:pt-8 pb-6 md:pb-12 px-2 sm:px-3 md:px-8 selection:text-black ${focusMode ? 'reader-root--focus' : ''} ${usingDraftTheme ? 'reader-root--themed' : 'reader-root--default'}`}
             style={{
                 position: 'relative',
-                ...(themePalette ? { backgroundColor: themePalette.shell } : {}),
+                backgroundColor: rootShellColor,
+                color: rootTextColor,
+                '--reader-page-progress': `${pageProgressPercent}%`,
                 ...(themeBackground?.url ? {
                     backgroundImage: `url(${themeBackground.url})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                 } : {}),
-            }}
+            } as React.CSSProperties & { '--reader-page-progress': string }}
         >
             {/* Background Dimmer */}
             {themeBackground?.url && (
-                <div className="absolute inset-0 bg-black/60 z-[5]" pointer-events-none="true" />
+                <div className="absolute inset-0 bg-black/60 z-[5] pointer-events-none" />
             )}
 
             {/* Full-screen Animation Overlay */}
@@ -700,11 +799,17 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
             {/* ── Toast Notification ── */}
             {saveToast && (
                 <div
-                    style={{ zIndex: 9999 }}
-                    className={`fixed top-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-5 py-3 text-[10px] font-black uppercase tracking-[0.22em] pointer-events-none ${saveToast.type === 'success'
-                        ? 'bg-[#FFFF2E] text-black border-2 border-black shadow-[0_4px_20px_rgba(255,255,46,0.3)]'
-                        : 'bg-black text-[#FFFF2E] border-2 border-[#FFFF2E] shadow-[0_4px_20px_rgba(0,0,0,0.5)]'
-                        }`}
+                    style={{
+                        zIndex: 9999,
+                        borderColor: panelBorderColor,
+                        backgroundColor: saveToast.type === 'success'
+                            ? panelColor
+                            : panelSoftColor,
+                        color: saveToast.type === 'success'
+                            ? (usingDraftTheme ? (themePalette?.text || '#1c1c17') : '#1c1c17')
+                            : (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent),
+                    }}
+                    className="fixed top-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-5 py-3 text-[10px] font-black uppercase tracking-[0.22em] pointer-events-none border shadow-[0_10px_24px_rgba(28,28,23,0.15)]"
                 >
                     {saveToast.type === 'success' ? (
                         <BookmarkCheck className="w-3.5 h-3.5 shrink-0" />
@@ -719,23 +824,29 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
             {showSavedPanel && (
                 <div
                     style={{ zIndex: 200 }}
-                    className="fixed inset-0 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-md transition-opacity"
+                    className="fixed inset-0 flex items-center justify-center p-4 sm:p-6 bg-[rgba(28,28,23,0.28)] backdrop-blur-sm transition-opacity"
                     onClick={() => setShowSavedPanel(false)}
                 >
                     {/* Modal Core */}
                     <div
-                        className="relative w-full max-w-md max-h-[80vh] flex flex-col bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden m-auto ring-1 ring-white/5"
+                        className="relative w-full max-w-md max-h-[80vh] flex flex-col rounded-2xl overflow-hidden m-auto"
+                        style={{
+                            backgroundColor: panelColor,
+                            border: `1px solid ${panelBorderColor}`,
+                            boxShadow: '0 28px 60px -30px rgba(28,28,23,0.35)',
+                        }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* ── Header ── */}
-                        <div className="px-6 py-5 flex items-center justify-between border-b border-white/10 bg-white/[0.02]">
-                            <h2 className="text-white text-sm sm:text-base font-bold tracking-widest uppercase flex items-center gap-3">
-                                <Bookmark className="w-5 h-5 text-[#FFFF2E]" />
+                        <div className="px-6 py-5 flex items-center justify-between border-b" style={{ borderColor: panelBorderColor }}>
+                            <h2 className="text-sm sm:text-base font-bold tracking-widest uppercase flex items-center gap-3" style={{ color: usingDraftTheme ? (themePalette?.text || '#1c1c17') : '#1c1c17' }}>
+                                <Bookmark className="w-5 h-5" style={{ color: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent }} />
                                 შენახული გვერდები
                             </h2>
                             <button
                                 onClick={() => setShowSavedPanel(false)}
-                                className="text-gray-400 hover:text-white hover:bg-white/10 p-2 rounded-full transition-all"
+                                className="p-2 rounded-full transition-all"
+                                style={{ color: mutedTextColor }}
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -745,18 +856,19 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
                             {savedPages.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-                                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/10">
-                                        <Bookmark className="w-8 h-8 text-gray-500" />
+                                    <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: panelSoftColor, border: `1px solid ${panelBorderColor}` }}>
+                                        <Bookmark className="w-8 h-8" style={{ color: mutedTextColor }} />
                                     </div>
-                                    <p className="text-sm font-semibold text-gray-300 tracking-wide mb-1">გვერდები ჯერ არ არის შენახული</p>
-                                                    <p className="text-xs text-gray-500 max-w-[200px]">დააპინეთ გვერდები კითხვისას, რომ მოგვიანებით ადვილად იპოვოთ.</p>
+                                    <p className="text-sm font-semibold tracking-wide mb-1" style={{ color: usingDraftTheme ? (themePalette?.text || '#1c1c17') : '#1c1c17' }}>გვერდები ჯერ არ არის შენახული</p>
+                                    <p className="text-xs max-w-[200px]" style={{ color: mutedTextColor }}>დააპინეთ გვერდები კითხვისას, რომ მოგვიანებით ადვილად იპოვოთ.</p>
                                 </div>
                             ) : (
                                 <ul className="flex flex-col gap-2">
                                     {savedPages.map((sp, idx) => (
                                         <li
                                             key={sp.pageNumber}
-                                            className="group flex items-center justify-between p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all"
+                                            className="group flex items-center justify-between p-3 rounded-xl border transition-all"
+                                            style={{ borderColor: 'transparent' }}
                                         >
                                             <button
                                                 onClick={() => {
@@ -765,19 +877,24 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                                 }}
                                                 className="flex-1 flex items-center gap-4 text-left"
                                             >
-                                                <div className="w-12 h-12 flex-shrink-0 rounded-xl bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-white/10 group-hover:border-[#FFFF2E]/50 group-hover:shadow-[0_0_15px_rgba(255,255,46,0.15)] text-[#FFFF2E] flex items-center justify-center text-lg font-black transition-all">
+                                                <div className="w-12 h-12 flex-shrink-0 rounded-xl border flex items-center justify-center text-lg font-black transition-all" style={{
+                                                    backgroundColor: usingDraftTheme ? (themePalette?.shell || '#fcf9f0') : '#fcf9f0',
+                                                    borderColor: panelBorderColor,
+                                                    color: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent,
+                                                }}>
                                                     {sp.pageNumber}
                                                 </div>
                                                 <div className="flex flex-col overflow-hidden">
-                                                    <span className="text-sm font-semibold text-gray-200 group-hover:text-white transition-colors truncate">შენახული სლოტი {idx + 1}</span>
-                                                    <span className="text-[10px] text-gray-500 font-medium uppercase tracking-widest mt-1 truncate">
+                                                    <span className="text-sm font-semibold transition-colors truncate" style={{ color: usingDraftTheme ? (themePalette?.text || '#1c1c17') : '#1c1c17' }}>შენახული სლოტი {idx + 1}</span>
+                                                    <span className="text-[10px] font-medium uppercase tracking-widest mt-1 truncate" style={{ color: mutedTextColor }}>
                                                         {new Date(sp.savedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                                     </span>
                                                 </div>
                                             </button>
                                             <button
                                                 onClick={() => removeSavedPage(sp.pageNumber)}
-                                                className="w-10 h-10 flex-shrink-0 flex items-center justify-center text-gray-500 hover:text-white hover:bg-red-500/80 rounded-xl transition-all opacity-100 sm:opacity-0 group-hover:opacity-100"
+                                                className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl transition-all opacity-100 sm:opacity-0 group-hover:opacity-100"
+                                                style={{ color: mutedTextColor }}
                                                 title="სლოტის წაშლა"
                                             >
                                                 <X className="w-4 h-4" />
@@ -790,10 +907,15 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
 
                         {/* ── Footer ── */}
                         {savedPages.length > 0 && (
-                            <div className="p-4 border-t border-white/10 bg-white/[0.02]">
+                            <div className="p-4 border-t" style={{ borderColor: panelBorderColor }}>
                                 <button
                                     onClick={clearAllSavedPages}
-                                    className="w-full py-3 text-xs font-bold tracking-[0.15em] uppercase text-red-500 hover:text-white bg-red-500/10 hover:bg-red-500 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                                    className="w-full py-3 text-xs font-bold tracking-[0.15em] uppercase rounded-xl transition-all"
+                                    style={{
+                                        color: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent,
+                                        border: `1px solid ${panelBorderColor}`,
+                                        backgroundColor: panelSoftColor,
+                                    }}
                                 >
                                     ყველა გვერდის გასუფთავება
                                 </button>
@@ -805,29 +927,34 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
 
             <div className={`container mx-auto w-full relative z-10 transition-all duration-500 ${focusMode ? 'max-w-[100vw] mt-2 md:mt-0' : 'max-w-6xl mt-0'}`}>
                 {/* ── Top Header Bar (Hidden in Focus Mode) ── */}
-                <div className={`relative mb-4 md:mb-6 flex-wrap items-center justify-between gap-2 md:gap-4 border-b border-white/15 pb-3 md:pb-4 ${focusMode ? 'hidden' : 'flex'}`}>
+                <div className={`relative mb-4 md:mb-6 flex-wrap items-center justify-between gap-2 md:gap-4 border-b pb-3 md:pb-4 ${focusMode ? 'hidden' : 'flex'}`} style={{ borderColor: usingDraftTheme ? 'rgba(255,255,255,0.16)' : '#c9c6bd' }}>
                     <button
                         onClick={() => navigate(getBookPath(book ?? { id: bookId ?? '' }), { state: book ? { book } : undefined })}
-                        className="group relative inline-flex items-center justify-center gap-2 bg-red-500 px-4 py-2 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-600 transition-all duration-300 hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-500 hover:border-red-600"
+                        className="group relative inline-flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 border"
+                        style={{
+                            borderColor: usingDraftTheme ? 'rgba(255,255,255,0.2)' : panelBorderColor,
+                            color: usingDraftTheme ? (themePalette?.text || '#1c1c17') : '#1c1c17',
+                            backgroundColor: usingDraftTheme ? 'rgba(255,255,255,0.06)' : panelSoftColor,
+                        }}
                     >
                         <LogOut className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
                         <span className="hidden md:inline">გასვლა</span>
                     </button>
 
                     <div className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none hidden md:block w-3/4 max-w-lg">
-                        <h1 className="truncate text-base md:text-lg font-black uppercase tracking-[0.06em] text-white">
+                        <h1 className="truncate text-base md:text-lg font-black uppercase tracking-[0.06em]" style={{ color: usingDraftTheme ? (themePalette?.text || '#1c1c17') : '#1c1c17', fontFamily: usingDraftTheme ? undefined : 'Newsreader, Georgia, serif' }}>
                             {bookTitle}
                         </h1>
-                        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.24em] text-gray-500 truncate">
+                        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.24em] truncate" style={{ color: usingDraftTheme ? 'rgba(255,255,255,0.66)' : warmSecondary }}>
                             {manifest?.author || book?.author || 'მკითხველი'}
                                                         </p>
                                                     </div>
                                                     {/* fallback for mobile so we have inline flex behavior */}
                                                     <div className="min-w-0 flex-1 text-center md:hidden pointer-events-none px-2">
-                                                        <h1 className="truncate text-base font-black uppercase tracking-[0.06em] text-white">
+                                                        <h1 className="truncate text-base font-black uppercase tracking-[0.06em]" style={{ color: usingDraftTheme ? (themePalette?.text || '#1c1c17') : '#1c1c17', fontFamily: usingDraftTheme ? undefined : 'Newsreader, Georgia, serif' }}>
                                                             {bookTitle}
                                                         </h1>
-                                                        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.24em] text-gray-500 truncate">
+                                                        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.24em] truncate" style={{ color: usingDraftTheme ? 'rgba(255,255,255,0.66)' : warmSecondary }}>
                                                             {manifest?.author || book?.author || 'მკითხველი'}
                         </p>
                     </div>
@@ -839,17 +966,19 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                 id="reader-open-saved-panel"
                                 onClick={() => setShowSavedPanel(true)}
                                 title="შენახული გვერდების ნახვა"
-                                className={`group relative inline-flex items-center gap-2 px-3 py-2 text-[11px] md:text-[10px] font-black uppercase tracking-[0.18em] transition-all ${savedPages.length > 0
-                                    ? 'border-2 border-[#FFFF2E] text-[#FFFF2E] bg-[#FFFF2E]/5'
-                                    : 'border border-white/20 text-gray-400 hover:border-[#FFFF2E] hover:text-[#FFFF2E]'
-                                    }`}
+                                className="group relative inline-flex items-center gap-2 px-3 py-2 text-[11px] md:text-[10px] font-black uppercase tracking-[0.18em] transition-all border"
+                                style={{
+                                    borderColor: savedPages.length > 0 ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent) : (usingDraftTheme ? 'rgba(255,255,255,0.2)' : panelBorderColor),
+                                    color: savedPages.length > 0 ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent) : mutedTextColor,
+                                    backgroundColor: savedPages.length > 0 ? (usingDraftTheme ? 'rgba(255,255,255,0.06)' : panelSoftColor) : (usingDraftTheme ? 'rgba(255,255,255,0.04)' : '#ffffff'),
+                                }}
                             >
                                 {savedPages.length > 0
                                     ? <BookmarkCheck className="w-4 h-4" />
                                     : <Bookmark className="w-4 h-4" />}
                                 <span className="hidden sm:inline">შენახული</span>
                                 {savedPages.length > 0 && (
-                                    <span className="ml-0.5 inline-flex h-4 w-4 items-center justify-center bg-[#FFFF2E] text-[8px] font-black text-black">
+                                    <span className="ml-0.5 inline-flex h-4 w-4 items-center justify-center text-[8px] font-black text-white" style={{ backgroundColor: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent }}>
                                         {savedPages.length}
                                     </span>
                                 )}
@@ -860,7 +989,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                         {manifest?.status === 'ready' && manifest.access_mode === 'preview' && book && (
                             <button
                                 onClick={() => (user ? onAddToCart(book) : onLoginRequired())}
-                                className="group relative inline-flex items-center justify-center gap-2 bg-[#FFFF2E] px-4 py-2 text-black text-[11px] md:text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,46,0.5)] border border-[#FFFF2E] hover:border-white reader-buy-btn"
+                                className="group relative inline-flex items-center justify-center gap-2 px-4 py-2 text-[11px] md:text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 border reader-buy-btn"
+                                style={{
+                                    borderColor: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent,
+                                    backgroundColor: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent,
+                                    color: '#fff',
+                                }}
                             >
                                 <Lock className="w-3.5 h-3.5" />
                                 <span className="relative z-10 hidden md:inline">{user ? 'სრული წვდომის ყიდვა' : 'შესვლა საყიდლად'}</span>
@@ -870,8 +1004,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                 </div>
 
                 {manifest?.status === 'processing' && (
-                    <div className="border-2 border-white/20 bg-zinc-950 p-8 flex items-center gap-4 text-sm font-bold uppercase tracking-[0.2em]">
-                        <Loader2 className="w-5 h-5 animate-spin text-[#FFFF2E]" />
+                    <div className="border p-8 flex items-center gap-4 text-sm font-bold uppercase tracking-[0.2em]" style={{ borderColor: panelBorderColor, backgroundColor: panelColor, color: usingDraftTheme ? (themePalette?.text || '#1c1c17') : '#1c1c17' }}>
+                        <Loader2 className="w-5 h-5 animate-spin" style={{ color: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent }} />
                         დამუშავება მიმდინარეობს. მკითხველის კონტენტი მზადდება.
                     </div>
                 )}
@@ -879,7 +1013,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
 
 
                 {error && (
-                    <div className="mb-6 border-2 border-red-500/40 bg-red-500/10 p-4 text-[10px] font-black uppercase tracking-[0.2em] text-red-300">
+                    <div className="mb-6 border p-4 text-[10px] font-black uppercase tracking-[0.2em]" style={{ borderColor: warmAccent, color: warmAccent, backgroundColor: panelSoftColor }}>
                         {error}
                     </div>
                 )}
@@ -891,27 +1025,42 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
 
                             {/* ── Floating Sidebar Navigation (Focus Mode) ── */}
                             {focusMode && (
-                                    <div className="reader-focus-nav fixed bottom-3 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:bottom-auto md:right-8 md:top-1/2 md:-translate-y-1/2 z-[60] flex flex-row md:flex-col items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 p-2 md:p-3 rounded-[3rem] shadow-[0_0_40px_rgba(0,0,0,0.7)] transition-opacity duration-300">
+                                    <div className="reader-focus-nav fixed bottom-3 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:bottom-auto md:right-8 md:top-1/2 md:-translate-y-1/2 z-[60] flex flex-row md:flex-col items-center gap-3 p-2 md:p-3 rounded-[3rem] transition-opacity duration-300"
+                                        style={{
+                                            backgroundColor: usingDraftTheme ? 'rgba(0,0,0,0.62)' : 'rgba(255,255,255,0.84)',
+                                            border: `1px solid ${usingDraftTheme ? 'rgba(255,255,255,0.14)' : panelBorderColor}`,
+                                            boxShadow: usingDraftTheme ? '0 0 40px rgba(0,0,0,0.7)' : '0 18px 40px -24px rgba(28,28,23,0.35)',
+                                            color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#1c1c17',
+                                        }}>
                                     <button
                                         onClick={() => setFocusMode(false)}
                                         title="ფოკუს რეჟიმიდან გასვლა"
-                                        className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full bg-white/5 text-gray-400 hover:bg-[#FFFF2E] hover:text-black hover:shadow-[0_0_15px_rgba(255,255,46,0.3)] transition-all order-4 md:order-none"
+                                        className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full transition-all order-4 md:order-none"
+                                        style={{
+                                            backgroundColor: usingDraftTheme ? 'rgba(255,255,255,0.08)' : panelSoftColor,
+                                            color: usingDraftTheme ? 'rgba(255,255,255,0.7)' : mutedTextColor,
+                                        }}
                                     >
                                         <Minimize className="w-4 h-4 md:w-5 md:h-5" />
                                     </button>
 
-                                    <div className="hidden md:block w-8 h-[1px] bg-white/10 my-1" />
+                                    <div className="hidden md:block w-8 h-[1px] my-1" style={{ backgroundColor: usingDraftTheme ? 'rgba(255,255,255,0.12)' : panelBorderColor }} />
 
                                     <button
                                         onClick={() => goToRelativePage(-1)}
                                         disabled={pageNumber <= 1}
                                         title="წინა გვერდი"
-                                        className="flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-full bg-transparent border border-transparent text-white hover:border-[#FFFF2E] hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_20px_rgba(255,255,46,0.3)] transition-all focus:outline-none disabled:opacity-20 disabled:pointer-events-none order-1 md:order-none"
+                                        className="flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-full border transition-all focus:outline-none disabled:opacity-20 disabled:pointer-events-none order-1 md:order-none"
+                                        style={{
+                                            borderColor: 'transparent',
+                                            color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#1c1c17',
+                                            backgroundColor: 'transparent',
+                                        }}
                                     >
                                         <ChevronLeft className="h-6 w-6 md:h-8 md:w-8 ml-[-2px]" />
                                     </button>
 
-                                    <div className="reader-page-counter text-[11px] md:text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 my-0 md:my-2 order-2 md:order-none">
+                                    <div className="reader-page-counter text-[11px] md:text-[11px] font-black uppercase tracking-[0.2em] my-0 md:my-2 order-2 md:order-none" style={{ color: usingDraftTheme ? 'rgba(255,255,255,0.72)' : mutedTextColor }}>
                                         {pageNumber} / {Math.max(availablePages, 1)}
                                     </div>
 
@@ -919,7 +1068,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                         onClick={() => goToRelativePage(1)}
                                         disabled={pageNumber >= Math.max(availablePages, 1)}
                                         title="შემდეგი გვერდი"
-                                        className="flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-full bg-transparent border border-transparent text-white hover:border-[#FFFF2E] hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_20px_rgba(255,255,46,0.3)] transition-all focus:outline-none disabled:opacity-20 disabled:pointer-events-none order-3 md:order-none"
+                                        className="flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-full border transition-all focus:outline-none disabled:opacity-20 disabled:pointer-events-none order-3 md:order-none"
+                                        style={{
+                                            borderColor: 'transparent',
+                                            color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#1c1c17',
+                                            backgroundColor: 'transparent',
+                                        }}
                                     >
                                         <ChevronRight className="h-6 w-6 md:h-8 md:w-8 mr-[-2px]" />
                                     </button>
@@ -934,6 +1088,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                         style={{ ...pageCanvasStyle, ...pageCanvasBgStyle, position: 'relative', overflow: 'hidden' }}
                                         data-paper-effect="clean"
                                     >
+                                        <div
+                                            className="absolute left-0 right-0 top-0 z-[6] h-[2px]"
+                                            style={{
+                                                background: `linear-gradient(90deg, ${usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent} 0%, ${usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent} var(--reader-page-progress), transparent var(--reader-page-progress), transparent 100%)`,
+                                            }}
+                                        />
                                         {loadingPage && (
                                             <div className="absolute inset-0 z-10 p-8 md:p-12 flex flex-col gap-6" style={{ background: themePalette?.shell ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.03)' }}>
                                                 {/* Skeleton pulsating effect overlaying entire paper */}
@@ -1000,18 +1160,27 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
 
                         {!focusMode && !isMobileViewport && (
                             <div className="mt-6 hidden md:flex items-center justify-center px-4">
-                                <div className="flex w-full max-w-4xl flex-wrap items-center justify-center gap-3 border border-white/12 bg-black/35 px-4 py-3 text-white shadow-[0_18px_48px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+                                <div className="flex w-full max-w-4xl flex-wrap items-center justify-center gap-3 px-4 py-3 shadow-[0_18px_48px_rgba(28,28,23,0.2)] backdrop-blur-xl rounded-full"
+                                    style={{
+                                        border: `1px solid ${usingDraftTheme ? 'rgba(255,255,255,0.18)' : panelBorderColor}`,
+                                        backgroundColor: usingDraftTheme ? 'rgba(0,0,0,0.34)' : 'rgba(255,255,255,0.84)',
+                                        color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#1c1c17',
+                                    }}>
                                     <button
                                         id="reader-prev-page-desktop"
                                         onClick={() => goToRelativePage(-1)}
                                         disabled={pageNumber <= 1}
                                         title="წინა გვერდი"
-                                        className="inline-flex h-11 w-11 items-center justify-center border border-white/12 bg-black/45 transition-all duration-300 hover:border-[#FFFF2E] hover:text-[#FFFF2E] disabled:pointer-events-none disabled:opacity-20"
+                                        className="inline-flex h-11 w-11 items-center justify-center border transition-all duration-300 disabled:pointer-events-none disabled:opacity-20 rounded-full"
+                                        style={{
+                                            borderColor: usingDraftTheme ? 'rgba(255,255,255,0.16)' : panelBorderColor,
+                                            backgroundColor: usingDraftTheme ? 'rgba(0,0,0,0.3)' : panelSoftColor,
+                                        }}
                                     >
                                         <ChevronLeft className="h-6 w-6" />
                                     </button>
 
-                                    <div className="min-w-[150px] px-2 text-center text-xs font-black uppercase tracking-[0.22em] text-gray-300">
+                                    <div className="min-w-[150px] px-2 text-center text-xs font-black uppercase tracking-[0.22em]" style={{ color: usingDraftTheme ? 'rgba(255,255,255,0.8)' : mutedTextColor }}>
                                         გვერდი {pageNumber} / {Math.max(availablePages, 1)}
                                     </div>
 
@@ -1020,7 +1189,11 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                         onClick={() => goToRelativePage(1)}
                                         disabled={pageNumber >= Math.max(availablePages, 1)}
                                         title="შემდეგი გვერდი"
-                                        className="inline-flex h-11 w-11 items-center justify-center border border-white/12 bg-black/45 transition-all duration-300 hover:border-[#FFFF2E] hover:text-[#FFFF2E] disabled:pointer-events-none disabled:opacity-20"
+                                        className="inline-flex h-11 w-11 items-center justify-center border transition-all duration-300 disabled:pointer-events-none disabled:opacity-20 rounded-full"
+                                        style={{
+                                            borderColor: usingDraftTheme ? 'rgba(255,255,255,0.16)' : panelBorderColor,
+                                            backgroundColor: usingDraftTheme ? 'rgba(0,0,0,0.3)' : panelSoftColor,
+                                        }}
                                     >
                                         <ChevronRight className="h-6 w-6" />
                                     </button>
@@ -1028,7 +1201,11 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                     <button
                                         onClick={() => setFocusMode((f) => !f)}
                                         title={focusMode ? 'ფოკუს რეჟიმიდან გასვლა' : 'ფოკუს რეჟიმში შეყვანა'}
-                                        className="inline-flex items-center gap-2 border border-white/12 bg-white/6 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300 hover:border-[#FFFF2E]/80 hover:bg-[#FFFF2E]/10 hover:text-[#FFFF2E]"
+                                        className="inline-flex items-center gap-2 border px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300 rounded-full"
+                                        style={{
+                                            borderColor: usingDraftTheme ? 'rgba(255,255,255,0.16)' : panelBorderColor,
+                                            backgroundColor: usingDraftTheme ? 'rgba(255,255,255,0.06)' : panelSoftColor,
+                                        }}
                                     >
                                         <Maximize className="h-4 w-4" />
                                         <span>ფოკუსი</span>
@@ -1041,12 +1218,16 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                                 onClick={handleToggleSave}
                                                 disabled={!canSaveMore && !isPageSaved(pageNumber)}
                                                 title={isPageSaved(pageNumber) ? 'შენახული გვერდის წაშლა' : canSaveMore ? 'გვერდის შენახვა მოგვიანებლად' : `მაქსიმუმ ${maxSavedPages} გვერდი შენახულია`}
-                                                className={`inline-flex items-center gap-2 border px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300 ${isPageSaved(pageNumber)
-                                                    ? 'border-[#FFFF2E] bg-[#FFFF2E] text-black shadow-[0_0_24px_rgba(255,255,46,0.2)]'
-                                                    : canSaveMore
-                                                        ? 'border-white/12 bg-white/6 text-white hover:border-[#FFFF2E]/80 hover:bg-[#FFFF2E]/10 hover:text-[#FFFF2E]'
-                                                        : 'border-white/10 bg-white/[0.03] text-gray-500'
-                                                    }`}
+                                                className="inline-flex items-center gap-2 border px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300 rounded-full"
+                                                style={{
+                                                    borderColor: isPageSaved(pageNumber)
+                                                        ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent)
+                                                        : (usingDraftTheme ? 'rgba(255,255,255,0.16)' : panelBorderColor),
+                                                    backgroundColor: isPageSaved(pageNumber)
+                                                        ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent)
+                                                        : (canSaveMore ? (usingDraftTheme ? 'rgba(255,255,255,0.06)' : panelSoftColor) : 'rgba(120,119,111,0.14)'),
+                                                    color: isPageSaved(pageNumber) ? '#fff' : undefined,
+                                                }}
                                             >
                                                 {isPageSaved(pageNumber) ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
                                                 <span>შენახვა</span>
@@ -1056,10 +1237,16 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                                 id="reader-mark-position-btn-desktop"
                                                 onClick={() => isMarkedPage ? clearPosition() : markPage(pageNumber)}
                                                 title={isMarkedPage ? 'საწყისი პინის წაშლა' : 'ამ გვერდის დაპინება შემდეგ სესიაზე განახლებისთვის'}
-                                                className={`inline-flex items-center gap-2 border px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300 ${isMarkedPage
-                                                    ? 'border-[#FFFF2E] bg-[#FFFF2E] text-black shadow-[0_0_24px_rgba(255,255,46,0.2)]'
-                                                    : 'border-white/12 bg-white/6 text-white hover:border-[#FFFF2E]/80 hover:bg-[#FFFF2E]/10 hover:text-[#FFFF2E]'
-                                                    }`}
+                                                className="inline-flex items-center gap-2 border px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300 rounded-full"
+                                                style={{
+                                                    borderColor: isMarkedPage
+                                                        ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent)
+                                                        : (usingDraftTheme ? 'rgba(255,255,255,0.16)' : panelBorderColor),
+                                                    backgroundColor: isMarkedPage
+                                                        ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent)
+                                                        : (usingDraftTheme ? 'rgba(255,255,255,0.06)' : panelSoftColor),
+                                                    color: isMarkedPage ? '#fff' : undefined,
+                                                }}
                                             >
                                                 <MapPin className="h-4 w-4" />
                                                 <span>{isMarkedPage ? 'დაპინულია' : 'პინი'}</span>
@@ -1079,12 +1266,17 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                         onClick={() => goToRelativePage(-1)}
                                         disabled={pageNumber <= 1}
                                         title="წინა გვერდი"
-                                        className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-black/40 backdrop-blur-xl border border-white/10 text-white shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all duration-300 hover:scale-110 hover:border-[#FFFF2E] hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_20px_rgba(255,255,46,0.3)] focus:outline-none disabled:pointer-events-none disabled:opacity-20"
+                                        className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full backdrop-blur-xl border shadow-[0_4px_20px_rgba(28,28,23,0.18)] transition-all duration-300 focus:outline-none disabled:pointer-events-none disabled:opacity-20"
+                                        style={{
+                                            borderColor: usingDraftTheme ? 'rgba(255,255,255,0.2)' : panelBorderColor,
+                                            backgroundColor: usingDraftTheme ? 'rgba(0,0,0,0.36)' : '#fff',
+                                            color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#1c1c17',
+                                        }}
                                     >
                                         <ChevronLeft className="h-6 w-6 md:h-8 md:w-8 -ml-0.5 md:-ml-1" />
                                     </button>
 
-                                    <div className="reader-page-counter text-xs md:text-xs font-black uppercase tracking-[0.2em] text-gray-300 min-w-[120px] text-center">
+                                    <div className="reader-page-counter text-xs md:text-xs font-black uppercase tracking-[0.2em] min-w-[120px] text-center" style={{ color: usingDraftTheme ? 'rgba(255,255,255,0.8)' : mutedTextColor }}>
                                         გვერდი {pageNumber} / {Math.max(availablePages, 1)}
                                     </div>
 
@@ -1093,7 +1285,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                         onClick={() => goToRelativePage(1)}
                                         disabled={pageNumber >= Math.max(availablePages, 1)}
                                         title="შემდეგი გვერდი"
-                                        className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-black/40 backdrop-blur-xl border border-white/10 text-white shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all duration-300 hover:scale-110 hover:border-[#FFFF2E] hover:bg-black hover:text-[#FFFF2E] hover:shadow-[0_0_20px_rgba(255,255,46,0.3)] focus:outline-none disabled:pointer-events-none disabled:opacity-20"
+                                        className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full backdrop-blur-xl border shadow-[0_4px_20px_rgba(28,28,23,0.18)] transition-all duration-300 focus:outline-none disabled:pointer-events-none disabled:opacity-20"
+                                        style={{
+                                            borderColor: usingDraftTheme ? 'rgba(255,255,255,0.2)' : panelBorderColor,
+                                            backgroundColor: usingDraftTheme ? 'rgba(0,0,0,0.36)' : '#fff',
+                                            color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#1c1c17',
+                                        }}
                                     >
                                         <ChevronRight className="h-6 w-6 md:h-8 md:w-8 -mr-0.5 md:-mr-1" />
                                     </button>
@@ -1107,10 +1304,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                         <button
                                             onClick={() => setFocusMode(f => !f)}
                                             title={focusMode ? 'ფოკუს რეჟიმიდან გასვლა' : 'ფოკუს რეჟიმში შეყვანა'}
-                                            className={`inline-flex items-center gap-2 px-3.5 py-2 md:px-3 md:py-1.5 text-[10px] md:text-[9px] font-black uppercase tracking-wider transition-colors ${focusMode
-                                                ? 'bg-[#FFFF2E] text-black border-[1px] border-[#FFFF2E] shadow-[0_0_10px_rgba(255,255,46,0.3)]'
-                                                : 'border border-white/20 text-gray-300 hover:border-[#FFFF2E] hover:text-[#FFFF2E]'
-                                                }`}
+                                            className="inline-flex items-center gap-2 px-3.5 py-2 md:px-3 md:py-1.5 text-[10px] md:text-[9px] font-black uppercase tracking-wider transition-colors border rounded-full"
+                                            style={{
+                                                borderColor: focusMode ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent) : (usingDraftTheme ? 'rgba(255,255,255,0.2)' : panelBorderColor),
+                                                backgroundColor: focusMode ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent) : (usingDraftTheme ? 'rgba(255,255,255,0.06)' : '#fff'),
+                                                color: focusMode ? '#fff' : undefined,
+                                            }}
                                         >
                                             {focusMode ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
                                             ფოკუსი
@@ -1124,12 +1323,16 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                                     onClick={handleToggleSave}
                                                     disabled={!canSaveMore && !isPageSaved(pageNumber)}
                                                     title={isPageSaved(pageNumber) ? 'შენახული გვერდის წაშლა' : canSaveMore ? 'გვერდის შენახვა მოგვიანებლად' : `მაქსიმუმ ${maxSavedPages} გვერდი შენახულია`}
-                                                    className={`inline-flex items-center gap-2 px-3.5 py-2 md:px-3 md:py-1.5 text-[10px] md:text-[9px] font-black uppercase tracking-wider transition-colors ${isPageSaved(pageNumber)
-                                                        ? 'bg-[#FFFF2E] text-black border-[1px] border-[#FFFF2E]'
-                                                        : canSaveMore
-                                                            ? 'border border-white/20 text-gray-300 hover:border-[#FFFF2E] hover:text-[#FFFF2E]'
-                                                            : 'border border-white/10 text-gray-600 cursor-not-allowed'
-                                                        }`}
+                                                    className="inline-flex items-center gap-2 px-3.5 py-2 md:px-3 md:py-1.5 text-[10px] md:text-[9px] font-black uppercase tracking-wider transition-colors border rounded-full"
+                                                    style={{
+                                                        borderColor: isPageSaved(pageNumber)
+                                                            ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent)
+                                                            : (usingDraftTheme ? 'rgba(255,255,255,0.2)' : panelBorderColor),
+                                                        backgroundColor: isPageSaved(pageNumber)
+                                                            ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent)
+                                                            : (canSaveMore ? (usingDraftTheme ? 'rgba(255,255,255,0.06)' : '#fff') : 'rgba(120,119,111,0.12)'),
+                                                        color: isPageSaved(pageNumber) ? '#fff' : undefined,
+                                                    }}
                                                 >
                                                     {isPageSaved(pageNumber) ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
                                                     შენახვა ({savedPages.length}/{maxSavedPages})
@@ -1140,10 +1343,16 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                                     id="reader-mark-position-btn"
                                                     onClick={() => isMarkedPage ? clearPosition() : markPage(pageNumber)}
                                                     title={isMarkedPage ? 'საწყისი პინის წაშლა' : 'ამ გვერდის დაპინება შემდეგ სესიაზე განახლებისთვის'}
-                                                    className={`inline-flex items-center gap-2 px-3.5 py-2 md:px-3 md:py-1.5 text-[10px] md:text-[9px] font-black uppercase tracking-wider transition-colors ${isMarkedPage
-                                                        ? 'bg-[#FFFF2E] text-black border-[1px] border-[#FFFF2E] shadow-[0_0_10px_rgba(255,255,46,0.3)]'
-                                                        : 'border border-white/20 text-gray-300 hover:border-[#FFFF2E] hover:text-[#FFFF2E]'
-                                                        }`}
+                                                    className="inline-flex items-center gap-2 px-3.5 py-2 md:px-3 md:py-1.5 text-[10px] md:text-[9px] font-black uppercase tracking-wider transition-colors border rounded-full"
+                                                    style={{
+                                                        borderColor: isMarkedPage
+                                                            ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent)
+                                                            : (usingDraftTheme ? 'rgba(255,255,255,0.2)' : panelBorderColor),
+                                                        backgroundColor: isMarkedPage
+                                                            ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent)
+                                                            : (usingDraftTheme ? 'rgba(255,255,255,0.06)' : '#fff'),
+                                                        color: isMarkedPage ? '#fff' : undefined,
+                                                    }}
                                                 >
                                                     <MapPin className="w-3.5 h-3.5" />
                                                     {isMarkedPage ? 'დაპინული დასაწყისი' : 'დასაწყისის დაპინება'}
