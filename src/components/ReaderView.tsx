@@ -758,7 +758,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
 
     return (
         <div
-            className={`reader-root min-h-screen pt-24 md:pt-28 pb-32 md:pb-36 px-3 sm:px-4 md:px-8 selection:text-black ${focusMode ? 'reader-root--focus' : ''} ${usingDraftTheme ? 'reader-root--themed' : 'reader-root--default'}`}
+            className={`reader-root min-h-screen overflow-x-hidden relative selection:text-black ${focusMode ? 'reader-root--focus' : ''} ${usingDraftTheme ? 'reader-root--themed' : 'reader-root--default'}`}
             style={{
                 position: 'relative',
                 backgroundColor: rootShellColor,
@@ -913,7 +913,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
             )}
 
             <header
-                className={`reader-top-header fixed top-0 left-0 right-0 z-[70] px-4 sm:px-6 py-4 ${focusMode ? 'reader-top-header--focus' : ''}`}
+                className={`reader-top-header fixed top-0 left-0 right-0 z-[70] flex items-center justify-between px-6 py-4 ${focusMode ? 'reader-top-header--focus' : ''}`}
                 style={{
                     backgroundColor: usingDraftTheme ? 'rgba(0,0,0,0.56)' : 'rgba(252,249,240,0.85)',
                     color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#596060',
@@ -921,7 +921,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                     backdropFilter: 'blur(16px)',
                 }}
             >
-                <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
+                <div className="flex w-full items-center justify-between gap-4">
                     <button
                         onClick={() => navigate(getBookPath(book ?? { id: bookId ?? '' }), { state: book ? { book } : undefined })}
                         className="reader-header-back inline-flex items-center gap-2 rounded-full px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] transition-opacity hover:opacity-75"
@@ -942,7 +942,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                         </p>
                     </div>
 
-                    <div className="ml-auto flex items-center gap-4 sm:gap-6">
+                    <div className="ml-auto flex items-center gap-6">
                         <button
                             id="reader-open-saved-panel"
                             onClick={() => setShowSavedPanel(true)}
@@ -979,7 +979,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                 </div>
             </header>
 
-            <div className={`container mx-auto w-full relative z-10 transition-all duration-500 ${focusMode ? 'max-w-[100vw]' : 'max-w-6xl'}`}>
+            <main className={`relative z-10 flex justify-center px-4 pb-32 pt-24 md:px-0 ${focusMode ? 'reader-main--focus' : ''}`}>
 
                 {manifest?.status === 'processing' && (
                     <div className="border p-8 flex items-center gap-4 text-sm font-bold uppercase tracking-[0.2em]" style={{ borderColor: panelBorderColor, backgroundColor: panelColor, color: usingDraftTheme ? (themePalette?.text || '#1c1c17') : '#1c1c17' }}>
@@ -999,7 +999,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                 {manifest?.status === 'ready' && (
                     <>
 
-                        <div className={`reader-reading-stage relative transition-all duration-500 ${focusMode ? 'reader-reading-stage--focus flex-1 flex justify-center w-full px-1 md:px-2' : ''}`}>
+                        <div className={`reader-reading-stage relative w-full max-w-[595px] transition-all duration-500 ${focusMode ? 'reader-reading-stage--focus' : ''}`}>
 
                             <div className="reader-progress-track absolute -top-8 left-1/2 h-[2px] w-full max-w-[595px] -translate-x-1/2 overflow-hidden rounded-full" style={{ backgroundColor: usingDraftTheme ? 'rgba(255,255,255,0.2)' : '#e5e2da' }}>
                                 <div
@@ -1070,7 +1070,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                 </div>
                             )}
 
-                            <div className="reader-page-shell w-full max-w-[100vw] flex justify-center">
+                            <div className="reader-page-shell w-full max-w-[595px] flex justify-center">
                                 <div className="relative w-full flex justify-center h-full">
                                     <div
                                         className={`reader-page-canvas ${focusMode ? 'reader-page-canvas--focus' : ''} ${themePalette ? '' : 'bg-white text-black'} transition-all duration-300`}
@@ -1149,7 +1149,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                             </div>
                         </div>
                         {!focusMode && (
-                            <nav className="reader-pill-nav-wrap fixed bottom-0 left-0 z-[65] flex w-full justify-center pb-6 pointer-events-none md:pb-8">
+                            <nav className="reader-pill-nav-wrap fixed bottom-0 left-0 z-[65] flex w-full justify-center pb-8 pointer-events-none">
                                 <div className="reader-pill-nav pointer-events-auto flex items-center gap-2 p-1.5">
                                 <button
                                     id="reader-prev-page"
@@ -1188,7 +1188,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                     className="reader-pill-btn flex flex-col items-center justify-center rounded-full p-3 text-[#596060] disabled:opacity-30 disabled:pointer-events-none"
                                 >
                                     <ChevronRight className="h-4 w-4" />
-                                    <span className="reader-pill-label">შემდეგი</span>
+                                    <span className="reader-pill-label">ძებნა</span>
                                 </button>
                                 </div>
                             </nav>
@@ -1200,7 +1200,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                             title="შენახული გვერდები"
                             onClick={() => setShowSavedPanel(true)}
                         >
-                            <span className="reader-side-trigger__icon">|||</span>
+                            <span className="reader-side-trigger__icon">menu_open</span>
                         </button>
 
                         {manifest?.access_mode === 'preview' && book && (
@@ -1221,7 +1221,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                         )}
                     </>
                 )}
-            </div>
+            </main>
         </div>
     );
 };
