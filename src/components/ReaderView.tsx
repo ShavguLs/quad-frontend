@@ -328,11 +328,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
 
             {!loadingPage && pageData?.render_mode !== 'image' && (
               <div className="reader-page-content" style={pageContentStyle}>
-                <div className="reader-chapter-heading">
-                  <h2 className="reader-chapter-title">თავი {pageNumber}</h2>
-                  <p className="reader-chapter-subtitle">{manifest?.author || book?.author || 'ამბავი'}</p>
-                </div>
-
                 <article
                   className="reader-html"
                   style={pageContentStyle}
