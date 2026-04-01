@@ -35,6 +35,26 @@
   justify-content: center;
 }
 
+.paper-canvas {
+  aspect-ratio: calc(var(--reader-page-ratio-width, 595) / var(--reader-page-ratio-height, 842));
+  width: 100%;
+  max-width: 595px;
+  max-height: var(--reader-page-max-height, 842px);
+  background: #fff;
+}
+
+.spine-shadow {
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.04) 0%, transparent 1.5%, transparent 98.5%, rgba(0, 0, 0, 0.04) 100%);
+  z-index: 2;
+}
+
+.reader-paper-texture {
+  opacity: 0.03;
+  background-image: radial-gradient(rgba(28, 28, 23, 0.3) 0.5px, transparent 0.5px);
+  background-size: 3px 3px;
+  z-index: 1;
+}
+
 .reader-progress-track {
   margin-top: 0;
 }
@@ -83,14 +103,19 @@
   height: 100%;
   overflow-y: auto;
   position: relative;
-  z-index: 10;
+  z-index: 5;
   padding: 3rem;
   scrollbar-width: thin;
   scrollbar-color: rgba(120, 119, 111, 0.35) transparent;
 }
 
+.reader-page-content--paper {
+  padding: 3rem;
+}
+
 @media (min-width: 768px) {
-  .reader-page-content {
+  .reader-page-content,
+  .reader-page-content--paper {
     padding: 4rem;
   }
 }
@@ -189,6 +214,7 @@
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 24px 32px -12px rgba(28, 28, 23, 0.06);
   backdrop-filter: blur(14px);
+  min-height: 56px;
 }
 
 .reader-pill-btn {
@@ -228,6 +254,7 @@
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.01em;
+  text-transform: none;
   color: #78776f;
 }
 
@@ -275,7 +302,7 @@
   transform: translateY(-50%);
   opacity: 0;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0;
   color: rgba(89, 96, 96, 0.42);
   transition: opacity 180ms ease;
@@ -286,6 +313,15 @@
 }
 
 @media (max-width: 767px) {
+  .reader-top-header {
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
+  }
+
+  .paper-canvas {
+    border-radius: 8px;
+  }
+
   .reader-page-canvas {
     width: min(100%, 595px);
     max-width: 100%;
@@ -293,7 +329,8 @@
     border-radius: 8px;
   }
 
-  .reader-page-content {
+  .reader-page-content,
+  .reader-page-content--paper {
     padding: 2rem 1.5rem;
   }
 

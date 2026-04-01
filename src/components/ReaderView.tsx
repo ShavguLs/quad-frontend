@@ -913,82 +913,73 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
             )}
 
             <header
-                className={`reader-top-header fixed top-0 left-0 right-0 z-[70] flex items-center justify-between px-6 py-4 ${focusMode ? 'reader-top-header--focus' : ''}`}
+                className={`reader-top-header fixed top-0 left-0 w-full flex items-center justify-between px-6 py-4 z-50 ${focusMode ? 'reader-top-header--focus' : ''}`}
                 style={{
                     backgroundColor: usingDraftTheme ? 'rgba(0,0,0,0.56)' : 'rgba(252,249,240,0.85)',
                     color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#596060',
-                    borderBottom: `1px solid ${usingDraftTheme ? 'rgba(255,255,255,0.12)' : 'rgba(201,198,189,0.45)'}`,
                     backdropFilter: 'blur(16px)',
                 }}
             >
-                <div className="flex w-full items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate(getBookPath(book ?? { id: bookId ?? '' }), { state: book ? { book } : undefined })}
-                        className="reader-header-back inline-flex items-center gap-2 rounded-full px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] transition-opacity hover:opacity-75"
+                        className="flex items-center gap-2 hover:opacity-70 transition-opacity active:scale-[0.98]"
                     >
                         <ChevronLeft className="h-3.5 w-3.5" />
-                        <span>გასვლა</span>
+                        <span className="text-xs font-semibold tracking-wider uppercase">გასვლა</span>
                     </button>
+                </div>
 
-                    <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 text-center max-w-[62vw] md:max-w-[50vw]">
-                        <h1
-                            className="truncate text-base md:text-lg font-bold tracking-tight"
-                            style={{ fontFamily: usingDraftTheme ? undefined : 'Newsreader, Georgia, serif', color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#1c1c17' }}
-                        >
-                            {bookTitle}
-                        </h1>
-                        <p className="mt-0.5 truncate text-[10px] uppercase tracking-[0.24em]" style={{ color: usingDraftTheme ? 'rgba(255,255,255,0.66)' : '#78776f' }}>
-                            {manifest?.author || book?.author || 'მკითხველი'}
-                        </p>
-                    </div>
+                <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center max-w-[58vw]">
+                    <h1
+                        className="truncate text-lg font-bold tracking-tight"
+                        style={{ fontFamily: usingDraftTheme ? undefined : 'Newsreader, Georgia, serif', color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#1c1c17' }}
+                    >
+                        {bookTitle}
+                    </h1>
+                    <span className="truncate text-[10px] uppercase tracking-[0.2em]" style={{ color: usingDraftTheme ? 'rgba(255,255,255,0.66)' : '#78776f' }}>
+                        {manifest?.author || book?.author || 'მკითხველი'}
+                    </span>
+                </div>
 
-                    <div className="ml-auto flex items-center gap-6">
-                        <button
-                            id="reader-open-saved-panel"
-                            onClick={() => setShowSavedPanel(true)}
-                            title="შენახული გვერდების ნახვა"
-                            className="reader-header-icon relative inline-flex items-center justify-center"
-                            style={{ color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#596060' }}
-                        >
-                            <ShoppingBag className="h-5 w-5" />
-                            {savedPages.length > 0 && (
-                                <span
-                                    className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[8px] font-semibold"
-                                    style={{
-                                        backgroundColor: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent,
-                                        color: '#fff',
-                                    }}
-                                >
-                                    {savedPages.length}
-                                </span>
-                            )}
-                        </button>
-
-                        {manifest?.access_mode !== 'preview' && (
-                            <button
-                                id="reader-mark-position-btn"
-                                onClick={() => isMarkedPage ? clearPosition() : markPage(pageNumber)}
-                                title={isMarkedPage ? 'საწყისი პინის წაშლა' : 'ამ გვერდის დაპინება შემდეგ სესიაზე განახლებისთვის'}
-                                className="reader-header-icon inline-flex items-center justify-center"
-                                style={{ color: isMarkedPage ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent) : (usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#8d4d36') }}
+                <div className="flex items-center gap-6">
+                    <button
+                        id="reader-open-saved-panel"
+                        onClick={() => setShowSavedPanel(true)}
+                        className="relative hover:opacity-70 transition-opacity active:scale-[0.98]"
+                        title="შენახული გვერდების ნახვა"
+                    >
+                        <ShoppingBag className="h-5 w-5" />
+                        {savedPages.length > 0 && (
+                            <span
+                                className="absolute -top-1 -right-1 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center"
+                                style={{ backgroundColor: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent }}
                             >
-                                <Pin className="h-5 w-5" />
-                            </button>
+                                {savedPages.length}
+                            </span>
                         )}
-                    </div>
+                    </button>
+                    {manifest?.access_mode !== 'preview' && (
+                        <button
+                            id="reader-mark-position-btn"
+                            onClick={() => isMarkedPage ? clearPosition() : markPage(pageNumber)}
+                            className="hover:opacity-70 transition-opacity active:scale-[0.98]"
+                            style={{ color: isMarkedPage ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent) : (usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#8d4d36') }}
+                            title={isMarkedPage ? 'საწყისი პინის წაშლა' : 'ამ გვერდის დაპინება'}
+                        >
+                            <Pin className="h-5 w-5" />
+                        </button>
+                    )}
                 </div>
             </header>
 
-            <main className={`relative z-10 flex justify-center px-4 pb-32 pt-24 md:px-0 ${focusMode ? 'reader-main--focus' : ''}`}>
-
+            <main className="relative z-10 pt-24 pb-32 flex justify-center px-4 md:px-0">
                 {manifest?.status === 'processing' && (
                     <div className="border p-8 flex items-center gap-4 text-sm font-bold uppercase tracking-[0.2em]" style={{ borderColor: panelBorderColor, backgroundColor: panelColor, color: usingDraftTheme ? (themePalette?.text || '#1c1c17') : '#1c1c17' }}>
                         <Loader2 className="w-5 h-5 animate-spin" style={{ color: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent }} />
                         დამუშავება მიმდინარეობს. მკითხველის კონტენტი მზადდება.
                     </div>
                 )}
-
-
 
                 {error && (
                     <div className="mb-6 border p-4 text-[10px] font-black uppercase tracking-[0.2em]" style={{ borderColor: warmAccent, color: warmAccent, backgroundColor: panelSoftColor }}>
@@ -997,231 +988,159 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                 )}
 
                 {manifest?.status === 'ready' && (
-                    <>
+                    <div className="w-full max-w-[595px] relative">
+                        <div className="absolute -top-8 left-0 w-full h-[2px] overflow-hidden rounded-full" style={{ backgroundColor: usingDraftTheme ? 'rgba(255,255,255,0.2)' : '#e5e2da' }}>
+                            <div
+                                className="h-full transition-all duration-500"
+                                style={{
+                                    width: `${pageProgressPercent}%`,
+                                    backgroundColor: usingDraftTheme ? (themePalette?.accent || warmSecondary) : warmSecondary,
+                                }}
+                            />
+                        </div>
 
-                        <div className={`reader-reading-stage relative w-full max-w-[595px] transition-all duration-500 ${focusMode ? 'reader-reading-stage--focus' : ''}`}>
+                        <div className="paper-canvas w-full shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-sm relative overflow-hidden flex flex-col" style={{ ...pageCanvasStyle, ...pageCanvasBgStyle }}>
+                            <div className="absolute inset-0 spine-shadow pointer-events-none" />
+                            <div className="absolute inset-0 reader-paper-texture pointer-events-none" />
 
-                            <div className="reader-progress-track absolute -top-8 left-1/2 h-[2px] w-full max-w-[595px] -translate-x-1/2 overflow-hidden rounded-full" style={{ backgroundColor: usingDraftTheme ? 'rgba(255,255,255,0.2)' : '#e5e2da' }}>
-                                <div
-                                    className="reader-progress-fill h-full transition-all duration-500"
-                                    style={{
-                                        width: `${pageProgressPercent}%`,
-                                        backgroundColor: usingDraftTheme ? (themePalette?.accent || warmSecondary) : warmSecondary,
-                                    }}
-                                />
-                            </div>
-
-                            {/* ── Floating Sidebar Navigation (Focus Mode) ── */}
-                            {focusMode && (
-                                <div
-                                    className="reader-focus-nav fixed bottom-3 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:bottom-auto md:right-8 md:top-1/2 md:-translate-y-1/2 z-[60] flex flex-row md:flex-col items-center gap-2 p-2 md:p-3 rounded-[2rem] transition-opacity duration-300"
-                                    style={{
-                                        backgroundColor: usingDraftTheme ? 'rgba(0,0,0,0.62)' : 'rgba(255,255,255,0.88)',
-                                        border: `1px solid ${usingDraftTheme ? 'rgba(255,255,255,0.16)' : panelBorderColor}`,
-                                        boxShadow: usingDraftTheme ? '0 0 40px rgba(0,0,0,0.7)' : '0 18px 40px -24px rgba(28,28,23,0.35)',
-                                        color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#1c1c17',
-                                    }}
-                                >
-                                    <button
-                                        onClick={() => setFocusMode(false)}
-                                        title="ფოკუს რეჟიმიდან გასვლა"
-                                        className="flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-full transition-all order-4 md:order-none"
-                                        style={{
-                                            backgroundColor: usingDraftTheme ? 'rgba(255,255,255,0.08)' : panelSoftColor,
-                                            color: usingDraftTheme ? 'rgba(255,255,255,0.7)' : mutedTextColor,
-                                        }}
-                                    >
-                                        <Minimize className="w-4 h-4 md:w-5 md:h-5" />
-                                    </button>
-
-                                    <div className="hidden md:block w-8 h-[1px] my-1" style={{ backgroundColor: usingDraftTheme ? 'rgba(255,255,255,0.12)' : panelBorderColor }} />
-
-                                    <button
-                                        onClick={() => goToRelativePage(-1)}
-                                        disabled={pageNumber <= 1}
-                                        title="წინა გვერდი"
-                                        className="flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-full border transition-all focus:outline-none disabled:opacity-20 disabled:pointer-events-none order-1 md:order-none"
-                                        style={{
-                                            borderColor: 'transparent',
-                                            color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#1c1c17',
-                                            backgroundColor: 'transparent',
-                                        }}
-                                    >
-                                        <ChevronLeft className="h-6 w-6 md:h-8 md:w-8 ml-[-2px]" />
-                                    </button>
-
-                                        <div className="reader-page-counter text-[10px] md:text-[10px] font-semibold uppercase tracking-[0.18em] my-0 md:my-2 order-2 md:order-none" style={{ color: usingDraftTheme ? 'rgba(255,255,255,0.72)' : mutedTextColor, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-                                        {pageNumber} / {displayTotalPages}
+                            {loadingPage && (
+                                <div className="absolute inset-0 z-10 p-8 md:p-12 flex flex-col gap-6" style={{ background: themePalette?.shell ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.03)' }}>
+                                    <div className="absolute inset-0 z-0 animate-pulse" style={{ backgroundColor: themePalette?.text ? `${themePalette.text}08` : 'rgba(0,0,0,0.02)' }} />
+                                    <div className="relative z-10 flex flex-col gap-6 animate-pulse opacity-70">
+                                        <div className="h-6 w-[85%] rounded" style={{ backgroundColor: `${themePalette?.text || '#000000'}15` }} />
+                                        <div className="h-4 w-1/2 rounded mb-6" style={{ backgroundColor: `${themePalette?.text || '#000000'}10` }} />
+                                        {[...Array(5)].map((_, i) => (
+                                            <div key={i} className="flex flex-col gap-3 mb-2">
+                                                <div className="h-3.5 w-full rounded-sm" style={{ backgroundColor: `${themePalette?.text || '#000000'}10` }} />
+                                                <div className="h-3.5 w-[96%] rounded-sm" style={{ backgroundColor: `${themePalette?.text || '#000000'}10` }} />
+                                                <div className="h-3.5 w-[92%] rounded-sm" style={{ backgroundColor: `${themePalette?.text || '#000000'}10` }} />
+                                                <div className="h-3.5 rounded-sm" style={{ backgroundColor: `${themePalette?.text || '#000000'}10`, width: `${75 - (i % 3) * 12}%` }} />
+                                            </div>
+                                        ))}
                                     </div>
-
-                                    <button
-                                        onClick={() => goToRelativePage(1)}
-                                        disabled={pageNumber >= Math.max(availablePages, 1)}
-                                        title="შემდეგი გვერდი"
-                                        className="flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-full border transition-all focus:outline-none disabled:opacity-20 disabled:pointer-events-none order-3 md:order-none"
-                                        style={{
-                                            borderColor: 'transparent',
-                                            color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#1c1c17',
-                                            backgroundColor: 'transparent',
-                                        }}
-                                    >
-                                        <ChevronRight className="h-6 w-6 md:h-8 md:w-8 mr-[-2px]" />
-                                    </button>
                                 </div>
                             )}
 
-                            <div className="reader-page-shell w-full max-w-[595px] flex justify-center">
-                                <div className="relative w-full flex justify-center h-full">
-                                    <div
-                                        className={`reader-page-canvas ${focusMode ? 'reader-page-canvas--focus' : ''} ${themePalette ? '' : 'bg-white text-black'} transition-all duration-300`}
-                                        style={{ ...pageCanvasStyle, ...pageCanvasBgStyle, position: 'relative', overflow: 'hidden' }}
-                                        data-paper-effect="clean"
-                                    >
-                                        {loadingPage && (
-                                            <div className="absolute inset-0 z-10 p-8 md:p-12 flex flex-col gap-6" style={{ background: themePalette?.shell ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.03)' }}>
-                                                {/* Skeleton pulsating effect overlaying entire paper */}
-                                                <div className="absolute inset-0 z-0 animate-pulse" style={{ backgroundColor: themePalette?.text ? `${themePalette.text}08` : 'rgba(0,0,0,0.02)' }} />
+                            {!loadingPage && pageData?.render_mode === 'image' && pageData.fallback_image_data && (
+                                <img src={pageData.fallback_image_data} alt={`გვერდი ${pageNumber}`} className="h-full w-full object-contain" />
+                            )}
 
-                                                <div className="relative z-10 flex flex-col gap-6 animate-pulse opacity-70">
-                                                    {/* Skeleton Header */}
-                                                    <div className="h-6 w-[85%] rounded" style={{ backgroundColor: `${themePalette?.text || '#000000'}15` }} />
-                                                    <div className="h-4 w-1/2 rounded mb-6" style={{ backgroundColor: `${themePalette?.text || '#000000'}10` }} />
-
-                                                    {/* Skeleton Text Blocks */}
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <div key={i} className="flex flex-col gap-3 mb-2">
-                                                            <div className="h-3.5 w-full rounded-sm" style={{ backgroundColor: `${themePalette?.text || '#000000'}10` }} />
-                                                            <div className="h-3.5 w-[96%] rounded-sm" style={{ backgroundColor: `${themePalette?.text || '#000000'}10` }} />
-                                                            <div className="h-3.5 w-[92%] rounded-sm" style={{ backgroundColor: `${themePalette?.text || '#000000'}10` }} />
-                                                            <div className="h-3.5 rounded-sm" style={{ backgroundColor: `${themePalette?.text || '#000000'}10`, width: `${75 - (i % 3) * 12}%` }} />
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {!loadingPage && pageData?.render_mode === 'image' && pageData.fallback_image_data && (
-                                            <img src={pageData.fallback_image_data} alt={`გვერდი ${pageNumber}`} className="h-full w-full object-contain" />
-                                        )}
-
-                                        {!loadingPage && pageData?.render_mode !== 'image' && (
-                                            <div className="reader-page-content" style={pageContentStyle}>
-                                                {draftTheme && themeFont && themePalette && effectiveBaseFontSize && (
-                                                    <style>{`
-                          .reader-page-content * {
-                            font-family: ${themeFont.family} !important;
-                            color: ${themePalette.text} !important;
-                            line-height: ${draftTheme.line_height} !important;
-                            letter-spacing: ${draftTheme.letter_spacing}em !important;
-                          }
-                          .reader-page-content p, .reader-page-content span, .reader-page-content div {
-                            font-size: ${effectiveBaseFontSize}px !important;
-                          }
-                          .reader-page-content h1, .reader-page-content h2, .reader-page-content h3 {
-                            font-size: ${effectiveBaseFontSize * 1.5}px !important;
-                          }
-                          .reader-page-content h4, .reader-page-content h5, .reader-page-content h6 {
-                            font-size: ${effectiveBaseFontSize * 1.25}px !important;
-                          }
-                        `}</style>
-                                                )}
-                                                <div className="reader-chapter-heading">
-                                                    <h2 className="reader-chapter-title" style={{ color: usingDraftTheme ? (themePalette?.text || '#1c1c17') : '#474740' }}>
-                                                        თავი {pageNumber}
-                                                    </h2>
-                                                    <p className="reader-chapter-subtitle" style={{ color: usingDraftTheme ? 'rgba(255,255,255,0.66)' : '#78776f' }}>
-                                                        {manifest?.author || book?.author || 'ამბავი'}
-                                                    </p>
-                                                </div>
-                                                <article
-                                                    className="reader-html"
-                                                    style={pageContentStyle}
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: sanitizeBookHTML(
-                                                            normalizeAlignmentFromLegacyCast(pageData?.render_html || '<p></p>')
-                                                        ),
-                                                    }}
-                                                />
-                                            </div>
-                                        )}
+                            {!loadingPage && pageData?.render_mode !== 'image' && (
+                                <div className="reader-page-content reader-page-content--paper" style={pageContentStyle}>
+                                    {draftTheme && themeFont && themePalette && effectiveBaseFontSize && (
+                                        <style>{`
+                      .reader-page-content * {
+                        font-family: ${themeFont.family} !important;
+                        color: ${themePalette.text} !important;
+                        line-height: ${draftTheme.line_height} !important;
+                        letter-spacing: ${draftTheme.letter_spacing}em !important;
+                      }
+                      .reader-page-content p, .reader-page-content span, .reader-page-content div {
+                        font-size: ${effectiveBaseFontSize}px !important;
+                      }
+                      .reader-page-content h1, .reader-page-content h2, .reader-page-content h3 {
+                        font-size: ${effectiveBaseFontSize * 1.5}px !important;
+                      }
+                      .reader-page-content h4, .reader-page-content h5, .reader-page-content h6 {
+                        font-size: ${effectiveBaseFontSize * 1.25}px !important;
+                      }
+                    `}</style>
+                                    )}
+                                    <div className="reader-chapter-heading">
+                                        <h2 className="reader-chapter-title" style={{ color: usingDraftTheme ? (themePalette?.text || '#1c1c17') : '#474740' }}>
+                                            თავი {pageNumber}
+                                        </h2>
+                                        <p className="reader-chapter-subtitle" style={{ color: usingDraftTheme ? 'rgba(255,255,255,0.66)' : '#78776f' }}>
+                                            {manifest?.author || book?.author || 'ამბავი'}
+                                        </p>
                                     </div>
+                                    <article
+                                        className="reader-html"
+                                        style={pageContentStyle}
+                                        dangerouslySetInnerHTML={{
+                                            __html: sanitizeBookHTML(
+                                                normalizeAlignmentFromLegacyCast(pageData?.render_html || '<p></p>')
+                                            ),
+                                        }}
+                                    />
                                 </div>
-                            </div>
+                            )}
                         </div>
-                        {!focusMode && (
-                            <nav className="reader-pill-nav-wrap fixed bottom-0 left-0 z-[65] flex w-full justify-center pb-8 pointer-events-none">
-                                <div className="reader-pill-nav pointer-events-auto flex items-center gap-2 p-1.5">
-                                <button
-                                    id="reader-prev-page"
-                                    onClick={() => goToRelativePage(-1)}
-                                    disabled={pageNumber <= 1}
-                                    title="წინა გვერდი"
-                                    className="reader-pill-btn flex flex-col items-center justify-center rounded-full p-3 text-[#596060] disabled:opacity-30 disabled:pointer-events-none"
-                                >
-                                    <ChevronLeft className="h-4 w-4" />
-                                    <span className="reader-pill-label">გვერდი</span>
-                                </button>
-
-                                <div className="reader-pill-divider" />
-
-                                <div className="reader-pill-progress px-6 text-center">
-                                    <span className="reader-pill-label">პროგრესი</span>
-                                    <span className="reader-pill-count">{pageNumber} / {displayTotalPages}</span>
-                                </div>
-
-                                <div className="reader-pill-divider" />
-
-                                <button
-                                    onClick={() => setFocusMode(true)}
-                                    title="ფოკუს რეჟიმში შეყვანა"
-                                    className="reader-pill-btn reader-pill-btn--focus flex flex-col items-center justify-center rounded-full p-3"
-                                >
-                                    <Maximize className="h-4 w-4" />
-                                    <span className="reader-pill-label">ფოკუსი</span>
-                                </button>
-
-                                <button
-                                    id="reader-next-page"
-                                    onClick={() => goToRelativePage(1)}
-                                    disabled={pageNumber >= displayTotalPages}
-                                    title="შემდეგი გვერდი"
-                                    className="reader-pill-btn flex flex-col items-center justify-center rounded-full p-3 text-[#596060] disabled:opacity-30 disabled:pointer-events-none"
-                                >
-                                    <ChevronRight className="h-4 w-4" />
-                                    <span className="reader-pill-label">ძებნა</span>
-                                </button>
-                                </div>
-                            </nav>
-                        )}
-
-                        <button
-                            type="button"
-                            className="reader-side-trigger"
-                            title="შენახული გვერდები"
-                            onClick={() => setShowSavedPanel(true)}
-                        >
-                            <span className="reader-side-trigger__icon">menu_open</span>
-                        </button>
-
-                        {manifest?.access_mode === 'preview' && book && (
-                            <div className="mt-6 flex justify-center md:hidden">
-                                <button
-                                    onClick={() => (user ? onAddToCart(book) : onLoginRequired())}
-                                    className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em]"
-                                    style={{
-                                        borderColor: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent,
-                                        backgroundColor: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent,
-                                        color: '#fff',
-                                    }}
-                                >
-                                    <Lock className="h-3.5 w-3.5" />
-                                    {user ? 'სრული წვდომა' : 'შესვლა'}
-                                </button>
-                            </div>
-                        )}
-                    </>
+                    </div>
                 )}
             </main>
+
+            {manifest?.status === 'ready' && (
+                <nav className="fixed bottom-0 left-0 w-full flex justify-center z-50 pointer-events-none pb-8">
+                    <div className="reader-pill-nav pointer-events-auto flex items-center gap-2 p-1.5">
+                        <button
+                            id="reader-prev-page"
+                            onClick={() => goToRelativePage(-1)}
+                            disabled={pageNumber <= 1}
+                            title="წინა გვერდი"
+                            className="reader-pill-btn flex flex-col items-center justify-center rounded-full p-3 text-[#596060] disabled:opacity-30 disabled:pointer-events-none"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                            <span className="reader-pill-label">გვერდი</span>
+                        </button>
+
+                        <div className="reader-pill-divider" />
+
+                        <div className="reader-pill-progress px-6 text-center">
+                            <span className="reader-pill-label">პროგრესი</span>
+                            <span className="reader-pill-count">{pageNumber} / {displayTotalPages}</span>
+                        </div>
+
+                        <div className="reader-pill-divider" />
+
+                        <button
+                            onClick={() => setFocusMode((prev) => !prev)}
+                            title="ფოკუსი"
+                            className="reader-pill-btn reader-pill-btn--focus flex flex-col items-center justify-center rounded-full p-3"
+                        >
+                            {focusMode ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                            <span className="reader-pill-label">ფოკუსი</span>
+                        </button>
+
+                        <button
+                            id="reader-next-page"
+                            onClick={() => goToRelativePage(1)}
+                            disabled={pageNumber >= displayTotalPages}
+                            title="შემდეგი გვერდი"
+                            className="reader-pill-btn flex flex-col items-center justify-center rounded-full p-3 text-[#596060] disabled:opacity-30 disabled:pointer-events-none"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                            <span className="reader-pill-label">ძებნა</span>
+                        </button>
+                    </div>
+                </nav>
+            )}
+
+            <button
+                type="button"
+                className="reader-side-trigger"
+                title="შენახული გვერდები"
+                onClick={() => setShowSavedPanel(true)}
+            >
+                <span className="reader-side-trigger__icon">menu_open</span>
+            </button>
+
+            {manifest?.access_mode === 'preview' && book && (
+                <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[70] md:hidden">
+                    <button
+                        onClick={() => (user ? onAddToCart(book) : onLoginRequired())}
+                        className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em]"
+                        style={{
+                            borderColor: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent,
+                            backgroundColor: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent,
+                            color: '#fff',
+                        }}
+                    >
+                        <Lock className="h-3.5 w-3.5" />
+                        {user ? 'სრული წვდომა' : 'შესვლა'}
+                    </button>
+                </div>
+            )}
         </div>
     );
 };
