@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Loader2, ChevronLeft, ChevronRight, Lock, BookmarkCheck, Bookmark, X, MapPin, Maximize, Minimize } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, Lock, BookmarkCheck, Bookmark, X, Maximize, Minimize, ShoppingBag, Pin } from 'lucide-react';
 import { useSavedPages } from '../hooks/useSavedPages';
 import { useReadingSession } from '../hooks/useReadingSession';
 import { useReadingPosition } from '../hooks/useReadingPosition';
@@ -416,7 +416,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
     });
 
     const bookTitle = manifest?.title || book?.title || `Book ${bookId}`;
-    const { savedPages, isPageSaved, canSaveMore, toggleSavePage, removeSavedPage, clearAllSavedPages, maxSavedPages } =
+    const { savedPages, removeSavedPage, clearAllSavedPages } =
         useSavedPages(bookId ?? '', bookTitle, user);
 
     // ── Reading session (sessionStorage — clears when tab closes) ──────────────
@@ -745,20 +745,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
         setTimeout(() => setSaveToast(null), 2800);
     };
 
-    const handleToggleSave = async () => {
-        if (!user) {
-            onLoginRequired();
-            return;
-        }
-        const wasSaved = isPageSaved(pageNumber);
-        const result = await toggleSavePage(pageNumber);
-        if (!result.success && result.reason) {
-            showSaveToast(result.reason, 'error');
-        } else if (result.success) {
-            showSaveToast(wasSaved ? 'გვერდი წაიშალა შენახულიდან' : 'გვერდი შენახულია!', 'success');
-        }
-    };
-
     if (loadingManifest) {
         return (
             <div
@@ -927,20 +913,20 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
             )}
 
             <header
-                className={`reader-top-header fixed top-0 left-0 right-0 z-[70] px-3 sm:px-4 md:px-8 py-3 md:py-4 ${focusMode ? 'reader-top-header--focus' : ''}`}
+                className={`reader-top-header fixed top-0 left-0 right-0 z-[70] px-4 sm:px-6 py-4 ${focusMode ? 'reader-top-header--focus' : ''}`}
                 style={{
-                    backgroundColor: usingDraftTheme ? 'rgba(0,0,0,0.58)' : 'rgba(252,249,240,0.86)',
+                    backgroundColor: usingDraftTheme ? 'rgba(0,0,0,0.56)' : 'rgba(252,249,240,0.85)',
                     color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#596060',
-                    borderBottom: `1px solid ${usingDraftTheme ? 'rgba(255,255,255,0.12)' : 'rgba(201,198,189,0.75)'}`,
-                    backdropFilter: 'blur(14px)',
+                    borderBottom: `1px solid ${usingDraftTheme ? 'rgba(255,255,255,0.12)' : 'rgba(201,198,189,0.45)'}`,
+                    backdropFilter: 'blur(16px)',
                 }}
             >
-                <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-2 md:gap-6">
+                <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
                     <button
                         onClick={() => navigate(getBookPath(book ?? { id: bookId ?? '' }), { state: book ? { book } : undefined })}
-                        className="reader-header-back inline-flex items-center gap-1.5 md:gap-2 rounded-full px-2.5 py-2 text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em] transition-opacity hover:opacity-75"
+                        className="reader-header-back inline-flex items-center gap-2 rounded-full px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] transition-opacity hover:opacity-75"
                     >
-                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronLeft className="h-3.5 w-3.5" />
                         <span>გასვლა</span>
                     </button>
 
@@ -956,35 +942,37 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                         </p>
                     </div>
 
-                    <div className="ml-auto flex items-center gap-1.5 md:gap-2">
+                    <div className="ml-auto flex items-center gap-4 sm:gap-6">
+                        <button
+                            id="reader-open-saved-panel"
+                            onClick={() => setShowSavedPanel(true)}
+                            title="შენახული გვერდების ნახვა"
+                            className="reader-header-icon relative inline-flex items-center justify-center"
+                            style={{ color: usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#596060' }}
+                        >
+                            <ShoppingBag className="h-5 w-5" />
+                            {savedPages.length > 0 && (
+                                <span
+                                    className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[8px] font-semibold"
+                                    style={{
+                                        backgroundColor: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent,
+                                        color: '#fff',
+                                    }}
+                                >
+                                    {savedPages.length}
+                                </span>
+                            )}
+                        </button>
+
                         {manifest?.access_mode !== 'preview' && (
                             <button
-                                id="reader-open-saved-panel"
-                                onClick={() => setShowSavedPanel(true)}
-                                title="შენახული გვერდების ნახვა"
-                                className="reader-header-action inline-flex h-9 w-9 items-center justify-center rounded-full border"
-                                style={{
-                                    borderColor: usingDraftTheme ? 'rgba(255,255,255,0.2)' : panelBorderColor,
-                                    backgroundColor: usingDraftTheme ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.75)',
-                                    color: savedPages.length > 0 ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent) : mutedTextColor,
-                                }}
+                                id="reader-mark-position-btn"
+                                onClick={() => isMarkedPage ? clearPosition() : markPage(pageNumber)}
+                                title={isMarkedPage ? 'საწყისი პინის წაშლა' : 'ამ გვერდის დაპინება შემდეგ სესიაზე განახლებისთვის'}
+                                className="reader-header-icon inline-flex items-center justify-center"
+                                style={{ color: isMarkedPage ? (usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent) : (usingDraftTheme ? (themePalette?.text || '#f5f5f0') : '#8d4d36') }}
                             >
-                                {savedPages.length > 0 ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
-                            </button>
-                        )}
-
-                        {manifest?.access_mode === 'preview' && book && (
-                            <button
-                                onClick={() => (user ? onAddToCart(book) : onLoginRequired())}
-                                className="hidden md:inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em]"
-                                style={{
-                                    borderColor: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent,
-                                    backgroundColor: usingDraftTheme ? (themePalette?.accent || warmAccent) : warmAccent,
-                                    color: '#fff',
-                                }}
-                            >
-                                <Lock className="h-3.5 w-3.5" />
-                                {user ? 'სრული წვდომა' : 'შესვლა'}
+                                <Pin className="h-5 w-5" />
                             </button>
                         )}
                     </div>
@@ -1013,7 +1001,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
 
                         <div className={`reader-reading-stage relative transition-all duration-500 ${focusMode ? 'reader-reading-stage--focus flex-1 flex justify-center w-full px-1 md:px-2' : ''}`}>
 
-                            <div className="reader-progress-track mx-auto mb-3 h-[2px] w-full max-w-[595px] overflow-hidden rounded-full" style={{ backgroundColor: usingDraftTheme ? 'rgba(255,255,255,0.2)' : '#e5e2da' }}>
+                            <div className="reader-progress-track absolute -top-8 left-1/2 h-[2px] w-full max-w-[595px] -translate-x-1/2 overflow-hidden rounded-full" style={{ backgroundColor: usingDraftTheme ? 'rgba(255,255,255,0.2)' : '#e5e2da' }}>
                                 <div
                                     className="reader-progress-fill h-full transition-all duration-500"
                                     style={{
@@ -1161,21 +1149,22 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                             </div>
                         </div>
                         {!focusMode && (
-                            <nav className="reader-pill-nav fixed left-1/2 bottom-0 z-[65] -translate-x-1/2 flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 md:py-2">
+                            <nav className="reader-pill-nav-wrap fixed bottom-0 left-0 z-[65] flex w-full justify-center pb-6 pointer-events-none md:pb-8">
+                                <div className="reader-pill-nav pointer-events-auto flex items-center gap-2 p-1.5">
                                 <button
                                     id="reader-prev-page"
                                     onClick={() => goToRelativePage(-1)}
                                     disabled={pageNumber <= 1}
                                     title="წინა გვერდი"
-                                    className="reader-pill-btn flex flex-col items-center justify-center rounded-full px-2.5 py-1.5 md:px-3 md:py-2 text-[#596060] disabled:opacity-30 disabled:pointer-events-none"
+                                    className="reader-pill-btn flex flex-col items-center justify-center rounded-full p-3 text-[#596060] disabled:opacity-30 disabled:pointer-events-none"
                                 >
-                                    <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
+                                    <ChevronLeft className="h-4 w-4" />
                                     <span className="reader-pill-label">გვერდი</span>
                                 </button>
 
                                 <div className="reader-pill-divider" />
 
-                                <div className="reader-pill-progress px-2 md:px-3 text-center">
+                                <div className="reader-pill-progress px-6 text-center">
                                     <span className="reader-pill-label">პროგრესი</span>
                                     <span className="reader-pill-count">{pageNumber} / {displayTotalPages}</span>
                                 </div>
@@ -1185,9 +1174,9 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                 <button
                                     onClick={() => setFocusMode(true)}
                                     title="ფოკუს რეჟიმში შეყვანა"
-                                    className="reader-pill-btn reader-pill-btn--focus flex flex-col items-center justify-center rounded-full px-2.5 py-1.5 md:px-3 md:py-2"
+                                    className="reader-pill-btn reader-pill-btn--focus flex flex-col items-center justify-center rounded-full p-3"
                                 >
-                                    <Maximize className="h-4 w-4 md:h-5 md:w-5" />
+                                    <Maximize className="h-4 w-4" />
                                     <span className="reader-pill-label">ფოკუსი</span>
                                 </button>
 
@@ -1196,35 +1185,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onAddToCart, onLog
                                     onClick={() => goToRelativePage(1)}
                                     disabled={pageNumber >= displayTotalPages}
                                     title="შემდეგი გვერდი"
-                                    className="reader-pill-btn flex flex-col items-center justify-center rounded-full px-2.5 py-1.5 md:px-3 md:py-2 text-[#596060] disabled:opacity-30 disabled:pointer-events-none"
+                                    className="reader-pill-btn flex flex-col items-center justify-center rounded-full p-3 text-[#596060] disabled:opacity-30 disabled:pointer-events-none"
                                 >
-                                    <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />
+                                    <ChevronRight className="h-4 w-4" />
                                     <span className="reader-pill-label">შემდეგი</span>
                                 </button>
-
-                                {manifest.access_mode !== 'preview' && (
-                                    <>
-                                        <button
-                                            id="reader-save-page-btn"
-                                            onClick={handleToggleSave}
-                                            disabled={!canSaveMore && !isPageSaved(pageNumber)}
-                                            title={isPageSaved(pageNumber) ? 'შენახული გვერდის წაშლა' : canSaveMore ? 'გვერდის შენახვა მოგვიანებლად' : `მაქსიმუმ ${maxSavedPages} გვერდი შენახულია`}
-                                            className="reader-pill-icon-btn"
-                                            style={{ color: isPageSaved(pageNumber) ? warmAccent : '#596060' }}
-                                        >
-                                            {isPageSaved(pageNumber) ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
-                                        </button>
-                                        <button
-                                            id="reader-mark-position-btn"
-                                            onClick={() => isMarkedPage ? clearPosition() : markPage(pageNumber)}
-                                            title={isMarkedPage ? 'საწყისი პინის წაშლა' : 'ამ გვერდის დაპინება შემდეგ სესიაზე განახლებისთვის'}
-                                            className="reader-pill-icon-btn"
-                                            style={{ color: isMarkedPage ? warmAccent : '#596060' }}
-                                        >
-                                            <MapPin className="h-4 w-4" />
-                                        </button>
-                                    </>
-                                )}
+                                </div>
                             </nav>
                         )}
 

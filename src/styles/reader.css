@@ -13,6 +13,18 @@
   transition: opacity 200ms ease;
 }
 
+.reader-header-icon {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.reader-header-icon:hover {
+  opacity: 0.72;
+}
+
+.reader-header-icon:active {
+  transform: scale(0.98);
+}
+
 .reader-top-header--focus {
   opacity: 0;
   pointer-events: none;
@@ -72,7 +84,7 @@
   overflow-y: auto;
   position: relative;
   z-index: 10;
-  padding: 2.5rem 3rem;
+  padding: 3rem 4rem;
   scrollbar-width: thin;
   scrollbar-color: rgba(120, 119, 111, 0.35) transparent;
 }
@@ -166,23 +178,24 @@
 }
 
 .reader-pill-nav {
-  width: min(calc(100vw - 1rem), 760px);
   border: 1px solid rgba(201, 198, 189, 0.6);
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 24px 32px -12px rgba(28, 28, 23, 0.06);
   backdrop-filter: blur(14px);
-  pointer-events: auto;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.1rem);
 }
 
 .reader-pill-btn {
   color: var(--reader-warm-primary);
-  transition: background-color 200ms ease;
+  transition: background-color 200ms ease, transform 180ms ease;
 }
 
 .reader-pill-btn:hover {
   background-color: #f6f3ea;
+}
+
+.reader-pill-btn:active {
+  transform: scale(0.95);
 }
 
 .reader-pill-btn--focus {
@@ -208,7 +221,7 @@
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 10px;
   font-weight: 500;
-  letter-spacing: 0.16em;
+  letter-spacing: 0;
   text-transform: uppercase;
   color: #78776f;
 }
@@ -269,7 +282,7 @@
 @media (max-width: 767px) {
   .reader-root {
     padding-top: 5.5rem !important;
-    padding-bottom: 6.2rem !important;
+    padding-bottom: 7.6rem !important;
   }
 
   .reader-root--focus {
@@ -293,7 +306,7 @@
   }
 
   .reader-page-content {
-    padding: 1.3rem 1.15rem;
+    padding: 1.75rem 1.35rem;
   }
 
   .reader-chapter-heading {
@@ -311,11 +324,8 @@
   }
 
   .reader-pill-nav {
-    width: calc(100vw - 0.8rem);
+    max-width: calc(100vw - 0.8rem);
     gap: 0;
-    padding-left: 0.45rem;
-    padding-right: 0.45rem;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.45rem);
   }
 
   .reader-pill-divider {
