@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Loader2, Maximize, Minimize, Pin, ShoppingBag, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, Loader2, Maximize, Minimize, Pin, ShoppingBag, X } from 'lucide-react';
 import { useSavedPages } from '../hooks/useSavedPages';
 import { useReadingPosition } from '../hooks/useReadingPosition';
 import { getBookPath } from '../lib/seo';
@@ -65,6 +65,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
   const bookTitle = manifest?.title || book?.title || 'წიგნი';
   const {
     savedPages,
+    isPageSaved,
+    toggleSavePage,
     removeSavedPage,
     clearAllSavedPages,
   } = useSavedPages(bookId ?? '', bookTitle, user);
@@ -291,6 +293,13 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
           <button className="reader-icon-btn" onClick={handleBagClick}>
             <ShoppingBag className="h-5 w-5" />
             {savedPages.length > 0 && <span className="reader-badge" style={{ backgroundColor: accentColor }}>{savedPages.length}</span>}
+          </button>
+          <button
+            className="reader-icon-btn"
+            onClick={() => toggleSavePage(pageNumber)}
+            style={{ color: isPageSaved(pageNumber) ? accentColor : '#8d4d36' }}
+          >
+            <Heart className={isPageSaved(pageNumber) ? 'h-5 w-5 fill-current' : 'h-5 w-5'} />
           </button>
           {manifest?.access_mode !== 'preview' && (
             <button
