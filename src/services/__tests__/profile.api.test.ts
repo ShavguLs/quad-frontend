@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import type { User } from '../../types';
-import * as authModule from '../auth';
 
 // Mock import.meta.env
 const mockEnv = {
@@ -14,7 +13,13 @@ vi.stubGlobal('import', {
 });
 
 // Import api after mocks
-import { api, __resetHasApiForTesting, __setHasApiForTesting } from '../api';
+import {
+  api,
+  __resetHasApiForTesting,
+  __setHasApiForTesting,
+  clearCsrfToken,
+  setCsrfToken,
+} from '../api';
 
 const createJsonResponse = (payload: unknown, status = 200, headers?: HeadersInit): Response => ({
   ok: status >= 200 && status < 300,
@@ -35,6 +40,16 @@ const createTextResponse = (text: string, status = 500): Response => ({
 describe('Profile API', () => {
   let fetchSpy: Mock;
 
+  const getProfilePatchRequestOptions = (): RequestInit => {
+    const call = fetchSpy.mock.calls.find(([url, options]) => {
+      const method = (options as RequestInit | undefined)?.method;
+      return typeof url === 'string' && url.includes('/profile') && method === 'PATCH';
+    });
+
+    expect(call).toBeDefined();
+    return (call?.[1] || {}) as RequestInit;
+  };
+
   const mockUser: User = {
     id: '1',
     email: 'test@example.com',
@@ -46,12 +61,15 @@ describe('Profile API', () => {
   };
 
   beforeEach(() => {
+    setCsrfToken('test-csrf');
     fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
       createJsonResponse({ user: mockUser })
     );
   });
 
   afterEach(() => {
+    clearCsrfToken();
+    __resetHasApiForTesting();
     vi.clearAllMocks();
   });
 
@@ -60,7 +78,7 @@ describe('Profile API', () => {
       const expectedBody = JSON.stringify({ name: 'Updated Name', bio: 'Updated bio' });
       const result = await api.updateProfile({ name: 'Updated Name', bio: 'Updated bio' });
 
-      const requestBody = fetchSpy.mock.calls[0][1]?.body as string;
+      const requestBody = getProfilePatchRequestOptions().body as string;
       expect(requestBody).toBe(expectedBody);
       expect(result.name).toBe('Test User');
     });
@@ -71,7 +89,7 @@ describe('Profile API', () => {
 
       await api.updateProfile({ profileImage: file });
 
-      const body = fetchSpy.mock.calls[0][1]?.body as FormData;
+      const body = getProfilePatchRequestOptions().body as FormData;
       const entries = Array.from(body.entries());
       expect(entries).toEqual([[ 'profile_image', file ]]);
     });
@@ -82,7 +100,7 @@ describe('Profile API', () => {
 
       await api.updateProfile({ name: 'Updated Name', bio: 'New bio', profileImage: file });
 
-      const body = fetchSpy.mock.calls[0][1]?.body as FormData;
+      const body = getProfilePatchRequestOptions().body as FormData;
       const entries = Array.from(body.entries());
       expect(entries).toEqual([
         ['name', 'Updated Name'],
@@ -96,7 +114,7 @@ describe('Profile API', () => {
 
       await api.updateProfile({ bio: 'Updated bio only' });
 
-      const requestBody = fetchSpy.mock.calls[0][1]?.body as string;
+      const requestBody = getProfilePatchRequestOptions().body as string;
       expect(requestBody).toBe(JSON.stringify({ bio: 'Updated bio only' }));
     });
 
@@ -105,7 +123,7 @@ describe('Profile API', () => {
 
       await api.updateProfile({ bio: 'Bio only', profileImage: null });
 
-      const requestBody = fetchSpy.mock.calls[0][1]?.body as string;
+      const requestBody = getProfilePatchRequestOptions().body as string;
       expect(requestBody).toBe(JSON.stringify({ bio: 'Bio only' }));
     });
   });
@@ -158,7 +176,6 @@ describe('Profile API', () => {
     });
 
     it('should throw error on 401 unauthorized', async () => {
-      const refreshSpy = vi.spyOn(authModule, 'refreshAccessToken').mockResolvedValue(true);
       fetchSpy
         .mockResolvedValueOnce({
           ok: false,
@@ -167,16 +184,22 @@ describe('Profile API', () => {
           text: () => Promise.resolve('Unauthorized'),
           headers: new Headers({ 'content-type': 'application/json' }),
         } as Response)
+        .mockResolvedValueOnce(createJsonResponse({}, 200))
         .mockResolvedValueOnce(createJsonResponse(mockUser));
 
-      try {
-        const result = await api.updateProfile({ bio: 'Retry' });
-        expect(result.id).toBe(mockUser.id);
-        expect(refreshSpy).toHaveBeenCalled();
-        expect(fetchSpy).toHaveBeenCalledTimes(2);
-      } finally {
-        refreshSpy.mockRestore();
-      }
+      const result = await api.updateProfile({ bio: 'Retry' });
+
+      expect(result.id).toBe(mockUser.id);
+      expect(fetchSpy).toHaveBeenCalledTimes(3);
+
+      const calls = fetchSpy.mock.calls;
+      expect(calls[0][0]).toEqual(expect.stringContaining('/profile'));
+      expect(calls[1][0]).toEqual(expect.stringContaining('/auth/refresh'));
+      expect(calls[2][0]).toEqual(expect.stringContaining('/profile'));
+      expect(calls[1][1]).toEqual(expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+      }));
     });
 
     it('should throw error on 500 server error', async () => {
@@ -202,7 +225,7 @@ describe('Profile API', () => {
 
       await api.updateProfile({ profileImage: file });
 
-      const options = fetchSpy.mock.calls[0][1];
+      const options = getProfilePatchRequestOptions();
       expect(options.method).toBe('PATCH');
       const body = options.body as FormData;
       expect(body).toBeInstanceOf(FormData);
@@ -216,7 +239,7 @@ describe('Profile API', () => {
 
       await api.updateProfile({ bio: 'JSON only' });
 
-      const options = fetchSpy.mock.calls[0][1];
+      const options = getProfilePatchRequestOptions();
       const headers = new Headers(options.headers as HeadersInit);
       expect(headers.get('Content-Type')).toBe('application/json');
     });
@@ -226,7 +249,7 @@ describe('Profile API', () => {
 
       await api.updateProfile({ bio: 'Auth check' });
 
-      const options = fetchSpy.mock.calls[0][1];
+      const options = getProfilePatchRequestOptions();
       expect(options.credentials).toBe('include');
     });
 
@@ -235,7 +258,7 @@ describe('Profile API', () => {
 
       await api.updateProfile({ bio: 'Method' });
 
-      const options = fetchSpy.mock.calls[0][1];
+      const options = getProfilePatchRequestOptions();
       expect(options.method).toBe('PATCH');
     });
   });

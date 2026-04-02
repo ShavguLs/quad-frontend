@@ -13,7 +13,7 @@ vi.stubGlobal('import', {
 });
 
 // Import api after mocks
-import { api } from '../api';
+import { api, clearCsrfToken, setCsrfToken, __resetHasApiForTesting } from '../api';
 
 describe('Community API', () => {
   let fetchSpy: Mock;
@@ -45,6 +45,7 @@ describe('Community API', () => {
   };
 
   beforeEach(() => {
+    setCsrfToken('test-csrf');
     fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
       status: 200,
@@ -54,6 +55,8 @@ describe('Community API', () => {
   });
 
   afterEach(() => {
+    clearCsrfToken();
+    __resetHasApiForTesting();
     vi.clearAllMocks();
   });
 
@@ -150,14 +153,15 @@ describe('Community API', () => {
 
       expect(result.results).toHaveLength(1);
       expect(fetchSpy).toHaveBeenCalledTimes(3);
-      expect(fetchSpy).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining('/auth/refresh'),
-        expect.objectContaining({
-          method: 'POST',
-          credentials: 'include',
-        })
-      );
+      const calls = fetchSpy.mock.calls;
+      expect(calls[0][0]).toEqual(expect.stringContaining('/community/posts/?page=1&page_size=20'));
+      expect(calls[1][0]).toEqual(expect.stringContaining('/auth/refresh'));
+      expect(calls[2][0]).toEqual(expect.stringContaining('/community/posts/?page=1&page_size=20'));
+
+      expect(calls[1][1]).toEqual(expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+      }));
     });
   });
 
@@ -639,8 +643,7 @@ describe('Community API', () => {
         headers: new Headers(),
       } as Response);
 
-      // When error body is an empty string, the API returns the empty string
-      await expect(api.getCommunityPosts()).rejects.toThrow('');
+      await expect(api.getCommunityPosts()).rejects.toThrow('REQUEST_FAILED');
     });
 
     it('should prioritize error over message over detail', async () => {
