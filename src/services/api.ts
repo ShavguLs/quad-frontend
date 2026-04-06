@@ -13,6 +13,9 @@ import type {
   UploadBookPayload,
   UploadBookFiles,
   PaginatedResponse,
+  Ad,
+  AdListItem,
+  AdPublisher,
   PublishResult,
   PublishError,
   AuditLogResponse,
@@ -387,6 +390,41 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ amount }),
     });
+  },
+
+  async getAds(params?: {
+    publisher?: string;
+    category?: string;
+    search?: string;
+    page?: number;
+    page_size?: number;
+  }): Promise<PaginatedResponse<AdListItem>> {
+    if (!hasApi) return { results: [], count: 0, next: null, previous: null };
+
+    const query = new URLSearchParams();
+    if (params?.publisher) query.set('publisher', params.publisher);
+    if (params?.category) query.set('category', params.category);
+    if (params?.search) query.set('search', params.search);
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.page_size) query.set('page_size', String(params.page_size));
+
+    const suffix = query.toString() ? `?${query.toString()}` : '';
+    return request<PaginatedResponse<AdListItem>>(`/blog/${suffix}`, { skipAuth: true });
+  },
+
+  async getAd(slug: string): Promise<Ad> {
+    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
+    return request<Ad>(`/blog/${encodeURIComponent(slug)}/`, { skipAuth: true });
+  },
+
+  async getAdPublishers(): Promise<AdPublisher[]> {
+    if (!hasApi) return [];
+    return request<AdPublisher[]>('/blog/publishers/', { skipAuth: true });
+  },
+
+  async getAdCategories(): Promise<Array<{ category: string; count: number }>> {
+    if (!hasApi) return [];
+    return request<Array<{ category: string; count: number }>>('/blog/categories/', { skipAuth: true });
   },
 
   async getDepositStatus(orderId: string): Promise<DepositStatusResponse> {

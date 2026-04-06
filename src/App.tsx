@@ -10,6 +10,8 @@ import { LoadingSpinner, PageLoader, BookCardSkeleton, ArchiveBookSkeleton, Feat
 import { LoginView } from './components/LoginView';
 import { RegisterView } from './components/RegisterView';
 import { BookPage } from './components/BookPage';
+import { BlogPage } from './components/BlogPage';
+import { AdDetailPage } from './components/AdDetailPage';
 import ProfilePage from './pages/Profile';
 import { WalletView } from './components/WalletView';
 import { UploadBookView } from './components/UploadBookView';
@@ -60,6 +62,7 @@ const Navbar = ({ user, isAuthLoading, onSignOut, searchQuery, onSearchChange, c
     { id: 'books', label: 'წიგნები', path: '/books' },
     { id: 'community', label: 'ქომუნითი', path: '/community' },
     { id: 'reviews', label: 'შეფასებები', path: '/reviews' },
+    { id: 'blog', label: 'ბლოგი', path: '/blog' },
   ];
 
   const userItems = [
@@ -739,7 +742,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
 
       <div className="container mx-auto px-6 mb-12 md:mb-20 relative z-10">
         <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
-          <div className="border-l-4 md:border-l-8 border-[#FFFF2E] pl-4 md:pl-8">
+          <div className="border-l-4 md:border-l-8 border-[#FFFF2E] pl-4 md:pl-8"> 
             <h2 className="text-6xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter leading-[1]">
               რჩეული<br />
               <span className="text-[#FFFF2E]">კოლექცია</span>
@@ -889,16 +892,9 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                 </div>
                 <h2 className="text-6xl lg:text-8xl font-black uppercase leading-[1] tracking-tighter mb-8">
                   მოგვწერეთ<br />
-                  <span className="text-[#FFFF2E]">ახლავე</span><br />
-                  .
+                  <span className="text-[#FFFF2E]">ნებისმიერ დროს</span><br />
                 </h2>
-                
-                <div className="space-y-4 max-w-sm">
-                  <div className="h-1 w-16 bg-[#FFFF2E]" />
-                  <p className="text-xs font-bold uppercase text-gray-400 leading-relaxed tracking-tight">
-                    გვიამბეთ წიგნებზე, პლატფორმაზე, ან ნებისმიერ სხვა კითხვაზე — სიხარულით გიპასუხებთ.
-                  </p>
-                </div>
+
               </div>
               
               <div className="space-y-6 relative z-10 mt-8">
@@ -1319,6 +1315,7 @@ const Footer = () => (
           <li><Link to="/books" className="hover:text-[#FFFF2E] transition-colors">კატალოგი</Link></li>
           <li><Link to="/community" className="hover:text-[#FFFF2E] transition-colors">ქომუნითი</Link></li>
           <li><Link to="/reviews" className="hover:text-[#FFFF2E] transition-colors">შეფასებები</Link></li>
+          <li><Link to="/blog" className="hover:text-[#FFFF2E] transition-colors">ბლოგი</Link></li>
           <li><Link to="/terms" className="hover:text-[#FFFF2E] transition-colors">წესები</Link></li>
         </ul>
       </div>
@@ -1655,6 +1652,7 @@ export default function App() {
     books: '/books',
     community: '/community',
     reviews: '/reviews',
+    blog: '/blog',
     login: '/login',
     register: '/register',
     profile: '/profile',
@@ -1867,6 +1865,8 @@ export default function App() {
           <Route path="/books" element={<BooksPage onBookClick={handleBookClick} searchQuery={searchQuery} books={books} onAddToCart={addToCart} catalogError={catalogError} isLoading={isCatalogLoading} />} />
           <Route path="/community" element={<CommunityView />} />
           <Route path="/reviews" element={<ReviewsPage reviews={reviews} reviewsError={reviewsError} user={user} onReviewsChange={() => loadReviews()} isLoading={isReviewsLoading} knownBooks={[...featuredBooks, ...books]} />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<AdDetailPage />} />
           <Route path="/book/:bookId" element={<BookDetailRoute selectedBook={selectedBook} featuredBooks={featuredBooks} books={books} user={user} isAuthLoading={isAuthLoading} addToCart={addToCart} />} />
           <Route
             path="/reader/:bookId"

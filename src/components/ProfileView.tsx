@@ -244,11 +244,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
                 <div className="border-4 border-dashed border-white/10 p-24 text-center space-y-8 group">
                   <div className="relative inline-block">
                     <FileText className="w-24 h-24 text-zinc-800 group-hover:text-zinc-700 transition-colors" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl font-black text-black/50 select-none group-hover:text-black transition-colors">?</div>
                   </div>
                   <div className="space-y-4">
-                  <h3 className="text-3xl font-black uppercase text-zinc-700">შეძენები არ გაქვს</h3>
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-800">ჯერ არ შეგიძენია არცერთი წიგნი</p>
+                    <h3 className="text-3xl font-black uppercase text-zinc-700">ცარიელია</h3>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-800">ჯერ არ შეგიძენია არცერთი წიგნი</p>
                   </div>
                   <button 
                     onClick={onBack}

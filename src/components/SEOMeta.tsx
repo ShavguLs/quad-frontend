@@ -14,6 +14,7 @@ type JsonLdBlock = Record<string, unknown>;
 interface SEOMetaProps {
   title: string;
   description: string;
+  keywords?: string;
   canonical?: string;
   image?: string;
   ogImageAlt?: string;
@@ -29,6 +30,7 @@ interface SEOMetaProps {
 export const SEOMeta: React.FC<SEOMetaProps> = ({
   title,
   description,
+  keywords,
   canonical,
   image,
   ogImageAlt,
@@ -51,6 +53,7 @@ export const SEOMeta: React.FC<SEOMetaProps> = ({
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
+      {keywords && <meta name="keywords" content={keywords} />}
       <meta name="author" content={author} />
       <meta name="copyright" content={`© ${new Date().getFullYear()} ${SITE_NAME}`} />
       {robotsContent && <meta name="robots" content={robotsContent} />}

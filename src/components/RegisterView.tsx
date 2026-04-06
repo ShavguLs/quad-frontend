@@ -55,7 +55,14 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onBack, onSwitchToLo
         animate={{ scale: 1, opacity: 1 }}
         className="w-full max-w-4xl bg-black text-white p-8 md:p-16 relative z-10 shadow-[40px_40px_0px_0px_rgba(0,0,0,0.2)] border-8 border-black"
       >
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-16 border-b-4 border-white/20 pb-12">
+        <button 
+          onClick={onBack}
+          className="text-[14px] font-black uppercase bg-[#FFFF2E] text-black px-6 py-3 hover:bg-white transition-colors mb-10"
+        >
+          [ მთავარზე დაბრუნება ]
+        </button>
+
+        <div className="mb-16 border-b-4 border-white/20 pb-12">
           <div>
             <div className="flex items-center gap-4 mb-4">
               <span className="bg-[#FFFF2E] text-black px-2 py-1 text-[14px] font-black uppercase">QUADUNI.COM</span>
@@ -65,12 +72,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onBack, onSwitchToLo
               შექმენი <br /> <span className="text-[#FFFF2E]">ანგარიში.</span>
             </h1>
           </div>
-          <button 
-            onClick={onBack}
-            className="text-[14px] font-black uppercase bg-[#FFFF2E] text-black px-6 py-3 hover:bg-white transition-colors"
-          >
-            [ მთავარზე დაბრუნება ]
-          </button>
         </div>
 
         {serverError && (

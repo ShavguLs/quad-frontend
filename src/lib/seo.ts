@@ -1,4 +1,4 @@
-import type { Book, Review } from '../types';
+import type { Ad, Book, Review } from '../types';
 
 export const SITE_NAME = 'Quaduni';
 export const SITE_URL = 'https://quaduni.com';
@@ -248,3 +248,34 @@ export const buildHomeJsonLd = (): Array<Record<string, unknown>> => [
     inLanguage: 'ka',
   },
 ];
+
+export const getAdPath = (slug: string): string => `/blog/${slug}/`;
+
+export const buildAdJsonLd = (ad: Ad): Record<string, unknown> => {
+  const canonicalUrl = toAbsoluteUrl(getAdPath(ad.slug));
+  const publisherName = ad.publisher.display_name || ad.publisher.handle;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: ad.seo_title || ad.title,
+    description: ad.seo_description || ad.title,
+    articleSection: ad.category,
+    keywords: ad.seo_keywords || undefined,
+    datePublished: ad.created_at,
+    dateModified: ad.updated_at || ad.created_at,
+    author: {
+      '@type': 'Person',
+      name: publisherName,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+    mainEntityOfPage: canonicalUrl,
+    url: canonicalUrl,
+    image: resolveOgImage(ad.image),
+    inLanguage: 'ka',
+  };
+};

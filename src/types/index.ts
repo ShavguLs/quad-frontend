@@ -39,6 +39,41 @@ export interface Book {
   purchase_count?: number;
 }
 
+export interface AdPublisher {
+  id: string | number;
+  handle: string;
+  display_name?: string | null;
+  profile_image?: string | null;
+}
+
+export interface Ad {
+  id: string | number;
+  publisher: AdPublisher;
+  title: string;
+  slug: string;
+  content: string;
+  category: string;
+  image?: string | null;
+  is_published?: boolean;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface AdListItem {
+  id: string | number;
+  publisher: AdPublisher;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  category: string;
+  image?: string | null;
+  created_at: string;
+  updated_at?: string;
+}
+
 export interface Review {
   id: string | number;
   user: string;

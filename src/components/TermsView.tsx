@@ -179,9 +179,9 @@ export const TermsView: React.FC = () => {
             წესები<br />
             <span className="text-[#FFFF2E]">&amp;</span> პოლიტიკა
           </h1>
-          <div className="mt-8 flex items-center gap-6">
+          <div className="mt-4 flex items-center gap-6">
             <div className="h-[2px] w-24 bg-[#FFFF2E]" />
-            <p className="text-gray-500 text-xs font-black uppercase tracking-widest max-w-sm">
+            <p className="text-gray-500 text-xs font-black uppercase tracking-widest max-w-sm py-3">
               გთხოვთ, ყურადღებით გაეცნოთ პლატფორმის გამოყენების პირობებსა და წესებს.
             </p>
           </div>
