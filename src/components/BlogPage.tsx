@@ -151,7 +151,7 @@ export const BlogPage: React.FC = () => {
           <p className="mt-4 text-sm uppercase tracking-[0.2em] text-gray-500">პუბლიკაციები გამომცემლებისგან</p>
         </header>
 
-        <section className="sticky top-24 z-30 border-2 border-white/10 bg-black/95 backdrop-blur-sm p-4 md:p-6 mb-10">
+        <section className="sticky top-24 z-30 border-2 bg-black/95 backdrop-blur-sm md:p-6 mb-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center">
             <div className="lg:col-span-4 flex items-center gap-3 border-2 border-white/10 px-4 py-3">
               <Search className="w-4 h-4 text-gray-400" />
