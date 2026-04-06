@@ -347,20 +347,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onBack, user, onUserUp
           )}
         </AnimatePresence>
 
-        {/* Technical Footer */}
-        <div className="mt-32 pt-12 border-t-2 border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 opacity-20 grayscale hover:opacity-100 transition-all duration-700">
-          <div className="flex items-center gap-4">
-            <ShieldCheck className="w-12 h-12 text-[#FFFF2E]" />
-            <div className="text-[9px] font-black uppercase tracking-[0.2em] leading-tight">
-              შენი შეძენები დაცულია <br /> <span className="text-gray-500">დაშიფვრა: AES-256-GCM // QUADUNI </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-8 text-[9px] font-black uppercase tracking-widest italic text-gray-500">
-            <span className="hover:text-[#FFFF2E] cursor-help">// კონფიდენციალობა</span>
-            <span className="hover:text-[#FFFF2E] cursor-help">// გამოყენების პირობები</span>
-            <span className="hover:text-[#FFFF2E] cursor-help">// დახმარება</span>
-          </div>
-        </div>
       </div>
     </div>
   );
