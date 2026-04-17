@@ -82,7 +82,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
   const availablePages = useMemo(() => {
     if (!manifest) return 0;
     if (manifest.access_mode === 'full') return manifest.total_pages;
-    return Math.min(3, manifest.total_pages);
+    return Math.min(10, manifest.total_pages);
   }, [manifest]);
 
   const displayTotalPages = Math.max(availablePages, 1);
