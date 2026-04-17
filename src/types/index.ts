@@ -186,6 +186,7 @@ export interface UploadBookPayload {
   description: string;
   price: string;
   category: string;
+  renderPreference: 'text' | 'exact_visual';
 }
 
 export interface UploadBookFiles {

@@ -461,6 +461,7 @@ export const api = {
 
     const uploadFormData = new FormData();
     uploadFormData.append('file', files.pdf);
+    uploadFormData.append('render_preference', payload.renderPreference);
 
     try {
       await request<{ extraction_status: string }>(`/books/${createdBook.id}/upload/`, {
@@ -490,12 +491,24 @@ export const api = {
     if (payload.category) formData.append('category', payload.category);
 
     if (files?.cover) formData.append('cover_image', files.cover);
-    if (files?.pdf) formData.append('pdf', files.pdf);
 
     await request(`/books/${bookId}/`, {
       method: 'PATCH',
       body: formData,
     });
+
+    if (files?.pdf) {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', files.pdf);
+      if (payload.renderPreference) {
+        uploadFormData.append('render_preference', payload.renderPreference);
+      }
+
+      await request(`/books/${bookId}/upload/`, {
+        method: 'POST',
+        body: uploadFormData,
+      });
+    }
   },
 
   async deleteBook(bookId: string | number): Promise<void> {
