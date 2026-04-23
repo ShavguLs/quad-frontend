@@ -52,7 +52,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
   const navigate = useNavigate();
   const { bookId } = useParams<{ bookId: string }>();
   const location = useLocation();
-  const isPreviewMode = isPreviewProp ?? location.state?.isPreview ?? false;
+  const isPreviewIntent = isPreviewProp ?? location.state?.isPreview ?? false;
 
   const [manifest, setManifest] = useState<ReaderManifest | null>(null);
   const [pageData, setPageData] = useState<ReaderPageResponse | null>(null);
@@ -83,10 +83,20 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
 
   const isMarkedPage = readingPosition?.pageNumber === pageNumber;
 
+  const isServerPreviewMode = manifest?.access_mode === 'preview';
+  const isPreviewMode = isPreviewIntent || isServerPreviewMode;
+
   const availablePages = useMemo(() => {
     if (!manifest) return 0;
-    if (isPreviewMode) return Math.min(manifest.total_pages, 10);
-    return manifest.total_pages;
+    const serverAvailablePages = typeof manifest.available_pages === 'number'
+      ? manifest.available_pages
+      : manifest.total_pages;
+
+    if (isPreviewMode) {
+      return Math.max(0, Math.min(serverAvailablePages, 10));
+    }
+
+    return Math.max(0, serverAvailablePages);
   }, [manifest, isPreviewMode]);
 
   const displayTotalPages = Math.max(availablePages, 1);
@@ -128,7 +138,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
       setError(null);
       setPurchaseRequired(false);
       try {
-        const data = isPreviewMode
+        const data = isPreviewIntent
           ? await api.getReaderManifestPreview(bookId)
           : await api.getReaderManifest(bookId);
         if (!cancelled) {
@@ -154,7 +164,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
     return () => {
       cancelled = true;
     };
-  }, [bookId, isPreviewMode]);
+  }, [bookId, isPreviewIntent]);
 
   useEffect(() => {
     if (!bookId) return;
