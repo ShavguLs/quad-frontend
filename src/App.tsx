@@ -1583,6 +1583,7 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
       onBack={() => navigate('/books')}
       onAddToCart={() => addToCart(resolvedBook)}
       onReadBook={() => navigate(`/reader/${resolvedBook.id}`, { state: { book: resolvedBook } })}
+      onReadFragment={() => navigate(`/reader/${resolvedBook.id}`, { state: { book: resolvedBook, isPreview: true } })}
       onOpenBook={(nextBook) => navigate(getBookPath(nextBook), { state: { book: nextBook } })}
     />
   );
@@ -1882,6 +1883,7 @@ export default function App() {
                   onBack={() => navigate(-1)}
                   onAddToCart={addToCart}
                   onLoginRequired={() => navigate('/login')}
+                  isPreview={location.state?.isPreview}
                 />
               </>
             }

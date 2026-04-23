@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Heart, Loader2, Maximize, Minimize, Pin, ShoppingBag, X } from 'lucide-react';
 import { useSavedPages } from '../hooks/useSavedPages';
 import { useReadingPosition } from '../hooks/useReadingPosition';
@@ -19,6 +19,7 @@ interface ReaderViewProps {
   onBack: () => void;
   onAddToCart: (book: Book) => void;
   onLoginRequired: () => void;
+  isPreview?: boolean;
 }
 
 interface DraftTheme {
@@ -47,9 +48,11 @@ const getBackgroundIdFromCssVariables = (value: unknown): string | null => {
     : null;
 };
 
-export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCart, onLoginRequired }) => {
+export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCart, onLoginRequired, isPreview: isPreviewProp }) => {
   const navigate = useNavigate();
   const { bookId } = useParams<{ bookId: string }>();
+  const location = useLocation();
+  const isPreviewMode = isPreviewProp ?? location.state?.isPreview ?? false;
 
   const [manifest, setManifest] = useState<ReaderManifest | null>(null);
   const [pageData, setPageData] = useState<ReaderPageResponse | null>(null);
@@ -82,8 +85,9 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
 
   const availablePages = useMemo(() => {
     if (!manifest) return 0;
+    if (isPreviewMode) return Math.min(manifest.total_pages, 10);
     return manifest.total_pages;
-  }, [manifest]);
+  }, [manifest, isPreviewMode]);
 
   const displayTotalPages = Math.max(availablePages, 1);
   const pageProgressPercent = Math.min(100, Math.max(0, (pageNumber / displayTotalPages) * 100));
@@ -362,24 +366,28 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
         </div>
 
         <div className="reader-header-right">
-          <button className="reader-icon-btn" onClick={handleBagClick}>
-            <ShoppingBag className="h-5 w-5" />
-            {savedPages.length > 0 && <span className="reader-badge" style={{ backgroundColor: accentColor }}>{savedPages.length}</span>}
-          </button>
-          <button
-            className="reader-icon-btn"
-            onClick={() => toggleSavePage(pageNumber)}
-            style={{ color: isPageSaved(pageNumber) ? accentColor : '#8d4d36' }}
-          >
-            <Heart className={isPageSaved(pageNumber) ? 'h-5 w-5 fill-current' : 'h-5 w-5'} />
-          </button>
-          <button
-            className="reader-icon-btn"
-            onClick={() => (isMarkedPage ? clearPosition() : markPage(pageNumber))}
-            style={{ color: isMarkedPage ? accentColor : '#8d4d36' }}
-          >
-            <Pin className="h-5 w-5" />
-          </button>
+          {!isPreviewMode && (
+            <>
+              <button className="reader-icon-btn" onClick={handleBagClick}>
+                <ShoppingBag className="h-5 w-5" />
+                {savedPages.length > 0 && <span className="reader-badge" style={{ backgroundColor: accentColor }}>{savedPages.length}</span>}
+              </button>
+              <button
+                className="reader-icon-btn"
+                onClick={() => toggleSavePage(pageNumber)}
+                style={{ color: isPageSaved(pageNumber) ? accentColor : '#8d4d36' }}
+              >
+                <Heart className={isPageSaved(pageNumber) ? 'h-5 w-5 fill-current' : 'h-5 w-5'} />
+              </button>
+              <button
+                className="reader-icon-btn"
+                onClick={() => (isMarkedPage ? clearPosition() : markPage(pageNumber))}
+                style={{ color: isMarkedPage ? accentColor : '#8d4d36' }}
+              >
+                <Pin className="h-5 w-5" />
+              </button>
+            </>
+          )}
         </div>
       </header>
 
@@ -440,10 +448,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
 
             <div className="reader-pill-divider" />
 
-            <button className="reader-pill-btn reader-pill-btn--focus" onClick={() => setFocusMode(true)}>
-              <Maximize className="h-4 w-4" />
-              <span>ფოკუსი</span>
-            </button>
+            {!isPreviewMode && (
+              <button className="reader-pill-btn reader-pill-btn--focus" onClick={() => setFocusMode(true)}>
+                <Maximize className="h-4 w-4" />
+                <span>ფოკუსი</span>
+              </button>
+            )}
 
             <button
               className="reader-pill-btn"
@@ -465,11 +475,13 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
         </button>
       )}
 
-      <button className="reader-side-trigger" onClick={() => setShowSavedPanel(true)}>
-        <span>menu_open</span>
-      </button>
+      {!isPreviewMode && (
+        <button className="reader-side-trigger" onClick={() => setShowSavedPanel(true)}>
+          <span>menu_open</span>
+        </button>
+      )}
 
-      {showSavedPanel && (
+      {!isPreviewMode && showSavedPanel && (
         <div className="reader-saved-overlay" onClick={() => setShowSavedPanel(false)}>
           <div className="reader-saved-panel" onClick={(e) => e.stopPropagation()}>
             <div className="reader-saved-header">

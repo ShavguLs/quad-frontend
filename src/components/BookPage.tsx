@@ -26,10 +26,11 @@ interface BookPageProps {
   onBack: () => void;
   onAddToCart: () => void;
   onReadBook: () => void;
+  onReadFragment: () => void;
   onOpenBook: (book: Book) => void;
 }
 
-export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, isAuthLoading, onBack, onAddToCart, onReadBook, onOpenBook }) => {
+export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, isAuthLoading, onBack, onAddToCart, onReadBook, onReadFragment, onOpenBook }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [ownedBooks, setOwnedBooks] = useState<Set<string | number>>(new Set());
@@ -329,7 +330,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                 ) : (
                   <>
                     <button
-                      onClick={onReadBook}
+                      onClick={onReadFragment}
                       className="group relative py-5 md:py-5 text-sm font-black uppercase tracking-[0.2em] overflow-hidden transition-all border-2 border-[#FFFF2E] text-[#FFFF2E] hover:bg-[#FFFF2E] hover:text-black book-action-btn"
                     >
                       <div className="relative z-10 flex items-center justify-center gap-3">
