@@ -266,7 +266,7 @@ export interface AuditLogResponse {
   results: AuditLogEntry[];
 }
 
-export type ReaderAccessMode = 'full' | 'processing' | 'denied' | 'expired';
+export type ReaderAccessMode = 'full' | 'owner' | 'processing' | 'denied' | 'expired' | 'preview';
 
 export interface ReaderManifest {
   book_id: string | number;

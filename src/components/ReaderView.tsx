@@ -128,7 +128,9 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
       setError(null);
       setPurchaseRequired(false);
       try {
-        const data = await api.getReaderManifest(bookId);
+        const data = isPreviewMode
+          ? await api.getReaderManifestPreview(bookId)
+          : await api.getReaderManifest(bookId);
         if (!cancelled) {
           setManifest(data);
         }
@@ -152,7 +154,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
     return () => {
       cancelled = true;
     };
-  }, [bookId]);
+  }, [bookId, isPreviewMode]);
 
   useEffect(() => {
     if (!bookId) return;
@@ -221,7 +223,9 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
       setLoadingPage(true);
       setError(null);
       try {
-        const data = await api.getReaderPage(bookId, pageNumber);
+        const data = isPreviewMode
+          ? await api.getReaderPagePreview(bookId, pageNumber)
+          : await api.getReaderPage(bookId, pageNumber);
         if (!cancelled) {
           setPageData(data);
         }
@@ -240,7 +244,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
     return () => {
       cancelled = true;
     };
-  }, [bookId, manifest, pageNumber, availablePages]);
+  }, [bookId, manifest, pageNumber, availablePages, isPreviewMode]);
 
   const goToRelativePage = (delta: number) => {
     setPageNumber((prev) => {

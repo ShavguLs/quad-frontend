@@ -57,4 +57,65 @@ describe('Reader API', () => {
       expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('getReaderManifestPreview', () => {
+    it('fetches manifest with skipAuth for preview mode', async () => {
+      const manifestPayload = {
+        book_id: 1,
+        title: 'Test Book',
+        author: 'Test Author',
+        price: '₾10.00',
+        status: 'ready' as const,
+        extraction_status: 'completed' as const,
+        total_pages: 15,
+        available_pages: 10,
+        access_mode: 'preview' as const,
+        is_readable: true,
+        page_frame_width: 595.0,
+        page_frame_height: 842.0,
+      };
+      fetchSpy.mockResolvedValueOnce(createJsonResponse(manifestPayload));
+
+      const result = await api.getReaderManifestPreview(1);
+      expect(result).toEqual(manifestPayload);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.stringContaining('/books/1/read/manifest/'),
+        expect.objectContaining({ credentials: 'include' })
+      );
+    });
+
+    it('throws when API access is disabled', async () => {
+      __setHasApiForTesting(false);
+      await expect(api.getReaderManifestPreview(1)).rejects.toThrow('BACKEND_NOT_CONFIGURED');
+    });
+  });
+
+  describe('getReaderPagePreview', () => {
+    it('fetches page with skipAuth for preview mode', async () => {
+      const pagePayload = {
+        book_id: 1,
+        page_number: 5,
+        render_mode: 'html' as const,
+        render_html: '<p>Page 5 content</p>',
+        fallback_image_data: null,
+        blocks: [],
+        version: 1,
+        page_width: 595.0,
+        page_height: 842.0,
+      };
+      fetchSpy.mockResolvedValueOnce(createJsonResponse(pagePayload));
+
+      const result = await api.getReaderPagePreview(1, 5);
+      expect(result).toEqual(pagePayload);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.stringContaining('/books/1/read/pages/5/'),
+        expect.objectContaining({ credentials: 'include' })
+      );
+    });
+
+    it('throws when API access is disabled', async () => {
+      __setHasApiForTesting(false);
+      await expect(api.getReaderPagePreview(1, 1)).rejects.toThrow('BACKEND_NOT_CONFIGURED');
+    });
+  });
 });
