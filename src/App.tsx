@@ -60,7 +60,7 @@ const Navbar = ({ user, isAuthLoading, onSignOut, searchQuery, onSearchChange, c
   const menuItems = [
     { id: 'home', label: 'მთავარი', path: '/' },
     { id: 'books', label: 'წიგნები', path: '/books' },
-    { id: 'community', label: 'ქომუნითი', path: '/community' },
+    // { id: 'community', label: 'ქომუნითი', path: '/community' },
     { id: 'reviews', label: 'შეფასებები', path: '/reviews' },
     { id: 'blog', label: 'ბლოგი', path: '/blog' },
   ];
