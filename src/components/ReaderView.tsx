@@ -61,6 +61,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
   const [showSavedPanel, setShowSavedPanel] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [draftTheme, setDraftTheme] = useState<DraftTheme | null>(null);
+  const [purchaseRequired, setPurchaseRequired] = useState(false);
 
   const bookTitle = manifest?.title || book?.title || 'წიგნი';
   const {
@@ -81,8 +82,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
 
   const availablePages = useMemo(() => {
     if (!manifest) return 0;
-    if (manifest.access_mode === 'full') return manifest.total_pages;
-    return Math.min(10, manifest.total_pages);
+    return manifest.total_pages;
   }, [manifest]);
 
   const displayTotalPages = Math.max(availablePages, 1);
@@ -122,6 +122,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
     const loadManifest = async () => {
       setLoadingManifest(true);
       setError(null);
+      setPurchaseRequired(false);
       try {
         const data = await api.getReaderManifest(bookId);
         if (!cancelled) {
@@ -129,7 +130,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
         }
       } catch (err: unknown) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'მკითხველის ჩატვირთვა ვერ მოხერხდა');
+          const message = err instanceof Error ? err.message : '';
+          if (message.includes('Purchase required')) {
+            setPurchaseRequired(true);
+          } else {
+            setError(message || 'მკითხველის ჩატვირთვა ვერ მოხერხდა');
+          }
         }
       } finally {
         if (!cancelled) {
@@ -240,7 +246,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
   };
 
   const handleBagClick = () => {
-    if (manifest?.access_mode === 'preview' && book) {
+    if (book) {
       if (user) {
         onAddToCart(book);
       } else {
@@ -255,6 +261,72 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: shellColor, color: textColor }}>
         <Loader2 className="h-10 w-10 animate-spin" />
+      </div>
+    );
+  }
+
+  if (manifest?.access_mode === 'expired') {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: shellColor, color: textColor }}
+      >
+        <div className="text-center space-y-6 p-8">
+          <h1 className="text-3xl font-bold">წვდომა ამოწურულია</h1>
+          <p className="text-lg opacity-70">
+            ამ წიგნის წვდოვა ამოიწურა. ხელახლა შეძენისთვის გთხოვთ იხილოთ წიგნის გვერდი.
+          </p>
+          {book && (
+            <button
+              className="reader-buy-btn mx-auto"
+              onClick={() => {
+                if (user) {
+                  onAddToCart(book);
+                } else {
+                  onLoginRequired();
+                }
+              }}
+            >
+              ხელახლა შეძენა
+            </button>
+          )}
+          <button className="reader-action mx-auto" onClick={onBack}>
+            უკან დაბრუნება
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (purchaseRequired) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: shellColor, color: textColor }}
+      >
+        <div className="text-center space-y-6 p-8">
+          <h1 className="text-3xl font-bold">ყიდვა საჭიროა</h1>
+          <p className="text-lg opacity-70">
+            ამ წიგნის წასაკითხად საჭიროა შეძენა.
+          </p>
+          {book && (
+            <button
+              className="reader-buy-btn mx-auto"
+              onClick={() => {
+                if (user) {
+                  onAddToCart(book);
+                } else {
+                  onLoginRequired();
+                }
+              }}
+            >
+              ყიდვა — {manifest?.price || book?.price ? `₾${book?.price ?? manifest?.price}` : ''}
+            </button>
+          )}
+          <button className="reader-action mx-auto" onClick={onBack}>
+            უკან დაბრუნება
+          </button>
+        </div>
       </div>
     );
   }
@@ -301,15 +373,13 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
           >
             <Heart className={isPageSaved(pageNumber) ? 'h-5 w-5 fill-current' : 'h-5 w-5'} />
           </button>
-          {manifest?.access_mode !== 'preview' && (
-            <button
-              className="reader-icon-btn"
-              onClick={() => (isMarkedPage ? clearPosition() : markPage(pageNumber))}
-              style={{ color: isMarkedPage ? accentColor : '#8d4d36' }}
-            >
-              <Pin className="h-5 w-5" />
-            </button>
-          )}
+          <button
+            className="reader-icon-btn"
+            onClick={() => (isMarkedPage ? clearPosition() : markPage(pageNumber))}
+            style={{ color: isMarkedPage ? accentColor : '#8d4d36' }}
+          >
+            <Pin className="h-5 w-5" />
+          </button>
         </div>
       </header>
 
@@ -431,21 +501,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
 
             {savedPages.length > 0 && (
               <button className="reader-clear-btn" onClick={clearAllSavedPages}>ყველას წაშლა</button>
-            )}
-
-            {manifest?.access_mode === 'preview' && book && (
-              <button
-                className="reader-buy-btn"
-                onClick={() => {
-                  if (user) {
-                    onAddToCart(book);
-                  } else {
-                    onLoginRequired();
-                  }
-                }}
-              >
-                სრული წვდომა
-              </button>
             )}
           </div>
         </div>

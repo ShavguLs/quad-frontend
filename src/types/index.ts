@@ -124,6 +124,7 @@ export interface Order {
   img?: string;
   status?: string;
   timestamp: string;
+  expiresAt?: string | null;
 }
 
 export interface MyBook {
@@ -265,7 +266,7 @@ export interface AuditLogResponse {
   results: AuditLogEntry[];
 }
 
-export type ReaderAccessMode = 'full' | 'preview' | 'processing' | 'denied';
+export type ReaderAccessMode = 'full' | 'processing' | 'denied' | 'expired';
 
 export interface ReaderManifest {
   book_id: string | number;
@@ -276,7 +277,6 @@ export interface ReaderManifest {
   extraction_status?: 'pending' | 'processing' | 'completed' | 'partial' | 'failed';
   total_pages: number;
   available_pages?: number;
-  preview_limit: number;
   access_mode: ReaderAccessMode;
   is_readable: boolean;
   page_frame_width?: number;
