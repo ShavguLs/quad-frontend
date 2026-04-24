@@ -13,7 +13,7 @@ import { buildHomeJsonLd } from '../../lib/seo';
 import type { Book } from '../../types';
 
 const { getBookReviewsMock } = vi.hoisted(() => ({
-  getBookReviewsMock: vi.fn().mockResolvedValue([]),
+  getBookReviewsMock: vi.fn().mockResolvedValue({ results: [], count: 0, next: null, previous: null }),
 }));
 
 vi.mock('../../services/api', () => ({
@@ -59,7 +59,7 @@ const createBook = (overrides: Partial<Book> = {}): Book => ({
 describe('SEO metadata', () => {
   beforeEach(() => {
     document.head.innerHTML = '';
-    getBookReviewsMock.mockResolvedValue([]);
+    getBookReviewsMock.mockResolvedValue({ results: [], count: 0, next: null, previous: null });
     vi.stubGlobal('IntersectionObserver', class {
       observe() {}
       disconnect() {}
@@ -185,26 +185,31 @@ describe('SEO metadata', () => {
   });
 
   it('normalizes book schema price, ratings, and includes breadcrumbs', async () => {
-    getBookReviewsMock.mockResolvedValue([
-      {
-        id: 1,
-        user: 'მკითხველი 1',
-        bookTitle: 'ტესტ წიგნი',
-        bookId: 77,
-        rating: 5,
-        content: 'ძალიან კარგი წიგნია და ყველას ვურჩევ წასაკითხად.',
-        date: '2026-03-05T10:00:00Z',
-      },
-      {
-        id: 2,
-        user: 'მკითხველი 2',
-        bookTitle: 'ტესტ წიგნი',
-        bookId: 77,
-        rating: 4,
-        content: 'საინტერესო ტექსტი და კარგი რიტმი აქვს მთელ წიგნს.',
-        date: '2026-03-06T10:00:00Z',
-      },
-    ]);
+    getBookReviewsMock.mockResolvedValue({
+      results: [
+        {
+          id: 1,
+          user: 'მკითხველი 1',
+          bookTitle: 'ტესტ წიგნი',
+          bookId: 77,
+          rating: 5,
+          content: 'ძალიან კარგი წიგნია და ყველას ვურჩევ წასაკითხად.',
+          date: '2026-03-05T10:00:00Z',
+        },
+        {
+          id: 2,
+          user: 'მკითხველი 2',
+          bookTitle: 'ტესტ წიგნი',
+          bookId: 77,
+          rating: 4,
+          content: 'საინტერესო ტექსტი და კარგი რიტმი აქვს მთელ წიგნს.',
+          date: '2026-03-06T10:00:00Z',
+        },
+      ],
+      count: 2,
+      next: null,
+      previous: null,
+    });
 
     renderWithHelmet(
       <BookPage

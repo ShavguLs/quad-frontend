@@ -211,10 +211,28 @@ const request = async <T>(path: string, options: RequestOptions = {}): Promise<T
 };
 
 export const api = {
-  async getBooks(): Promise<Book[]> {
-    if (!hasApi) return [];
-    const response = await request<PaginatedResponse<Book>>('/books/', { skipAuth: true });
-    return response.results || [];
+  async getBooks(params?: {
+    search?: string;
+    category?: string;
+    ordering?: string;
+    page?: number;
+    page_size?: number;
+  }): Promise<PaginatedResponse<Book>> {
+    if (!hasApi) return { results: [], count: 0, next: null, previous: null };
+    const query = new URLSearchParams();
+    if (params?.search) query.set('search', params.search);
+    if (params?.category) query.set('category', params.category);
+    if (params?.ordering) query.set('ordering', params.ordering);
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.page_size) query.set('page_size', String(params.page_size));
+    const suffix = query.toString() ? `?${query.toString()}` : '';
+    const response = await request<PaginatedResponse<Book>>(`/books/${suffix}`, { skipAuth: true });
+    return {
+      results: response.results || [],
+      count: response.count || 0,
+      next: response.next || null,
+      previous: response.previous || null,
+    };
   },
 
   async getFeaturedBooks(): Promise<Book[]> {
@@ -223,16 +241,26 @@ export const api = {
     return response.results || [];
   },
 
-  async getReviews(): Promise<Review[]> {
-    if (!hasApi) return [];
-    const response = await request<PaginatedResponse<Review>>('/reviews/');
-    return response.results || [];
+async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResponse<Review>> {
+    if (!hasApi) return { results: [], count: 0, next: null, previous: null };
+    const response = await request<PaginatedResponse<Review>>(`/reviews/?page=${page}&page_size=${pageSize}`, { skipAuth: true });
+    return {
+      results: response.results || [],
+      count: response.count || 0,
+      next: response.next || null,
+      previous: response.previous || null,
+    };
   },
 
-  async getBookReviews(bookId: string | number): Promise<Review[]> {
-    if (!hasApi) return [];
-    const response = await request<PaginatedResponse<Review>>(`/reviews/?book=${bookId}`);
-    return response.results || [];
+  async getBookReviews(bookId: string | number, page: number = 1, pageSize: number = 20): Promise<PaginatedResponse<Review>> {
+    if (!hasApi) return { results: [], count: 0, next: null, previous: null };
+    const response = await request<PaginatedResponse<Review>>(`/reviews/?book=${bookId}&page=${page}&page_size=${pageSize}`, { skipAuth: true });
+    return {
+      results: response.results || [],
+      count: response.count || 0,
+      next: response.next || null,
+      previous: response.previous || null,
+    };
   },
 
   async getCommunityPosts(page: number = 1, pageSize: number = 20): Promise<{ results: CommunityPost[]; count: number; next: string | null; previous: string | null }> {

@@ -48,13 +48,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, onBookClick, u
     try {
       const [data, reviewsData] = await Promise.all([
         api.getLibrary(),
-        api.getReviews().catch(() => [])
+        api.getReviews().catch(() => ({ results: [], count: 0, next: null, previous: null }))
       ]);
       setBooks(data || []);
       
       // Create a map of bookId -> user's review
       const reviewsMap: Record<string | number, Review> = {};
-      reviewsData?.forEach((review: Review) => {
+      (reviewsData?.results || []).forEach((review: Review) => {
         const bookId = review.bookId || review.book;
         if (bookId) {
           reviewsMap[bookId] = review;

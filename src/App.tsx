@@ -1000,16 +1000,38 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
   );
 };
 
-const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError, isLoading }) => {
+const BooksPage = ({ onBookClick, searchQuery, onAddToCart, catalogError, isLoading }) => {
   const [filter, setFilter] = useState('ყველა');
+  const [page, setPage] = useState(1);
+  const [booksResult, setBooksResult] = useState<{ results: Book[]; count: number; next: string | null; previous: string | null }>({ results: [], count: 0, next: null, previous: null });
+  const [isFetching, setIsFetching] = useState(false);
   const categories = ['ყველა', 'ზინები', 'წიგნები', 'ესსეები', 'ხელოვნება', 'არქივი'];
-  
-  const filteredBooks = books.filter(book => {
-    const matchesFilter = filter === 'ყველა' || book.category === filter;
-    const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         book.author.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+
+  useEffect(() => {
+    if (isLoading) return;
+    let cancelled = false;
+    setIsFetching(true);
+    api.getBooks({
+      search: searchQuery || undefined,
+      category: filter !== 'ყველა' ? filter : undefined,
+      page,
+      page_size: 20,
+    }).then((result) => {
+      if (!cancelled) setBooksResult(result);
+    }).catch(() => {
+      if (!cancelled) setBooksResult({ results: [], count: 0, next: null, previous: null });
+    }).finally(() => {
+      if (!cancelled) setIsFetching(false);
+    });
+    return () => { cancelled = true; };
+  }, [searchQuery, filter, page, isLoading]);
+
+  const totalPages = Math.ceil(booksResult.count / 20);
+
+  const handleFilterChange = (cat: string) => {
+    setFilter(cat);
+    setPage(1);
+  };
 
   return (
     <div className="pt-32 pb-32 px-6">
@@ -1032,7 +1054,7 @@ const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError,
             {categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setFilter(cat)}
+                onClick={() => handleFilterChange(cat)}
                 className={`shrink-0 border px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] transition-all ${
                   filter === cat
                     ? 'border-[#FFFF2E] bg-[#FFFF2E] text-black'
@@ -1053,7 +1075,7 @@ const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError,
           {categories.map(cat => (
             <button
               key={cat}
-              onClick={() => setFilter(cat)}
+              onClick={() => handleFilterChange(cat)}
               className={`text-sm font-black uppercase tracking-tighter transition-all cursor-pointer relative ${
                 filter === cat ? 'text-[#FFFF2E]' : 'text-gray-500 hover:text-white'
               }`}
@@ -1065,7 +1087,7 @@ const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError,
             </button>
           ))}
           <div className="ml-auto flex items-center gap-4 text-[10px] font-black text-gray-600 uppercase tracking-widest">
-            {filteredBooks.length} სათაური
+            {booksResult.count} სათაური
           </div>
         </div>
 
@@ -1075,9 +1097,8 @@ const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError,
           </div>
         )}
 
-        {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16">
-          {isLoading ? (
+          {isLoading || isFetching ? (
             <>
               {[...Array(8)].map((_, i) => (
                 <BookCardSkeleton key={i} />
@@ -1086,11 +1107,11 @@ const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError,
           ) : (
             <>
               <AnimatePresence mode="popLayout">
-                {filteredBooks.map((book) => (
+                {booksResult.results.map((book) => (
                   <BookCard key={book.id} {...book} onClick={() => onBookClick(book)} onAddToCart={() => onAddToCart(book)} />
                 ))}
               </AnimatePresence>
-              {filteredBooks.length === 0 && (
+              {booksResult.results.length === 0 && (
                 <div className="col-span-full py-32 text-center border-4 border-dashed border-white/10">
                   <h3 className="text-4xl font-black uppercase text-gray-500 italic">წიგნი ვერ მოიძებნა</h3>
                 </div>
@@ -1098,6 +1119,30 @@ const BooksPage = ({ onBookClick, searchQuery, books, onAddToCart, catalogError,
             </>
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-4 mt-16">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={!booksResult.previous || isFetching}
+              className="px-6 py-3 border-2 border-white/20 font-black uppercase text-xs tracking-widest hover:border-[#FFFF2E] hover:text-[#FFFF2E] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4 inline mr-2" />
+              წინა
+            </button>
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+              {page} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={!booksResult.next || isFetching}
+              className="px-6 py-3 border-2 border-white/20 font-black uppercase text-xs tracking-widest hover:border-[#FFFF2E] hover:text-[#FFFF2E] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              შემდეგი
+              <ChevronRight className="w-4 h-4 inline ml-2" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1152,7 +1197,7 @@ const VoteButtons = ({ reviewId, upvotes = 0, downvotes = 0, userVote, onVote, o
   );
 };
 
-const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading, knownBooks }) => {
+const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading, knownBooks, totalCount, hasMore, onLoadMore }) => {
   const [votingReviewId, setVotingReviewId] = useState<string | number | null>(null);
   const booksById = useMemo(
     () => new Map((knownBooks as Book[]).map((book) => [String(book.id), book])),
@@ -1284,6 +1329,17 @@ const ReviewsPage = ({ reviews, reviewsError, user, onReviewsChange, isLoading, 
               </motion.div>
               );
             })}
+          </div>
+        )}
+
+        {hasMore && reviews.length > 0 && (
+          <div className="flex justify-center mt-12">
+            <button
+              onClick={onLoadMore}
+              className="bg-[#FFFF2E] text-black px-8 py-4 text-sm font-black uppercase tracking-widest hover:bg-white transition-colors"
+            >
+              მეტის ჩატვირთვა ({totalCount - reviews.length} დარჩენილი)
+            </button>
           </div>
         )}
 
@@ -1626,6 +1682,8 @@ export default function App() {
   const [books, setBooks] = useState<Book[]>([]);
   const [featuredBooks, setFeaturedBooks] = useState<Book[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsTotalCount, setReviewsTotalCount] = useState(0);
+  const [reviewsHasMore, setReviewsHasMore] = useState(false);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [reviewsError, setReviewsError] = useState<string | null>(null);
   const [isCatalogLoading, setIsCatalogLoading] = useState(true);
@@ -1678,16 +1736,25 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  const loadReviews = async () => {
-    setReviewsError(null);
-    setIsReviewsLoading(true);
+  const loadReviews = async (page: number = 1) => {
+    if (page === 1) {
+      setReviewsError(null);
+      setIsReviewsLoading(true);
+    }
     try {
-      const reviewData = await api.getReviews();
-      setReviews(reviewData);
-    } catch (err: any) {
-      setReviewsError(err.message || 'REVIEWS_UNAVAILABLE');
+      const response = await api.getReviews(page);
+      if (page === 1) {
+        setReviews(response.results);
+      } else {
+        setReviews(prev => [...prev, ...response.results]);
+      }
+      setReviewsTotalCount(response.count);
+      setReviewsHasMore(response.next !== null);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'REVIEWS_UNAVAILABLE';
+      setReviewsError(message);
     } finally {
-      setIsReviewsLoading(false);
+      if (page === 1) setIsReviewsLoading(false);
     }
   };
 
@@ -1698,12 +1765,12 @@ export default function App() {
       setCatalogError(null);
       setIsCatalogLoading(true);
       try {
-        const [booksData, featuredData] = await Promise.all([
+        const [booksResponse, featuredData] = await Promise.all([
           api.getBooks(),
           api.getFeaturedBooks()
         ]);
         if (cancelled) return;
-        setBooks(booksData);
+        setBooks(booksResponse.results);
         setFeaturedBooks(featuredData);
       } catch (err: any) {
         if (!cancelled) setCatalogError(err.message || 'CATALOG_UNAVAILABLE');
@@ -1716,10 +1783,15 @@ export default function App() {
       setReviewsError(null);
       setIsReviewsLoading(true);
       try {
-        const reviewData = await api.getReviews();
-        if (!cancelled) setReviews(reviewData);
-      } catch (err: any) {
-        if (!cancelled) setReviewsError(err.message || 'REVIEWS_UNAVAILABLE');
+        const response = await api.getReviews(1);
+        if (!cancelled) {
+          setReviews(response.results);
+          setReviewsTotalCount(response.count);
+          setReviewsHasMore(response.next !== null);
+        }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'REVIEWS_UNAVAILABLE';
+        if (!cancelled) setReviewsError(message);
       } finally {
         if (!cancelled) setIsReviewsLoading(false);
       }
@@ -1863,9 +1935,9 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<HomePage onNavigate={handleNavigate} onBookClick={handleBookClick} featuredBooks={featuredBooks} archiveBooks={featuredBooks} catalogError={catalogError} isLoading={isCatalogLoading} />} />
-          <Route path="/books" element={<BooksPage onBookClick={handleBookClick} searchQuery={searchQuery} books={books} onAddToCart={addToCart} catalogError={catalogError} isLoading={isCatalogLoading} />} />
+          <Route path="/books" element={<BooksPage onBookClick={handleBookClick} searchQuery={searchQuery} onAddToCart={addToCart} catalogError={catalogError} isLoading={isCatalogLoading} />} />
           <Route path="/community" element={<CommunityView />} />
-          <Route path="/reviews" element={<ReviewsPage reviews={reviews} reviewsError={reviewsError} user={user} onReviewsChange={() => loadReviews()} isLoading={isReviewsLoading} knownBooks={[...featuredBooks, ...books]} />} />
+          <Route path="/reviews" element={<ReviewsPage reviews={reviews} reviewsError={reviewsError} user={user} onReviewsChange={() => loadReviews(1)} isLoading={isReviewsLoading} knownBooks={[...featuredBooks, ...books]} totalCount={reviewsTotalCount} hasMore={reviewsHasMore} onLoadMore={() => loadReviews(Math.ceil(reviews.length / 20) + 1)} />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<AdDetailPage />} />
           <Route path="/book/:bookId" element={<BookDetailRoute selectedBook={selectedBook} featuredBooks={featuredBooks} books={books} user={user} isAuthLoading={isAuthLoading} addToCart={addToCart} />} />

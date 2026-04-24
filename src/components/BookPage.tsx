@@ -47,7 +47,8 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
     const fetchReviews = async () => {
       setLoadingReviews(true);
       try {
-        const data = await api.getBookReviews(book.id);
+        const response = await api.getBookReviews(book.id);
+        const data = response.results;
         setReviews(data);
         // Check if user has already reviewed this book
         const existingUserReview = data.find(r =>
@@ -174,7 +175,8 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
       }
 
       // Refresh reviews
-      const updatedReviews = await api.getBookReviews(book.id);
+      const updatedResponse = await api.getBookReviews(book.id);
+      const updatedReviews = updatedResponse.results;
       setReviews(updatedReviews);
       const existingUserReview = updatedReviews.find(r =>
         r.userHandle ? r.userHandle === user?.handle : r.user === user?.name

@@ -66,11 +66,11 @@ const renderAppAt = (initialEntry: string | { pathname: string; state?: { book?:
 
 describe('book route redirects', () => {
   beforeEach(() => {
-    apiMock.getBooks.mockResolvedValue([mockBook]);
+    apiMock.getBooks.mockResolvedValue({ results: [mockBook], count: 1, next: null, previous: null });
     apiMock.getFeaturedBooks.mockResolvedValue([]);
-    apiMock.getReviews.mockResolvedValue([]);
+    apiMock.getReviews.mockResolvedValue({ results: [], count: 0, next: null, previous: null });
     apiMock.getBook.mockResolvedValue(mockBook);
-    apiMock.getBookReviews.mockResolvedValue([]);
+    apiMock.getBookReviews.mockResolvedValue({ results: [], count: 0, next: null, previous: null });
     apiMock.getLibrary.mockResolvedValue([]);
     authMock.getSession.mockResolvedValue(null);
     authMock.logout.mockResolvedValue(undefined);
