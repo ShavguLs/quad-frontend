@@ -293,7 +293,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                   <span className="text-xs font-black uppercase tracking-widest">{book.category}</span>
                   <span className="w-8 lg:w-12 h-[1px] bg-[#FFFF2E]/30" />
                 </div>
-                <h1 className="text-5xl md:text-6xl lg:text-8xl font-black uppercase leading-[0.8] tracking-tighter">
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-black uppercase leading-[0.8] tracking-tighter">
                   {book.title}
                 </h1>
                 <h2 className="text-xl lg:text-2xl font-black uppercase italic text-gray-400">
