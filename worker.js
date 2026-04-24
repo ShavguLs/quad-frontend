@@ -17,6 +17,7 @@ const KNOWN_PRIVATE_STATIC_ROUTES = new Set([
 ]);
 const PRIVATE_DYNAMIC_ROUTE_PATTERNS = [/^\/reader\/[^/]+\/?$/, /^\/draft\/[^/]+\/?$/];
 const FILE_EXTENSION_PATTERN = /\/[^/]+\.[a-z0-9]+$/i;
+const CONTENT_SECURITY_POLICY = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none';";
 
 function getSitemapUrl(env) {
   return env.SITEMAP_PROXY_URL || DEFAULT_SITEMAP_URL;
@@ -364,8 +365,13 @@ function isHtmlResponse(response) {
   return contentType.includes('text/html');
 }
 
-function withCrossOriginOpenerPolicy(response) {
+function withSecurityHeaders(response) {
   const headers = new Headers(response.headers);
+  headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  headers.set('Content-Security-Policy', CONTENT_SECURITY_POLICY);
+  headers.set('X-Frame-Options', 'DENY');
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
 
   return new Response(response.body, {
@@ -412,7 +418,7 @@ async function injectBookPageMetadata(request, env) {
     const headers = new Headers(assetResponse.headers);
     headers.set('content-type', 'text/html; charset=utf-8');
 
-    return withCrossOriginOpenerPolicy(new Response(assetHtml, {
+    return withSecurityHeaders(new Response(assetHtml, {
       status: assetResponse.status,
       statusText: assetResponse.statusText,
       headers,
@@ -435,7 +441,7 @@ async function injectBookPageMetadata(request, env) {
   const headers = new Headers(assetResponse.headers);
   headers.set('content-type', 'text/html; charset=utf-8');
 
-  return withCrossOriginOpenerPolicy(new Response(injectedHtml, {
+  return withSecurityHeaders(new Response(injectedHtml, {
     status: assetResponse.status,
     statusText: assetResponse.statusText,
     headers,
@@ -448,18 +454,18 @@ export default {
     const routeType = classifyRoute(url.pathname);
 
     if (routeType === 'sitemap') {
-      return withCrossOriginOpenerPolicy(await proxySitemap(request, env));
+      return withSecurityHeaders(await proxySitemap(request, env));
     }
 
     if (request.method === 'GET' && routeType === 'book') {
-      return withCrossOriginOpenerPolicy(await injectBookPageMetadata(request, env));
+      return withSecurityHeaders(await injectBookPageMetadata(request, env));
     }
 
     if (routeType === 'unknown') {
-      return withCrossOriginOpenerPolicy(await renderNotFoundPage(request, env));
+      return withSecurityHeaders(await renderNotFoundPage(request, env));
     }
 
-    return withCrossOriginOpenerPolicy(await env.ASSETS.fetch(request));
+    return withSecurityHeaders(await env.ASSETS.fetch(request));
   },
 };
 

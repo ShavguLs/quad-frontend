@@ -342,6 +342,23 @@ describe('worker book metadata helpers', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it('adds baseline security headers to frontend responses', async () => {
+    const assetsFetch = vi.fn().mockResolvedValue(new Response(template, {
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    }));
+
+    const response = await worker.fetch(new Request('https://quaduni.com/books'), {
+      ASSETS: { fetch: assetsFetch },
+    });
+
+    expect(response.headers.get('Strict-Transport-Security')).toBe('max-age=31536000; includeSubDomains; preload');
+    expect(response.headers.get('Content-Security-Policy')).toBe("default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none';");
+    expect(response.headers.get('X-Frame-Options')).toBe('DENY');
+    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
+    expect(response.headers.get('Referrer-Policy')).toBe('strict-origin-when-cross-origin');
+    expect(response.headers.get('Cross-Origin-Opener-Policy')).toBe('same-origin-allow-popups');
+  });
+
   it('still proxies sitemap requests through the worker', async () => {
     const fetchSpy = vi.fn().mockResolvedValue(new Response('<urlset></urlset>', {
       status: 200,
