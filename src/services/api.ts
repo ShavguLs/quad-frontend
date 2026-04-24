@@ -563,12 +563,12 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
 
   async getReaderManifestPreview(bookId: string | number): Promise<ReaderManifest> {
     if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    return request<ReaderManifest>(`/books/${bookId}/read/manifest/`, { skipAuth: true });
+    return request<ReaderManifest>(`/books/${bookId}/read/manifest/?preview=1`, { skipAuth: true });
   },
 
   async getReaderPagePreview(bookId: string | number, pageNumber: number): Promise<ReaderPageResponse> {
     if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    return request<ReaderPageResponse>(`/books/${bookId}/read/pages/${pageNumber}/`, { skipAuth: true });
+    return request<ReaderPageResponse>(`/books/${bookId}/read/pages/${pageNumber}/?preview=1`, { skipAuth: true });
   },
 
   async createReview(payload: { book: Book['id']; rating: number; content: string }): Promise<Review> {

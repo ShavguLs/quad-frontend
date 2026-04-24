@@ -133,14 +133,31 @@ export const ReaderView: React.FC<ReaderViewProps> = ({ user, onBack, onAddToCar
     if (!bookId) return;
     let cancelled = false;
 
+    const shouldTryPreviewFallback = (message: string): boolean => {
+      const normalized = message.toLowerCase();
+      return normalized.includes('purchase required') || normalized.includes('expired');
+    };
+
     const loadManifest = async () => {
       setLoadingManifest(true);
       setError(null);
       setPurchaseRequired(false);
       try {
-        const data = isPreviewIntent
-          ? await api.getReaderManifestPreview(bookId)
-          : await api.getReaderManifest(bookId);
+        let data: ReaderManifest;
+        if (isPreviewIntent) {
+          data = await api.getReaderManifestPreview(bookId);
+        } else {
+          try {
+            data = await api.getReaderManifest(bookId);
+          } catch (initialErr: unknown) {
+            const initialMessage = initialErr instanceof Error ? initialErr.message : '';
+            if (!shouldTryPreviewFallback(initialMessage)) {
+              throw initialErr;
+            }
+            data = await api.getReaderManifestPreview(bookId);
+          }
+        }
+
         if (!cancelled) {
           setManifest(data);
         }

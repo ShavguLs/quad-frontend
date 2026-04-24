@@ -79,7 +79,7 @@ describe('Reader API', () => {
       const result = await api.getReaderManifestPreview(1);
       expect(result).toEqual(manifestPayload);
       expect(fetchSpy).toHaveBeenCalledWith(
-        expect.stringContaining('/books/1/read/manifest/'),
+        expect.stringContaining('/books/1/read/manifest/?preview=1'),
         expect.objectContaining({ credentials: 'include' })
       );
     });
@@ -108,7 +108,7 @@ describe('Reader API', () => {
       const result = await api.getReaderPagePreview(1, 5);
       expect(result).toEqual(pagePayload);
       expect(fetchSpy).toHaveBeenCalledWith(
-        expect.stringContaining('/books/1/read/pages/5/'),
+        expect.stringContaining('/books/1/read/pages/5/?preview=1'),
         expect.objectContaining({ credentials: 'include' })
       );
     });
