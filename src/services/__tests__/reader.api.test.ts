@@ -72,6 +72,7 @@ describe('Reader API', () => {
         can_download: false,
         expires_at: null,
         preview_pages: 10 as const,
+        total_pages: 25,
         document_url: 'https://api.example.com/books/1/read/document/?preview=1',
         download_url: null,
       };
@@ -88,6 +89,45 @@ describe('Reader API', () => {
     it('throws when API access is disabled', async () => {
       __setHasApiForTesting(false);
       await expect(api.getReaderAccess(1)).rejects.toThrow('BACKEND_NOT_CONFIGURED');
+    });
+  });
+
+  describe('getReaderPages', () => {
+    it('fetches a window of reader pages', async () => {
+      const payload = {
+        book_id: 1,
+        total_pages: 25,
+        preview: false,
+        pages: [
+          {
+            page_number: 2,
+            render_mode: 'html' as const,
+            html: '<p>Page 2</p>',
+            image_url: null,
+            page_width: null,
+            page_height: null,
+          },
+        ],
+      };
+      fetchSpy.mockResolvedValueOnce(createJsonResponse(payload));
+
+      const result = await api.getReaderPages(1, { start: 2, end: 6 });
+      expect(result).toEqual(payload);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.stringContaining('/books/1/read/pages/?start=2&end=6'),
+        expect.objectContaining({ credentials: 'include' })
+      );
+    });
+
+    it('uses preview auth behavior for preview page windows', async () => {
+      fetchSpy.mockResolvedValueOnce(createJsonResponse({ book_id: 1, total_pages: 10, preview: true, pages: [] }));
+
+      await api.getReaderPages(1, { start: 1, end: 3, preview: true });
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.stringContaining('/books/1/read/pages/?start=1&end=3&preview=1'),
+        expect.objectContaining({ credentials: 'include' })
+      );
     });
   });
 });

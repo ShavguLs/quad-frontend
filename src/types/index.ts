@@ -208,8 +208,25 @@ export interface ReaderAccessResponse {
   can_download: boolean;
   expires_at: string | null;
   preview_pages: 10;
+  total_pages?: number;
   document_url: string | null;
   download_url: string | null;
+}
+
+export interface ReaderPage {
+  page_number: number;
+  render_mode: 'html' | 'image';
+  html: string;
+  image_url: string | null;
+  page_width: number | null;
+  page_height: number | null;
+}
+
+export interface ReaderPagesResponse {
+  book_id: string | number;
+  total_pages: number;
+  preview: boolean;
+  pages: ReaderPage[];
 }
 
 export interface UploadBookFiles {

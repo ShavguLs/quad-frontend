@@ -21,6 +21,7 @@ import type {
   AuditLogResponse,
   AuditLogFilters,
   ReaderAccessResponse,
+  ReaderPagesResponse,
 } from '../types';
 import { refreshAccessToken, logout } from './auth';
 
@@ -558,6 +559,16 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
     const suffix = preview ? '?preview=1' : '';
     return request<ReaderAccessResponse>(`/books/${bookId}/read/access/${suffix}`, { skipAuth: preview });
+  },
+
+  async getReaderPages(bookId: string | number, params: { start: number; end: number; preview?: boolean }): Promise<ReaderPagesResponse> {
+    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
+    const query = new URLSearchParams({
+      start: String(params.start),
+      end: String(params.end),
+    });
+    if (params.preview) query.set('preview', '1');
+    return request<ReaderPagesResponse>(`/books/${bookId}/read/pages/?${query.toString()}`, { skipAuth: params.preview });
   },
 
   async createReview(payload: { book: Book['id']; rating: number; content: string }): Promise<Review> {
