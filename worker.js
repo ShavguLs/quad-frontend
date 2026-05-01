@@ -412,7 +412,7 @@ async function serveReaderApp(request, env) {
     return env.ASSETS.fetch(request);
   }
 
-  const indexRequest = new Request(new URL('/', request.url), request);
+  const indexRequest = new Request(new URL('/', request.url).toString(), request);
   return env.ASSETS.fetch(indexRequest);
 }
 
