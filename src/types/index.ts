@@ -160,6 +160,26 @@ export interface DepositStatusResponse {
   amount: string;
 }
 
+export type CartCheckoutStatus = 'COMPLETED' | 'PAYMENT_REQUIRED' | 'PENDING' | 'FAILED';
+
+export interface CartCheckoutResponse {
+  status: CartCheckoutStatus;
+  orders?: Order[];
+  orderId?: string;
+  checkoutUrl?: string;
+  amountDue?: string;
+  cartTotal?: string;
+  walletBalance?: string;
+}
+
+export interface CartCheckoutStatusResponse {
+  orderId: string;
+  status: CartCheckoutStatus;
+  providerStatus?: string;
+  orders?: Order[];
+  error?: string;
+}
+
 export interface PaginatedResponse<T> {
   count: number;
   next: string | null;

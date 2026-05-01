@@ -9,6 +9,8 @@ import type {
   WalletTransaction,
   DepositInitiateResponse,
   DepositStatusResponse,
+  CartCheckoutResponse,
+  CartCheckoutStatusResponse,
   PaginatedResponse,
   Ad,
   AdListItem,
@@ -441,6 +443,19 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
       method: 'POST',
       body: JSON.stringify({ book: payload.bookId }),
     });
+  },
+
+  async checkoutCart(payload: { bookIds: Array<Book['id']> }): Promise<CartCheckoutResponse> {
+    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
+    return request<CartCheckoutResponse>('/orders/checkout/', {
+      method: 'POST',
+      body: JSON.stringify({ books: payload.bookIds }),
+    });
+  },
+
+  async getCartCheckoutStatus(orderId: string): Promise<CartCheckoutStatusResponse> {
+    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
+    return request<CartCheckoutStatusResponse>(`/orders/checkout/status/?order_id=${encodeURIComponent(orderId)}`);
   },
 
   async createReview(payload: { book: Book['id']; rating: number; content: string }): Promise<Review> {

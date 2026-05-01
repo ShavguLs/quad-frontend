@@ -10,7 +10,7 @@ vi.stubGlobal('import', {
   },
 });
 
-import { api, __resetHasApiForTesting, __setHasApiForTesting } from '../api';
+import { api, clearCsrfToken, __resetHasApiForTesting, __setHasApiForTesting } from '../api';
 
 const createJsonResponse = (payload: unknown, status = 200): Response => ({
   ok: status >= 200 && status < 300,
@@ -29,6 +29,7 @@ describe('Wallet API', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    clearCsrfToken();
     __resetHasApiForTesting();
   });
 
@@ -72,6 +73,60 @@ describe('Wallet API', () => {
       }),
     );
     expect(result.credited).toBe(true);
+    expect(result.providerStatus).toBe('SUCCESS');
+  });
+
+  it('checks out a cart with book ids', async () => {
+    fetchSpy.mockResolvedValueOnce(createJsonResponse({ csrfToken: 'csrf-token' }));
+    fetchSpy.mockResolvedValueOnce(createJsonResponse({
+      status: 'COMPLETED',
+      orders: [],
+    }));
+
+    const result = await api.checkoutCart({ bookIds: [1, 2] });
+
+    expect(fetchSpy).toHaveBeenLastCalledWith(
+      expect.stringContaining('/orders/checkout/'),
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+        body: JSON.stringify({ books: [1, 2] }),
+      }),
+    );
+    expect(result.status).toBe('COMPLETED');
+  });
+
+  it('exposes Keepz checkout URL when cart payment is required', async () => {
+    fetchSpy.mockResolvedValueOnce(createJsonResponse({ csrfToken: 'csrf-token' }));
+    fetchSpy.mockResolvedValueOnce(createJsonResponse({
+      status: 'PAYMENT_REQUIRED',
+      orderId: 'checkout-1',
+      checkoutUrl: 'https://keepz.test/pay/checkout-1',
+      amountDue: '₾30.00',
+    }));
+
+    const result = await api.checkoutCart({ bookIds: [3] });
+
+    expect(result.status).toBe('PAYMENT_REQUIRED');
+    expect(result.checkoutUrl).toBe('https://keepz.test/pay/checkout-1');
+  });
+
+  it('fetches cart checkout status by Keepz order id', async () => {
+    fetchSpy.mockResolvedValueOnce(createJsonResponse({
+      orderId: 'checkout-2',
+      status: 'COMPLETED',
+      providerStatus: 'SUCCESS',
+      orders: [],
+    }));
+
+    const result = await api.getCartCheckoutStatus('checkout-2');
+
+    expect(fetchSpy).toHaveBeenLastCalledWith(
+      expect.stringContaining('/orders/checkout/status/?order_id=checkout-2'),
+      expect.objectContaining({
+        credentials: 'include',
+      }),
+    );
     expect(result.providerStatus).toBe('SUCCESS');
   });
 

@@ -1637,6 +1637,114 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
   );
 };
 
+const CheckoutSuccessPage: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const orderId = searchParams.get('order');
+  const isFailedRedirect = searchParams.get('checkout') === 'failed';
+  const [checkoutStatus, setCheckoutStatus] = useState<'loading' | 'completed' | 'pending' | 'failed'>(() => (
+    isFailedRedirect ? 'failed' : 'loading'
+  ));
+  const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+if (!orderId) {
+      setCheckoutMessage('გადახდის შეკვეთა ვერ მოიძებნა.');
+      return;
+    }
+    if (isFailedRedirect) {
+      setCheckoutMessage('გადახდა ვერ დასრულდა. თანხა საფულეში დაგრჩებათ და შეგიძლიათ თავიდან სცადოთ.');
+      return;
+    }
+
+    let cancelled = false;
+    let attempts = 0;
+    let timeoutId: number | undefined;
+
+    const loadStatus = async () => {
+      attempts += 1;
+      try {
+        const response = await api.getCartCheckoutStatus(orderId);
+        if (cancelled) return;
+
+        if (response.status === 'COMPLETED') {
+          setCheckoutStatus('completed');
+          setCheckoutMessage(null);
+          return;
+        }
+
+        if (response.status === 'FAILED') {
+          setCheckoutStatus('failed');
+          setCheckoutMessage(response.error || 'შეძენის დასრულება ვერ მოხერხდა. თანხა საფულეში დაგრჩებათ და შეგიძლიათ თავიდან სცადოთ.');
+          return;
+        }
+
+        setCheckoutStatus('pending');
+        if (attempts < 8) {
+          timeoutId = window.setTimeout(loadStatus, 2500);
+        }
+      } catch (err: unknown) {
+        if (cancelled) return;
+        setCheckoutStatus('failed');
+        setCheckoutMessage(err instanceof Error ? err.message : 'CHECKOUT_STATUS_FAILED');
+      }
+    };
+
+    loadStatus();
+
+    return () => {
+      cancelled = true;
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+    };
+  }, [isFailedRedirect, orderId]);
+
+  const title = checkoutStatus === 'completed'
+    ? 'შეძენა დასრულდა'
+    : checkoutStatus === 'failed'
+      ? 'გადახდა ვერ დასრულდა'
+      : 'გადახდა მოწმდება';
+  const message = checkoutStatus === 'completed'
+    ? 'წიგნები დაემატა თქვენს ბიბლიოთეკას.'
+    : checkoutMessage || 'გთხოვთ მოიცადოთ, Keepz-ის გადახდის სტატუსს ვამოწმებთ.';
+
+  return (
+    <section className="min-h-screen bg-black px-6 py-32 flex items-center justify-center">
+      <SEOMeta title="შეძენის სტატუსი" description="Quaduni-ს გადახდის სტატუსის გვერდი ინდექსაციისთვის გამორთულია." noindex />
+      <div className="w-full max-w-2xl border-4 border-white bg-zinc-950 p-8 md:p-12 shadow-[18px_18px_0px_0px_rgba(255,255,46,1)]">
+        <div className="mb-6 inline-flex border-2 border-[#FFFF2E] px-3 py-1 text-[10px] font-black uppercase tracking-[0.3em] text-[#FFFF2E]">
+          CHECKOUT
+        </div>
+        <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white">
+          {title}
+        </h1>
+        <p className="mt-6 text-sm md:text-base font-bold leading-8 text-gray-400">
+          {message}
+        </p>
+        {checkoutStatus === 'loading' || checkoutStatus === 'pending' ? (
+          <div className="mt-8">
+            <LoadingSpinner text="მოწმდება..." />
+          </div>
+        ) : null}
+        <div className="mt-10 flex flex-col sm:flex-row gap-4">
+          <button
+            onClick={() => navigate('/library')}
+            className="bg-[#FFFF2E] px-6 py-4 text-xs font-black uppercase tracking-[0.25em] text-black hover:bg-white transition-colors"
+          >
+            ბიბლიოთეკა
+          </button>
+          <button
+            onClick={() => navigate('/books')}
+            className="border-4 border-white px-6 py-4 text-xs font-black uppercase tracking-[0.25em] text-white hover:border-[#FFFF2E] hover:text-[#FFFF2E] transition-colors"
+          >
+            კატალოგი
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 export default function App() {
   const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) || '464354709574-cg69doav97v5ee8ie2u37j0nfkuthqv7.apps.googleusercontent.com';
   const [selectedBook, setSelectedBook] = useState<any>(null);
@@ -1808,26 +1916,23 @@ export default function App() {
     if (cart.length === 0 || isCheckingOut) return;
     setIsCheckingOut(true);
     setCheckoutError(null);
-    const successfulBookIds: Array<Book['id']> = [];
     try {
-      for (const item of cart) {
-        await api.createOrder({
-          bookId: item.book.id
-        });
-        successfulBookIds.push(item.book.id);
+      const response = await api.checkoutCart({
+        bookIds: cart.map(item => item.book.id),
+      });
+      if (response.status === 'COMPLETED') {
+        setCart([]);
+        setIsCartOpen(false);
+        return;
       }
-      setCart([]);
-      setIsCartOpen(false);
+      if (response.status === 'PAYMENT_REQUIRED' && response.checkoutUrl) {
+        window.location.assign(response.checkoutUrl);
+        return;
+      }
+      setCheckoutError('CHECKOUT_RESPONSE_INVALID');
     } catch (err: unknown) {
-      if (successfulBookIds.length > 0) {
-        setCart(prev => prev.filter(item => !successfulBookIds.includes(item.book.id)));
-      }
       const message = err instanceof Error ? err.message : 'ORDER_FAILED';
-      setCheckoutError(
-        successfulBookIds.length > 0
-          ? `ნაწილი შეძენილია. დარჩენილი წიგნები კალათაშია. ${message}`
-          : message
-      );
+      setCheckoutError(message);
     } finally {
       setIsCheckingOut(false);
     }
@@ -1913,6 +2018,7 @@ export default function App() {
           <Route path="/reviews" element={<ReviewsPage reviews={reviews} reviewsError={reviewsError} user={user} onReviewsChange={() => loadReviews(1)} isLoading={isReviewsLoading} knownBooks={[...featuredBooks, ...books]} totalCount={reviewsTotalCount} hasMore={reviewsHasMore} onLoadMore={() => loadReviews(Math.ceil(reviews.length / 20) + 1)} />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<AdDetailPage />} />
+          <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
           <Route path="/book/:bookId" element={<BookDetailRoute selectedBook={selectedBook} featuredBooks={featuredBooks} books={books} user={user} isAuthLoading={isAuthLoading} addToCart={addToCart} />} />
           <Route
             path="/profile"
