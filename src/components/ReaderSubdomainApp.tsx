@@ -18,6 +18,9 @@ export const ReaderSubdomainApp: React.FC = () => {
   const [access, setAccess] = useState<ReaderAccessResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
+  const [documentLoading, setDocumentLoading] = useState(false);
+  const [documentError, setDocumentError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!bookId) {
@@ -45,6 +48,48 @@ export const ReaderSubdomainApp: React.FC = () => {
       cancelled = true;
     };
   }, [bookId, preview]);
+
+  useEffect(() => {
+    if (!access?.can_read || !access.document_url) {
+      setDocumentUrl(null);
+      setDocumentError(null);
+      setDocumentLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    setDocumentUrl(null);
+    setDocumentError(null);
+    setDocumentLoading(true);
+
+    fetch(access.document_url, { credentials: 'include' })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(response.status === 403
+            ? 'ამ დოკუმენტზე წვდომა შეზღუდულია. გთხოვთ თავიდან შეხვიდეთ ანგარიშში.'
+            : 'დოკუმენტის ჩატვირთვა ვერ მოხერხდა.');
+        }
+
+        return response.blob();
+      })
+      .then((blob) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setDocumentUrl(objectUrl);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setDocumentError(err instanceof Error ? err.message : 'დოკუმენტის ჩატვირთვა ვერ მოხერხდა.');
+      })
+      .finally(() => {
+        if (!cancelled) setDocumentLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [access]);
 
   const bookUrl = bookId ? `${MAIN_APP_BASE_URL}/book/${bookId}` : MAIN_APP_BASE_URL;
   const expiresText = access?.expires_at
@@ -95,6 +140,24 @@ export const ReaderSubdomainApp: React.FC = () => {
     );
   }
 
+  if (documentLoading || documentError || !documentUrl) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-6">
+        <div className="max-w-lg border-2 border-white/10 bg-black p-8 text-center space-y-4">
+          {documentLoading ? (
+            <Loader2 className="mx-auto w-8 h-8 animate-spin text-[#FFFF2E]" />
+          ) : (
+            <h1 className="text-3xl font-black uppercase">დოკუმენტი მიუწვდომელია</h1>
+          )}
+          <p className="text-sm text-gray-400">{documentError || 'დოკუმენტი იტვირთება...'}</p>
+          {documentError && (
+            <a className="inline-block bg-[#FFFF2E] px-5 py-3 text-xs font-black uppercase text-black" href={bookUrl}>წიგნის გვერდი</a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-neutral-950 text-white flex flex-col">
       <header className="border-b border-white/10 bg-black px-4 py-3 md:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -115,7 +178,7 @@ export const ReaderSubdomainApp: React.FC = () => {
       <main className="flex-1 bg-neutral-900">
         <PDFViewer
           config={{
-            src: access.document_url,
+            src: documentUrl,
             disabledCategories: disabledReaderCategories,
             permissions: {
               enforceDocumentPermissions: false,

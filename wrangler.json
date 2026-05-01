@@ -3,6 +3,16 @@
   "name": "frontend",
   "main": "worker.js",
   "compatibility_date": "2026-03-19",
+  "routes": [
+    {
+      "pattern": "quaduni.com",
+      "custom_domain": true
+    },
+    {
+      "pattern": "reader.quaduni.com",
+      "custom_domain": true
+    }
+  ],
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application"

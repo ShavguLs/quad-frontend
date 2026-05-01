@@ -44,6 +44,10 @@ function isAssetPath(pathname) {
   return FILE_EXTENSION_PATTERN.test(pathname);
 }
 
+function isReaderHost(hostname) {
+  return hostname === 'reader.quaduni.com';
+}
+
 function isKnownPublicStaticRoute(pathname) {
   return KNOWN_PUBLIC_STATIC_ROUTES.has(normalizeRoutePath(pathname));
 }
@@ -401,6 +405,17 @@ async function renderNotFoundPage(request, env) {
   });
 }
 
+async function serveReaderApp(request, env) {
+  const url = new URL(request.url);
+
+  if (isAssetPath(url.pathname)) {
+    return env.ASSETS.fetch(request);
+  }
+
+  const indexRequest = new Request(new URL('/', request.url), request);
+  return env.ASSETS.fetch(indexRequest);
+}
+
 async function injectBookPageMetadata(request, env) {
   const url = new URL(request.url);
   const bookId = matchBookPath(url.pathname);
@@ -451,6 +466,11 @@ async function injectBookPageMetadata(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (isReaderHost(url.hostname)) {
+      return withSecurityHeaders(await serveReaderApp(request, env));
+    }
+
     const routeType = classifyRoute(url.pathname);
 
     if (routeType === 'sitemap') {
@@ -476,6 +496,7 @@ export {
   buildFallbackMetadata,
   injectMetadata,
   isAssetPath,
+  isReaderHost,
   isKnownPrivateSpaRoute,
   isKnownPublicStaticRoute,
   isPrerenderedBookHtml,
