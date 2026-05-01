@@ -203,25 +203,32 @@ export const ReaderSubdomainApp: React.FC = () => {
     <div className="min-h-screen bg-neutral-950 text-white">
       <main className="h-screen bg-neutral-950">
         {pagesError && !hasReaderPages ? (
-          <Suspense fallback={<ReaderLoading label="PDF იტვირთება..." />}>
-            <LazyPDFViewer
-              config={{
-                src: access.document_url,
-                disabledCategories: disabledReaderCategories,
-                permissions: {
-                  enforceDocumentPermissions: false,
-                  overrides: {
-                    print: access.can_download,
-                    printHighQuality: access.can_download,
-                    copyContents: access.can_download,
+          <div className="relative h-[100dvh] bg-white">
+            <Suspense fallback={<ReaderLoading label="PDF იტვირთება..." />}>
+              <LazyPDFViewer
+                config={{
+                  src: access.document_url,
+                  disabledCategories: disabledReaderCategories,
+                  permissions: {
+                    enforceDocumentPermissions: false,
+                    overrides: {
+                      print: access.can_download,
+                      printHighQuality: access.can_download,
+                      copyContents: access.can_download,
+                    },
                   },
-                },
-                tabBar: 'never',
-                theme: { preference: 'dark' },
-              }}
-              className="h-[100dvh] w-full bg-white"
-            />
-          </Suspense>
+                  tabBar: 'never',
+                  theme: { preference: 'dark' },
+                }}
+                className="h-[100dvh] w-full bg-white"
+              />
+            </Suspense>
+            <div className="pointer-events-none fixed left-4 top-4 z-50 max-w-sm rounded-2xl border border-white/10 bg-black/85 p-3 text-white shadow-2xl shadow-black/50 backdrop-blur">
+              <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#FFFF2E]">PDF რეჟიმი</p>
+              <p className="mt-1 truncate text-sm font-black uppercase leading-tight">{access.title}</p>
+              <p className="mt-1 text-[10px] font-bold uppercase text-gray-500">{pagesError}</p>
+            </div>
+          </div>
         ) : (
           <Virtuoso
             className="h-[100dvh]"

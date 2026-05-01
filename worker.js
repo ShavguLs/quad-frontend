@@ -20,14 +20,16 @@ const FILE_EXTENSION_PATTERN = /\/[^/]+\.[a-z0-9]+$/i;
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "base-uri 'self'",
-  "connect-src 'self' https://api.quaduni.com https://media.quaduni.com blob:",
-  "font-src 'self' https://fonts.gstatic.com data:",
+  "child-src 'self' blob:",
+  "connect-src 'self' https://api.quaduni.com https://media.quaduni.com https://cdn.jsdelivr.net blob:",
+  "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:",
   "frame-ancestors 'none'",
   "frame-src 'self' blob:",
   "img-src 'self' https://api.quaduni.com https://media.quaduni.com https://quaduni.com data: blob:",
+  "media-src 'self' https://api.quaduni.com https://media.quaduni.com blob:",
   "object-src 'none'",
   "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
   "worker-src 'self' blob:",
 ].join('; ');
 
