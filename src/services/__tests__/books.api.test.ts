@@ -34,7 +34,7 @@ describe('Books API', () => {
     vi.clearAllMocks();
   });
 
-  it('uploadBook appends render_preference to upload FormData', async () => {
+  it('uploadBook uploads the selected PDF without render preference', async () => {
     const pdfFile = new File(['pdf-content'], 'book.pdf', { type: 'application/pdf' });
 
     fetchSpy
@@ -49,7 +49,6 @@ describe('Books API', () => {
         price: '10.00',
         category: 'წიგნები',
         accessType: 'educational',
-        renderPreference: 'exact_visual',
       },
       { pdf: pdfFile }
     );
@@ -60,10 +59,10 @@ describe('Books API', () => {
     expect(uploadRequest).toBeDefined();
     const uploadBody = uploadRequest?.[1]?.body as FormData;
     expect(uploadBody.get('file')).toBe(pdfFile);
-    expect(uploadBody.get('render_preference')).toBe('exact_visual');
+    expect(uploadBody.has('render_preference')).toBe(false);
   });
 
-  it('updateBook forwards render_preference when uploading replacement PDF', async () => {
+  it('updateBook uploads a replacement PDF without render preference', async () => {
     const pdfFile = new File(['pdf-content'], 'replacement.pdf', { type: 'application/pdf' });
 
     fetchSpy
@@ -72,7 +71,7 @@ describe('Books API', () => {
 
     await api.updateBook(
       42,
-      { renderPreference: 'text' },
+      {},
       { pdf: pdfFile }
     );
 
@@ -82,6 +81,6 @@ describe('Books API', () => {
     expect(uploadRequest).toBeDefined();
     const uploadBody = uploadRequest?.[1]?.body as FormData;
     expect(uploadBody.get('file')).toBe(pdfFile);
-    expect(uploadBody.get('render_preference')).toBe('text');
+    expect(uploadBody.has('render_preference')).toBe(false);
   });
 });

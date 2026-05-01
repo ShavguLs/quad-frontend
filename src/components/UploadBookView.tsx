@@ -22,7 +22,6 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
     description: '',
     price: '',
     category: 'წიგნები',
-    renderPreference: 'text' as 'text' | 'exact_visual',
     accessType: 'educational' as 'educational' | 'scientific',
   });
 
@@ -224,25 +223,6 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
                 სასწავლო — წვდომა 6 თვით, ჩამოტვირთვის გარეშე.
                 <br />
                 სამეცნიერო — მუდმივი წვდომა, წყლის ნიშნით ჩამოტვირთვა.
-              </p>
-            </label>
-
-            <label className="block">
-              <span className="mb-2 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#FFFF2E]">
-                რენდერის რეჟიმი
-              </span>
-              <select
-                value={formData.renderPreference}
-                onChange={(e) => setFormData({ ...formData, renderPreference: e.target.value as 'text' | 'exact_visual' })}
-                className={`${fieldClassName} md:max-w-[360px]`}
-              >
-                <option value="text">ტექსტური რეჟიმი</option>
-                <option value="exact_visual">ზუსტი ვიზუალური რეჟიმი</option>
-              </select>
-              <p className="mt-3 text-[10px] uppercase tracking-[0.15em] text-gray-400 leading-relaxed">
-                ტექსტური რეჟიმი — მონიშვნადი/საძებნი ტექსტი; ვიზუალურად შეიძლება მცირედ განსხვავდებოდეს.
-                <br />
-                ზუსტი ვიზუალური რეჟიმი — PDF-ის იდენტური გვერდები, სურათზე დაფუძნებული რენდერით.
               </p>
             </label>
           </section>

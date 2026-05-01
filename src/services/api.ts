@@ -495,7 +495,6 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
 
     const uploadFormData = new FormData();
     uploadFormData.append('file', files.pdf);
-    uploadFormData.append('render_preference', payload.renderPreference);
 
     try {
       await request<{ extraction_status: string }>(`/books/${createdBook.id}/upload/`, {
@@ -535,9 +534,6 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     if (files?.pdf) {
       const uploadFormData = new FormData();
       uploadFormData.append('file', files.pdf);
-      if (payload.renderPreference) {
-        uploadFormData.append('render_preference', payload.renderPreference);
-      }
 
       await request(`/books/${bookId}/upload/`, {
         method: 'POST',
