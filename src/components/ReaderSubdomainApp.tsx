@@ -52,6 +52,7 @@ export const ReaderSubdomainApp: React.FC = () => {
   const [totalPages, setTotalPages] = useState<number | null>(null);
   const [pagesError, setPagesError] = useState<string | null>(null);
   const [loadingPages, setLoadingPages] = useState(false);
+  const [showPdfFallback, setShowPdfFallback] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const pagesRef = useRef<Record<number, ReaderPage>>({});
@@ -140,6 +141,7 @@ export const ReaderSubdomainApp: React.FC = () => {
     setPages({});
     setTotalPages(null);
     setPagesError(null);
+    setShowPdfFallback(false);
     pagesRef.current = {};
     totalPagesRef.current = null;
     pendingPagesRef.current.clear();
@@ -203,32 +205,20 @@ export const ReaderSubdomainApp: React.FC = () => {
     <div className="min-h-screen bg-neutral-950 text-white">
       <main className="h-screen bg-neutral-950">
         {pagesError && !hasReaderPages ? (
-          <div className="relative h-[100dvh] bg-white">
-            <Suspense fallback={<ReaderLoading label="PDF იტვირთება..." />}>
-              <LazyPDFViewer
-                config={{
-                  src: access.document_url,
-                  disabledCategories: disabledReaderCategories,
-                  permissions: {
-                    enforceDocumentPermissions: false,
-                    overrides: {
-                      print: access.can_download,
-                      printHighQuality: access.can_download,
-                      copyContents: access.can_download,
-                    },
-                  },
-                  tabBar: 'never',
-                  theme: { preference: 'dark' },
-                }}
-                className="h-[100dvh] w-full bg-white"
-              />
-            </Suspense>
-            <div className="pointer-events-none fixed left-4 top-4 z-50 max-w-sm rounded-2xl border border-white/10 bg-black/85 p-3 text-white shadow-2xl shadow-black/50 backdrop-blur">
-              <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#FFFF2E]">PDF რეჟიმი</p>
-              <p className="mt-1 truncate text-sm font-black uppercase leading-tight">{access.title}</p>
-              <p className="mt-1 text-[10px] font-bold uppercase text-gray-500">{pagesError}</p>
-            </div>
-          </div>
+          showPdfFallback ? (
+            <ReaderPdfFallback
+              access={access}
+              disabledCategories={disabledReaderCategories}
+              pagesError={pagesError}
+            />
+          ) : (
+            <ReaderPagesFailure
+              title={access.title}
+              message={pagesError}
+              documentUrl={access.document_url}
+              onOpenPdf={() => setShowPdfFallback(true)}
+            />
+          )
         ) : (
           <Virtuoso
             className="h-[100dvh]"
@@ -302,6 +292,66 @@ const ReaderFailure: React.FC<{ title: string; message: string }> = ({ title, me
       <a className="inline-block bg-[#FFFF2E] px-5 py-3 text-xs font-black uppercase text-black" href={MAIN_APP_BASE_URL}>
         Quaduni-ზე დაბრუნება
       </a>
+    </div>
+  </div>
+);
+
+const ReaderPdfFallback: React.FC<{
+  access: ReaderAccessResponse;
+  disabledCategories: string[];
+  pagesError: string;
+}> = ({ access, disabledCategories, pagesError }) => (
+  <div className="relative h-[100dvh] bg-white">
+    <Suspense fallback={<ReaderLoading label="PDF იტვირთება..." />}>
+      <LazyPDFViewer
+        config={{
+          src: access.document_url,
+          disabledCategories,
+          permissions: {
+            enforceDocumentPermissions: false,
+            overrides: {
+              print: access.can_download,
+              printHighQuality: access.can_download,
+              copyContents: access.can_download,
+            },
+          },
+          tabBar: 'never',
+          theme: { preference: 'dark' },
+        }}
+        className="h-[100dvh] w-full bg-white"
+      />
+    </Suspense>
+    <div className="pointer-events-none fixed left-4 top-4 z-50 max-w-sm rounded-2xl border border-white/10 bg-black/85 p-3 text-white shadow-2xl shadow-black/50 backdrop-blur">
+      <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#FFFF2E]">PDF რეჟიმი</p>
+      <p className="mt-1 truncate text-sm font-black uppercase leading-tight">{access.title}</p>
+      <p className="mt-1 text-[10px] font-bold uppercase text-gray-500">{pagesError}</p>
+    </div>
+  </div>
+);
+
+const ReaderPagesFailure: React.FC<{
+  title: string;
+  message: string;
+  documentUrl: string;
+  onOpenPdf: () => void;
+}> = ({ title, message, documentUrl, onOpenPdf }) => (
+  <div className="flex min-h-[100dvh] items-center justify-center bg-zinc-950 p-6 text-white">
+    <div className="max-w-xl space-y-5 border-2 border-[#FFFF2E]/40 bg-black p-8 text-center shadow-2xl shadow-black/50">
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FFFF2E]">მკითხველი</p>
+      <h1 className="text-3xl font-black uppercase leading-none md:text-4xl">{title}</h1>
+      <p className="text-sm font-bold uppercase tracking-[0.16em] text-gray-400">{message}</p>
+      <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <button
+          type="button"
+          className="inline-flex items-center justify-center bg-[#FFFF2E] px-5 py-3 text-xs font-black uppercase text-black"
+          onClick={onOpenPdf}
+        >
+          PDF რეჟიმი
+        </button>
+        <a className="inline-flex items-center justify-center border border-white/15 px-5 py-3 text-xs font-black uppercase text-white hover:border-[#FFFF2E] hover:text-[#FFFF2E]" href={documentUrl}>
+          PDF გახსნა
+        </a>
+      </div>
     </div>
   </div>
 );
