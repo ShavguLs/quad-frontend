@@ -1,10 +1,9 @@
 // BookThemeContext - React Context for book theme state management
-// Provides theme state, update methods, and persistence via API
+// Provides theme state and update methods for local reader display.
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { BookTheme } from '../types/bookTheme';
 import { DEFAULT_THEME } from '../types/bookTheme';
-import { getAccessToken } from '../services/auth';
 
 /** Context value type */
 export interface BookThemeContextValue {
@@ -24,8 +23,6 @@ export interface BookThemeContextValue {
   discardPendingTheme: () => void;
   /** Loading state during API operations */
   isLoading: boolean;
-  /** Persist active theme to backend */
-  saveTheme: () => Promise<void>;
   /** Whether pending theme differs from active theme */
   hasPendingChanges: boolean;
   /** Whether active theme has unsaved changes vs backend */
@@ -60,10 +57,10 @@ interface BookThemeProviderProps {
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://api.quaduni.com';
 
 /**
- * BookThemeProvider - Manages theme state and persistence
+ * BookThemeProvider - Manages theme state
  *
  * Pattern: React Context for state sharing (similar to EditorProvider from Phase 37)
- * Loads theme from API on mount, provides update methods, saves on demand
+ * Loads theme from API on mount and provides local update methods.
  */
 export function BookThemeProvider({
   bookId,
@@ -87,10 +84,8 @@ export function BookThemeProvider({
       setError(null);
 
       try {
-        const token = getAccessToken();
         const response = await fetch(`${API_BASE_URL}/books/${bookId}/theme/`, {
           headers: {
-            ...(token && { Authorization: `Bearer ${token}` }),
             'Content-Type': 'application/json',
           },
         });
@@ -173,39 +168,6 @@ export function BookThemeProvider({
     setError(null);
   }, [theme]);
 
-  // Persist theme to backend
-  const saveTheme = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const token = getAccessToken();
-      const response = await fetch(`${API_BASE_URL}/books/${bookId}/theme/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({
-          paper_background: theme.paperBackground,
-          font_family: theme.fontFamily,
-        }),
-      });
-
-      if (response.ok) {
-        setHasChanges(false);
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `Failed to save theme: ${response.status}`);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save theme');
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [bookId, theme]);
-
   const value: BookThemeContextValue = {
     theme,
     pendingTheme,
@@ -215,7 +177,6 @@ export function BookThemeProvider({
     applyTheme,
     discardPendingTheme,
     isLoading,
-    saveTheme,
     hasPendingChanges,
     hasChanges,
     error,

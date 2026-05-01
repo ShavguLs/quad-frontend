@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, ShoppingBag, Info, CheckCircle2, Loader2, Zap, Star, MessageSquare, ThumbsUp, ThumbsDown, Send, X, BookOpen } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Info, CheckCircle2, Loader2, Zap, Star, MessageSquare, ThumbsUp, ThumbsDown, Send, X } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { SEOMeta } from './SEOMeta';
 import { Breadcrumbs } from './Breadcrumbs';
@@ -25,15 +25,12 @@ interface BookPageProps {
   isAuthLoading: boolean;
   onBack: () => void;
   onAddToCart: () => void;
-  onReadBook: () => void;
-  onReadFragment: () => void;
   onOpenBook: (book: Book) => void;
 }
 
-export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, isAuthLoading, onBack, onAddToCart, onReadBook, onReadFragment, onOpenBook }) => {
+export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, isAuthLoading, onBack, onAddToCart, onOpenBook }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
-  const [ownedBooks, setOwnedBooks] = useState<Set<string | number>>(new Set());
   const [purchasedBooks, setPurchasedBooks] = useState<Set<string | number>>(new Set());
   const [loadingOwnership, setLoadingOwnership] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -76,22 +73,16 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
     const fetchLibrary = async () => {
       if (isAuthLoading) return;
       if (!user) {
-        setOwnedBooks(new Set());
         setPurchasedBooks(new Set());
         setLoadingOwnership(false);
         return;
       }
       setLoadingOwnership(true);
       try {
-        const [library, purchased] = await Promise.all([
-          api.getLibrary(),
-          api.getPurchasedLibrary()
-        ]);
-        setOwnedBooks(new Set(library.filter(b => !b.access_is_expired).map(b => b.id)));
+        const purchased = await api.getPurchasedLibrary();
         setPurchasedBooks(new Set(purchased.map(b => b.id)));
       } catch (err) {
         console.error('Failed to fetch library:', err);
-        setOwnedBooks(new Set());
         setPurchasedBooks(new Set());
       } finally {
         setLoadingOwnership(false);
@@ -100,7 +91,6 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
     fetchLibrary();
   }, [user, isAuthLoading]);
 
-  const canRead = ownedBooks.has(book.id);
   const canReview = purchasedBooks.has(book.id);
 
   const relatedArtifacts = useMemo(() => {
@@ -341,35 +331,16 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-8 h-8 animate-spin text-white/40" />
                   </div>
-                ) : canRead ? (
+                ) : (
                   <button
-                    onClick={onReadBook}
-                    className="group relative py-8 text-2xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-white text-black hover:bg-[#FFFF2E]"
+                    onClick={onAddToCart}
+                    className="group relative py-8 md:py-8 text-2xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-[#FFFF2E] text-black hover:bg-white book-action-btn"
                   >
                     <div className="relative z-10 flex items-center justify-center gap-4">
-                      წაკითხვა <BookOpen className="w-8 h-8 group-hover:translate-x-1 transition-transform" />
+                      ყიდვა <ShoppingBag className="w-8 h-8 group-hover:rotate-12 transition-transform" />
                     </div>
+                    <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                   </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={onReadFragment}
-                      className="group relative py-5 md:py-5 text-sm font-black uppercase tracking-[0.2em] overflow-hidden transition-all border-2 border-[#FFFF2E] text-[#FFFF2E] hover:bg-[#FFFF2E] hover:text-black book-action-btn"
-                    >
-                      <div className="relative z-10 flex items-center justify-center gap-3">
-                        ფრაგმენტი <BookOpen className="w-5 h-5" />
-                      </div>
-                    </button>
-                    <button
-                      onClick={onAddToCart}
-                      className="group relative py-8 md:py-8 text-2xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-[#FFFF2E] text-black hover:bg-white book-action-btn"
-                    >
-                      <div className="relative z-10 flex items-center justify-center gap-4">
-                        ყიდვა <ShoppingBag className="w-8 h-8 group-hover:rotate-12 transition-transform" />
-                      </div>
-                      <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                    </button>
-                  </>
                 )}
               </div>
 

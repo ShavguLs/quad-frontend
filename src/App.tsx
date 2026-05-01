@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Routes, Route, Navigate, Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { Search, ShoppingBag, Menu, ArrowRight, X, SlidersHorizontal, ChevronLeft, ChevronRight, Plus, User, Database, BookOpen, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Search, ShoppingBag, Menu, ArrowRight, X, SlidersHorizontal, ChevronLeft, ChevronRight, Plus, User, Database, ThumbsUp, ThumbsDown } from 'lucide-react';
 import Slider from 'react-slick';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { StarRating } from './components/StarRating';
@@ -14,12 +14,8 @@ import { BlogPage } from './components/BlogPage';
 import { AdDetailPage } from './components/AdDetailPage';
 import ProfilePage from './pages/Profile';
 import { WalletView } from './components/WalletView';
-import { UploadBookView } from './components/UploadBookView';
 import { LibraryView } from './components/LibraryView';
-import { MyBooksView } from './components/MyBooksView';
-import { BookDraftView } from './components/BookDraftView';
 import { CommunityView } from './components/CommunityView';
-import { ReaderErrorBoundary, ReaderSubdomainApp } from './components/ReaderSubdomainApp';
 import { TermsView } from './components/TermsView';
 import { SEOMeta } from './components/SEOMeta';
 import { NotFoundView } from './components/NotFoundView';
@@ -27,7 +23,6 @@ import { api } from './services/api';
 import { auth } from './services/auth';
 import { buildHomeJsonLd, getBookPath } from './lib/seo';
 import { parseBookRouteId } from './lib/routing';
-import { openReader } from './lib/reader';
 import type { Book, Review, User as AppUser } from './types';
 
 // --- Sub-Components ---
@@ -70,8 +65,6 @@ const Navbar = ({ user, isAuthLoading, onSignOut, searchQuery, onSearchChange, c
     { id: 'profile', label: 'პროფილი', icon: User, path: '/profile' },
     { id: 'wallet', label: 'საფულე', icon: ShoppingBag, path: '/wallet' },
     { id: 'library', label: 'ბიბლიოთეკა', icon: Database, path: '/library' },
-    { id: 'my-books', label: 'ჩემი წიგნები', icon: BookOpen, path: '/my-books' },
-    { id: 'upload-book', label: 'ატვირთვა', icon: Plus, path: '/upload' },
   ];
 
   return (
@@ -1639,46 +1632,12 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
       isAuthLoading={isAuthLoading}
       onBack={() => navigate('/books')}
       onAddToCart={() => addToCart(resolvedBook)}
-      onReadBook={() => openReader(resolvedBook.id)}
-      onReadFragment={() => openReader(resolvedBook.id, true)}
       onOpenBook={(nextBook) => navigate(getBookPath(nextBook), { state: { book: nextBook } })}
     />
   );
 };
 
-const BookDraftRoute: React.FC = () => {
-  const params = useParams();
-  const navigate = useNavigate();
-  const bookId = params.bookId;
-
-  if (!bookId) {
-    return <Navigate to="/my-books" replace />;
-  }
-
-  return (
-    <>
-      <SEOMeta
-        title="წიგნის დრაფტი"
-        description="Quaduni-ს ავტორის სამუშაო სივრცე ინდექსაციისთვის დახურულია."
-        noindex
-      />
-      <BookDraftView
-        bookId={bookId}
-        onBack={() => navigate('/my-books')}
-      />
-    </>
-  );
-};
-
 export default function App() {
-  if (typeof window !== 'undefined' && window.location.hostname === 'reader.quaduni.com') {
-    return (
-      <ReaderErrorBoundary>
-        <ReaderSubdomainApp />
-      </ReaderErrorBoundary>
-    );
-  }
-
   const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) || '464354709574-cg69doav97v5ee8ie2u37j0nfkuthqv7.apps.googleusercontent.com';
   const [selectedBook, setSelectedBook] = useState<any>(null);
   const [user, setUser] = useState<AppUser | null>(null);
@@ -1713,7 +1672,7 @@ export default function App() {
         : '/')
       : '/';
   const isAuthRoute = normalizedPathname === '/login' || normalizedPathname === '/register';
-  const isChromeHiddenRoute = normalizedPathname.startsWith('/reader/') || normalizedPathname.startsWith('/draft/');
+  const isChromeHiddenRoute = false;
 
   const routeMap = useMemo(() => ({
     home: '/',
@@ -1726,8 +1685,6 @@ export default function App() {
     profile: '/profile',
     wallet: '/wallet',
     library: '/library',
-    'upload-book': '/upload',
-    'my-books': '/my-books'
   }), []);
 
   const handleNavigate = (target: keyof typeof routeMap) => {
@@ -1984,19 +1941,6 @@ export default function App() {
             }
           />
           <Route
-            path="/upload"
-            element={
-              <>
-                <SEOMeta
-                  title="წიგნის ატვირთვა"
-                  description="Quaduni-ს ავტორის ატვირთვის გვერდი ინდექსაციისთვის გამორთულია."
-                  noindex
-                />
-                <UploadBookView user={user} onBack={() => navigate('/')} onLoginRequired={() => navigate('/login')} />
-              </>
-            }
-          />
-          <Route
             path="/library"
             element={
               <>
@@ -2009,20 +1953,6 @@ export default function App() {
               </>
             }
           />
-          <Route
-            path="/my-books"
-            element={
-              <>
-                <SEOMeta
-                  title="ჩემი წიგნები"
-                  description="Quaduni-ს ავტორის წიგნების მართვის გვერდი ინდექსაციისთვის გამორთულია."
-                  noindex
-                />
-                <MyBooksView user={user} onBack={() => navigate('/')} onUploadNew={() => navigate('/upload')} />
-              </>
-            }
-          />
-          <Route path="/draft/:bookId" element={<BookDraftRoute />} />
           <Route path="/terms" element={<TermsView />} />
           <Route path="*" element={<NotFoundView />} />
         </Routes>

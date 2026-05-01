@@ -11,11 +11,8 @@ const KNOWN_PRIVATE_STATIC_ROUTES = new Set([
   '/register',
   '/profile',
   '/wallet',
-  '/upload',
   '/library',
-  '/my-books',
 ]);
-const PRIVATE_DYNAMIC_ROUTE_PATTERNS = [/^\/reader\/[^/]+\/?$/, /^\/draft\/[^/]+\/?$/];
 const FILE_EXTENSION_PATTERN = /\/[^/]+\.[a-z0-9]+$/i;
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
@@ -58,10 +55,6 @@ function isAssetPath(pathname) {
   return FILE_EXTENSION_PATTERN.test(pathname);
 }
 
-function isReaderHost(hostname) {
-  return hostname === 'reader.quaduni.com';
-}
-
 function isKnownPublicStaticRoute(pathname) {
   return KNOWN_PUBLIC_STATIC_ROUTES.has(normalizeRoutePath(pathname));
 }
@@ -73,7 +66,7 @@ function isKnownPrivateSpaRoute(pathname) {
     return true;
   }
 
-  return PRIVATE_DYNAMIC_ROUTE_PATTERNS.some((pattern) => pattern.test(pathname));
+  return false;
 }
 
 function classifyRoute(pathname) {
@@ -429,17 +422,6 @@ async function renderNotFoundPage(request, env) {
   });
 }
 
-async function serveReaderApp(request, env) {
-  const url = new URL(request.url);
-
-  if (isAssetPath(url.pathname)) {
-    return env.ASSETS.fetch(request);
-  }
-
-  const indexRequest = buildAssetRequest(request, '/');
-  return env.ASSETS.fetch(indexRequest);
-}
-
 async function injectBookPageMetadata(request, env) {
   const url = new URL(request.url);
   const bookId = matchBookPath(url.pathname);
@@ -491,10 +473,6 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    if (isReaderHost(url.hostname)) {
-      return withSecurityHeaders(await serveReaderApp(request, env));
-    }
-
     const routeType = classifyRoute(url.pathname);
 
     if (routeType === 'sitemap') {
@@ -521,7 +499,6 @@ export {
   buildAssetRequest,
   injectMetadata,
   isAssetPath,
-  isReaderHost,
   isKnownPrivateSpaRoute,
   isKnownPublicStaticRoute,
   isPrerenderedBookHtml,

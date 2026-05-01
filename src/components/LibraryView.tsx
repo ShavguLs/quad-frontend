@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, 
-  BookOpen, 
   Search, 
   LayoutGrid, 
   List, 
@@ -18,7 +17,6 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ReviewForm } from './ReviewForm';
 import { StarRating } from './StarRating';
 import { api } from '../services/api';
-import { openReader } from '../lib/reader';
 import type { User as AppUser, Book, Review } from '../types';
 
 interface LibraryViewProps {
@@ -232,13 +230,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, user }) => {
                           {/* Overlay Controls */}
                           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm">
                             <button 
-                              onClick={() => !book.access_is_expired && openReader(book.id)}
-                              disabled={book.access_is_expired}
-                              className="w-40 bg-[#FFFF2E] text-black py-4 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white transition-all disabled:cursor-not-allowed disabled:bg-red-500 disabled:text-white"
-                            >
-                              <BookOpen className="w-4 h-4" /> {book.access_is_expired ? 'ვადაგასული' : 'წაკითხვა'}
-                            </button>
-                            <button 
                               onClick={() => setReviewingBook(book)}
                               className="w-40 border-2 border-[#FFFF2E] text-[#FFFF2E] py-4 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#FFFF2E] hover:text-black transition-all"
                             >
@@ -313,13 +304,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, user }) => {
                         </div>
 
                         <div className="flex items-center gap-4">
-                          <button 
-                            onClick={() => !book.access_is_expired && openReader(book.id)}
-                            disabled={book.access_is_expired}
-                            className="bg-white text-black px-6 py-3 text-[10px] font-black uppercase hover:bg-[#FFFF2E] transition-all flex items-center gap-2 disabled:cursor-not-allowed disabled:bg-red-500 disabled:text-white"
-                          >
-                            <BookOpen className="w-4 h-4" /> {book.access_is_expired ? 'ვადაგასული' : 'წაკითხვა'}
-                          </button>
                           <button 
                             onClick={() => setReviewingBook(book)}
                             className={`px-6 py-3 text-[10px] font-black uppercase transition-all flex items-center gap-2 ${

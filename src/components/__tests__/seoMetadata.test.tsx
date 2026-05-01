@@ -109,7 +109,6 @@ describe('SEO metadata', () => {
         isAuthLoading={false}
         onBack={vi.fn()}
         onAddToCart={vi.fn()}
-        onReadBook={vi.fn()}
         onOpenBook={vi.fn()}
       />,
     );
@@ -131,7 +130,6 @@ describe('SEO metadata', () => {
         isAuthLoading={false}
         onBack={vi.fn()}
         onAddToCart={vi.fn()}
-        onReadBook={vi.fn()}
         onOpenBook={vi.fn()}
       />,
     );
@@ -219,7 +217,6 @@ describe('SEO metadata', () => {
         isAuthLoading={false}
         onBack={vi.fn()}
         onAddToCart={vi.fn()}
-        onReadBook={vi.fn()}
         onOpenBook={vi.fn()}
       />,
     );

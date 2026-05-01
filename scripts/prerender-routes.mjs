@@ -49,23 +49,8 @@ const PRIVATE_ROUTES = [
   { path: '/register', title: 'რეგისტრაცია', description: 'Quaduni-ს რეგისტრაციის გვერდი ინდექსაციისთვის გამორთულია.' },
   { path: '/profile', title: 'პროფილი', description: 'Quaduni-ს ანგარიშის პროფილის გვერდი ინდექსაციისთვის გამორთულია.' },
   { path: '/wallet', title: 'საფულე', description: 'Quaduni-ს პირადი საფულის გვერდი ინდექსაციისთვის გამორთულია.' },
-  { path: '/upload', title: 'წიგნის ატვირთვა', description: 'Quaduni-ს ავტორის ატვირთვის გვერდი ინდექსაციისთვის გამორთულია.' },
   { path: '/library', title: 'ბიბლიოთეკა', description: 'Quaduni-ს პირადი ბიბლიოთეკის გვერდი ინდექსაციისთვის გამორთულია.' },
-  { path: '/my-books', title: 'ჩემი წიგნები', description: 'Quaduni-ს ავტორის წიგნების მართვის გვერდი ინდექსაციისთვის გამორთულია.' },
-  { path: '/reader', title: 'წიგნის მკითხველი', description: 'Quaduni-ს პირადი მკითხველის გვერდი ინდექსაციისთვის გამორთულია.' },
-  { path: '/draft', title: 'წიგნის დრაფტი', description: 'Quaduni-ს ავტორის სამუშაო სივრცე ინდექსაციისთვის გამორთულია.' },
 ];
-
-const PRIVATE_DYNAMIC_ROUTE_META = {
-  reader: {
-    title: 'წიგნის მკითხველი',
-    description: 'Quaduni-ს პირადი მკითხველის გვერდი ინდექსაციისთვის გამორთულია.',
-  },
-  draft: {
-    title: 'წიგნის დრაფტი',
-    description: 'Quaduni-ს ავტორის სამუშაო სივრცე ინდექსაციისთვის გამორთულია.',
-  },
-};
 
 function toAbsoluteUrl(value) {
   if (/^https?:\/\//i.test(value)) {
@@ -534,25 +519,6 @@ async function main() {
     validateBookRouteHtml(`/book/${book.id}`, html);
     await writeRouteHtml(`/book/${book.id}`, html);
 
-    await writeRouteHtml(
-      `/reader/${book.id}`,
-      buildSeoHtml(baseHtml, {
-        path: `/reader/${book.id}`,
-        title: PRIVATE_DYNAMIC_ROUTE_META.reader.title,
-        description: PRIVATE_DYNAMIC_ROUTE_META.reader.description,
-        noindex: true,
-      }),
-    );
-
-    await writeRouteHtml(
-      `/draft/${book.id}`,
-      buildSeoHtml(baseHtml, {
-        path: `/draft/${book.id}`,
-        title: PRIVATE_DYNAMIC_ROUTE_META.draft.title,
-        description: PRIVATE_DYNAMIC_ROUTE_META.draft.description,
-        noindex: true,
-      }),
-    );
   }
 
   const durationMs = Date.now() - startedAt;

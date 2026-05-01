@@ -35,9 +35,6 @@ export interface Book {
   created_at?: string;
   updated_at?: string;
   createdAt?: string;
-  extraction_status?: 'pending' | 'processing' | 'completed' | 'partial' | 'failed';
-  extraction_error?: string | null;
-  is_readable?: boolean;
   purchase_count?: number;
   access_expires_at?: string | null;
   access_is_expired?: boolean;
@@ -132,30 +129,6 @@ export interface Order {
   accessType?: BookAccessType;
 }
 
-export interface MyBook {
-  id: string | number;
-  title: string;
-  author?: string;
-  price: string;
-  access_type?: BookAccessType;
-  coverUrl?: string;
-  cover_image_url?: string;
-  description?: string;
-  category?: string;
-  status?: 'published';
-  view_count?: number;
-  views?: number;
-  follower_count?: number;
-  followers?: number;
-  owners_count?: number;
-  owners?: number;
-  revenue?: string;
-  extraction_status?: 'pending' | 'processing' | 'completed' | 'partial' | 'failed';
-  extraction_error?: string | null;
-  is_readable?: boolean;
-  total_pages?: number;
-}
-
 export interface WalletStats {
   balance: string;
   totalMade: string;
@@ -187,121 +160,10 @@ export interface DepositStatusResponse {
   amount: string;
 }
 
-export interface UploadBookPayload {
-  title: string;
-  author: string;
-  description: string;
-  price: string;
-  category: string;
-  accessType: BookAccessType;
-}
-
-export interface ReaderAccessResponse {
-  book_id: string | number;
-  title: string;
-  author: string;
-  access_type: BookAccessType;
-  access_label: 'სასწავლო' | 'სამეცნიერო';
-  mode: 'preview' | 'full';
-  status: 'ready' | 'purchase_required' | 'expired' | 'not_found' | 'processing';
-  can_read: boolean;
-  can_download: boolean;
-  expires_at: string | null;
-  preview_pages: 10;
-  total_pages?: number;
-  document_url: string | null;
-  download_url: string | null;
-}
-
-export interface ReaderPage {
-  page_number: number;
-  render_mode: 'html' | 'image';
-  html: string;
-  image_url: string | null;
-  page_width: number | null;
-  page_height: number | null;
-}
-
-export interface ReaderPagesResponse {
-  book_id: string | number;
-  total_pages: number;
-  preview: boolean;
-  pages: ReaderPage[];
-}
-
-export interface UploadBookFiles {
-  cover?: File | null;
-  pdf?: File | null;
-}
-
 export interface PaginatedResponse<T> {
   count: number;
   next: string | null;
   previous: string | null;
   results: T[];
-}
-
-// Publish operation types
-
-export type PublishStatus = 'idle' | 'publishing' | 'published' | 'error';
-
-export interface PublishError {
-  type: 'conflict' | 'validation' | 'server' | 'PARITY_MISMATCH';
-  message: string;
-  detail?: string;
-  mismatches?: Array<{
-    block_id: string;
-    block_type: string;
-    page_number: number;
-    issue_type: 'heading' | 'alignment' | 'spacing';
-    message: string;
-    severity: string;
-  }>;
-}
-
-export interface PublishResult {
-  success: boolean;
-  bookId: string | number;
-  pagesPublished?: number;
-  error?: PublishError;
-}
-
-// Audit log types for book lifecycle tracking (SECG-02)
-
-export type AuditAction = 'upload' | 'edit' | 'publish';
-
-export interface AuditLogEntry {
-  id: number;
-  bookId: number;
-  userId: number;
-  userEmail: string;
-  action: AuditAction;
-  timestamp: string;
-  details: {
-    pageNumber?: number;
-    attempt?: number;
-    pageCount?: number;
-    version?: number;
-  };
-  ipAddress?: string;
-}
-
-export interface AuditLogFilters {
-  action?: AuditAction;
-  userId?: number;
-  startDate?: string;
-  endDate?: string;
-}
-
-export interface AuditLogResponse {
-  count: number;
-  book_id: number;
-  filters: {
-    action: string | null;
-    user_id: number | null;
-    start_date: string | null;
-    end_date: string | null;
-  };
-  results: AuditLogEntry[];
 }
 

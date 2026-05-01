@@ -5,23 +5,14 @@ import type {
   CommunityPost,
   CommunityPostComment,
   Order,
-  MyBook,
   WalletStats,
   WalletTransaction,
   DepositInitiateResponse,
   DepositStatusResponse,
-  UploadBookPayload,
-  UploadBookFiles,
   PaginatedResponse,
   Ad,
   AdListItem,
   AdPublisher,
-  PublishResult,
-  PublishError,
-  AuditLogResponse,
-  AuditLogFilters,
-  ReaderAccessResponse,
-  ReaderPagesResponse,
 } from '../types';
 import { refreshAccessToken, logout } from './auth';
 
@@ -386,28 +377,6 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     return response.results || [];
   },
 
-  async getMyBooks(): Promise<MyBook[]> {
-    if (!hasApi) return [];
-    const response = await request<PaginatedResponse<MyBook>>('/me/books/');
-    return (response.results || []).map((book) => ({
-      ...book,
-      views: typeof book.views === 'number'
-        ? book.views
-        : typeof book.view_count === 'number'
-          ? book.view_count
-          : 0,
-      owners: typeof book.owners === 'number'
-        ? book.owners
-        : typeof book.owners_count === 'number'
-          ? book.owners_count
-          : typeof book.followers === 'number'
-            ? book.followers
-            : typeof book.follower_count === 'number'
-              ? book.follower_count
-              : 0,
-    }));
-  },
-
   async getWalletStats(): Promise<WalletStats | null> {
     if (!hasApi) return null;
     return request<WalletStats>('/wallet/stats/');
@@ -474,103 +443,6 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     });
   },
 
-  async uploadBook(payload: UploadBookPayload, files: UploadBookFiles): Promise<Book> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    if (!files.pdf) throw new Error('PDF file is required.');
-
-    const formData = new FormData();
-    formData.append('title', payload.title);
-    formData.append('author', payload.author);
-    formData.append('description', payload.description);
-    formData.append('price', payload.price);
-    formData.append('category', payload.category);
-    formData.append('access_type', payload.accessType);
-    formData.append('status', 'draft');
-
-    if (files.cover) formData.append('cover_image', files.cover);
-
-    const createdBook = await request<Book>('/books/', {
-      method: 'POST',
-      body: formData,
-    });
-
-    const uploadFormData = new FormData();
-    uploadFormData.append('file', files.pdf);
-
-    try {
-      await request<{ extraction_status: string }>(`/books/${createdBook.id}/upload/`, {
-        method: 'POST',
-        body: uploadFormData,
-      });
-    } catch (err) {
-      try {
-        await request(`/books/${createdBook.id}/`, { method: 'DELETE' });
-      } catch {
-        // Cleanup is best-effort; the orphaned book will have no content and remain hidden.
-      }
-      throw err;
-    }
-
-    return createdBook;
-  },
-
-  async updateBook(bookId: string | number, payload: Partial<UploadBookPayload>, files?: Partial<UploadBookFiles>): Promise<void> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-
-    const formData = new FormData();
-    if (payload.title) formData.append('title', payload.title);
-    if (payload.author) formData.append('author', payload.author);
-    if (payload.description) formData.append('description', payload.description);
-    if (payload.price) formData.append('price', payload.price);
-    if (payload.category) formData.append('category', payload.category);
-    if (payload.accessType) formData.append('access_type', payload.accessType);
-
-    if (files?.cover) formData.append('cover_image', files.cover);
-
-    await request(`/books/${bookId}/`, {
-      method: 'PATCH',
-      body: formData,
-    });
-
-    if (files?.pdf) {
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', files.pdf);
-
-      await request(`/books/${bookId}/upload/`, {
-        method: 'POST',
-        body: uploadFormData,
-      });
-    }
-  },
-
-  async deleteBook(bookId: string | number): Promise<void> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    await request(`/books/${bookId}/`, { method: 'DELETE' });
-  },
-
-  async retryBookExtraction(bookId: string | number): Promise<{ extraction_status: string; status: string }> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    return request(`/books/${bookId}/retry-extraction/`, {
-      method: 'POST',
-    });
-  },
-
-  async getReaderAccess(bookId: string | number, preview = false): Promise<ReaderAccessResponse> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    const suffix = preview ? '?preview=1' : '';
-    return request<ReaderAccessResponse>(`/books/${bookId}/read/access/${suffix}`, { skipAuth: preview });
-  },
-
-  async getReaderPages(bookId: string | number, params: { start: number; end: number; preview?: boolean }): Promise<ReaderPagesResponse> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    const query = new URLSearchParams({
-      start: String(params.start),
-      end: String(params.end),
-    });
-    if (params.preview) query.set('preview', '1');
-    return request<ReaderPagesResponse>(`/books/${bookId}/read/pages/?${query.toString()}`, { skipAuth: params.preview });
-  },
-
   async createReview(payload: { book: Book['id']; rating: number; content: string }): Promise<Review> {
     if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
     return request<Review>('/reviews/', {
@@ -614,90 +486,9 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     return request(`/reviews/${reviewId}/remove_vote/`, { method: 'DELETE' });
   },
 
-  async publishBook(bookId: string | number): Promise<PublishResult> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-
-    try {
-      const response = await fetchWithRefresh(`/books/${bookId}/publish/`, {
-        method: 'POST',
-      });
-
-      if (response.status === 409) {
-        const errorData = await response.json().catch(() => ({}));
-        const error: PublishError = {
-          type: 'conflict',
-          message: errorData.detail || 'Content changed during publish. Please try again.',
-          detail: errorData.detail,
-        };
-        return { success: false, bookId, error };
-      }
-
-      if (response.status === 400) {
-        const errorData = await response.json().catch(() => ({}));
-        const error: PublishError = {
-          type: 'validation',
-          message: errorData.detail || errorData.error || 'Validation failed.',
-          detail: errorData.detail || errorData.error,
-        };
-        return { success: false, bookId, error };
-      }
-
-      if (response.status >= 500) {
-        const errorData = await response.json().catch(() => ({}));
-        const error: PublishError = {
-          type: 'server',
-          message: errorData.detail || 'Publish failed due to server error.',
-          detail: errorData.detail,
-        };
-        return { success: false, bookId, error };
-      }
-
-      if (response.ok) {
-        const data = await response.json() as { pagesPublished?: number; bookId?: string | number };
-        return {
-          success: true,
-          bookId: data.bookId || bookId,
-          pagesPublished: data.pagesPublished,
-        };
-      }
-
-      const errorData = await response.json().catch(() => ({}));
-      const error: PublishError = {
-        type: 'server',
-        message: errorData.detail || `Publish failed with status ${response.status}`,
-        detail: errorData.detail,
-      };
-      return { success: false, bookId, error };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      const error: PublishError = {
-        type: 'server',
-        message: message.includes('Network') ? 'Network error. Please try again.' : 'Publish failed. Please try later.',
-        detail: message,
-      };
-      return { success: false, bookId, error };
-    }
-  },
-
   async getBook(bookId: string | number): Promise<Book> {
     if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
     return request<Book>(`/books/${bookId}/`, { skipAuth: true });
-  },
-
-  async getBookAuditLog(bookId: string | number, filters?: AuditLogFilters, limit?: number): Promise<AuditLogResponse> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-
-    const params = new URLSearchParams();
-    if (filters?.action) params.append('action', filters.action);
-    if (filters?.userId) params.append('user_id', filters.userId.toString());
-    if (filters?.startDate) params.append('start_date', filters.startDate);
-    if (filters?.endDate) params.append('end_date', filters.endDate);
-    if (limit) params.append('limit', limit.toString());
-
-    const queryString = params.toString();
-    const url = `/books/${bookId}/audit/${queryString ? `?${queryString}` : ''}`;
-
-    return request<AuditLogResponse>(url);
   },
 
   async getBookTheme(bookId: string | number): Promise<Record<string, unknown>> {
@@ -709,64 +500,6 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     }
   },
 
-  async saveBookTheme(bookId: string | number, themeData: Record<string, unknown>): Promise<Record<string, unknown>> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    return request<Record<string, unknown>>(`/books/${bookId}/theme/`, {
-      method: 'PATCH',
-      body: JSON.stringify(themeData),
-    });
-  },
-
-  // ── Saved Pages (cross-device reader bookmarks) ──
-
-  async getSavedPages(bookId: string | number): Promise<{ count: number; max: number; results: Array<{ id: number; page_number: number; created_at: string }> }> {
-    if (!hasApi) return { count: 0, max: 10, results: [] };
-    return request(`/books/${bookId}/saved-pages/`);
-  },
-
-  async savePage(bookId: string | number, pageNumber: number): Promise<{ id: number; page_number: number; created_at: string }> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    return request(`/books/${bookId}/saved-pages/`, {
-      method: 'POST',
-      body: JSON.stringify({ page_number: pageNumber }),
-    });
-  },
-
-  async unsavePage(bookId: string | number, pageNumber: number): Promise<void> {
-    if (!hasApi) return;
-    await request(`/books/${bookId}/saved-pages/${pageNumber}/`, { method: 'DELETE' });
-  },
-
-  async clearSavedPages(bookId: string | number): Promise<void> {
-    if (!hasApi) return;
-    await request(`/books/${bookId}/saved-pages/`, { method: 'DELETE' });
-  },
-
-  // ── Reading Position (single cross-device "I'm here" bookmark) ────────────
-
-  async getReadingPosition(bookId: string | number): Promise<{ id: number; page_number: number; updated_at: string } | null> {
-    if (!hasApi) return null;
-    try {
-      const result = await request<{ id: number; page_number: number | null; updated_at: string } | { page_number: null }>(`/books/${bookId}/reading-position/`);
-      if (!result || result.page_number === null) return null;
-      return result;
-    } catch {
-      return null;
-    }
-  },
-
-  async setReadingPosition(bookId: string | number, pageNumber: number): Promise<{ id: number; page_number: number; updated_at: string }> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    return request(`/books/${bookId}/reading-position/`, {
-      method: 'PUT',
-      body: JSON.stringify({ page_number: pageNumber }),
-    });
-  },
-
-  async clearReadingPosition(bookId: string | number): Promise<void> {
-    if (!hasApi) return;
-    await request(`/books/${bookId}/reading-position/`, { method: 'DELETE' });
-  },
 };
 
 export { fetchWithRefresh };

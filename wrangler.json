@@ -7,10 +7,6 @@
     {
       "pattern": "quaduni.com",
       "custom_domain": true
-    },
-    {
-      "pattern": "reader.quaduni.com",
-      "custom_domain": true
     }
   ],
   "assets": {

@@ -2,11 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /login
 Disallow: /register
-Disallow: /reader/
 Disallow: /wallet
-Disallow: /upload
-Disallow: /draft/
-Disallow: /my-books
 Disallow: /profile
 Disallow: /library
 

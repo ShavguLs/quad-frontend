@@ -13,7 +13,6 @@ import worker, {
   isKnownPrivateSpaRoute,
   isKnownPublicStaticRoute,
   isPrerenderedBookHtml,
-  isReaderHost,
   matchBookPath,
 } from './worker.js';
 
@@ -79,17 +78,13 @@ describe('worker book metadata helpers', () => {
     expect(classifyRoute('/')).toBe('public');
     expect(classifyRoute('/books')).toBe('public');
     expect(classifyRoute('/login')).toBe('private');
-    expect(classifyRoute('/reader/42')).toBe('private');
     expect(classifyRoute('/book/42')).toBe('book');
     expect(classifyRoute('/assets/index.js')).toBe('asset');
     expect(classifyRoute('/favicon.svg')).toBe('asset');
     expect(classifyRoute('/sitemap.xml')).toBe('sitemap');
     expect(classifyRoute('/definitely-not-real')).toBe('unknown');
     expect(isKnownPublicStaticRoute('/books/')).toBe(true);
-    expect(isKnownPrivateSpaRoute('/draft/42')).toBe(true);
     expect(isAssetPath('/robots.txt')).toBe(true);
-    expect(isReaderHost('reader.quaduni.com')).toBe(true);
-    expect(isReaderHost('quaduni.com')).toBe(false);
   });
 
   it('builds book-specific metadata from public book data', () => {
@@ -304,99 +299,16 @@ describe('worker book metadata helpers', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it('serves the reader app shell for reader subdomain routes', async () => {
-    const assetsFetch = vi.fn().mockImplementation((request) => {
-      const url = new URL(request.url);
-
-      if (url.pathname === '/') {
-        return Promise.resolve(new Response(template, {
-          headers: { 'content-type': 'text/html; charset=utf-8' },
-        }));
-      }
-
-      if (url.pathname === '/404.html') {
-        return Promise.resolve(new Response(notFoundHtml, {
-          status: 404,
-          headers: { 'content-type': 'text/html; charset=utf-8' },
-        }));
-      }
-
-      return Promise.resolve(new Response('unexpected', { status: 500 }));
-    });
-    const fetchSpy = vi.fn();
-    vi.stubGlobal('fetch', fetchSpy);
-
-    const rootResponse = await worker.fetch(new Request('https://reader.quaduni.com/'), {
-      ASSETS: { fetch: assetsFetch },
-    });
-    const bookResponse = await worker.fetch(new Request('https://reader.quaduni.com/123'), {
-      ASSETS: { fetch: assetsFetch },
-    });
-    const previewResponse = await worker.fetch(new Request('https://reader.quaduni.com/123?preview=1'), {
-      ASSETS: { fetch: assetsFetch },
-    });
-
-    expect(rootResponse.status).toBe(200);
-    expect(bookResponse.status).toBe(200);
-    expect(previewResponse.status).toBe(200);
-    expect(await bookResponse.text()).toBe(template);
-    expect(assetsFetch).toHaveBeenCalledTimes(3);
-    expect(assetsFetch.mock.calls.map(([request]) => request.url)).toEqual([
-      'https://reader.quaduni.com/',
-      'https://reader.quaduni.com/',
-      'https://reader.quaduni.com/',
-    ]);
-    expect(fetchSpy).not.toHaveBeenCalled();
-  });
-
-  it('serves the reader app shell for HEAD requests to book routes', async () => {
-    const assetsFetch = vi.fn().mockImplementation((request) => {
-      const url = new URL(request.url);
-      expect(request.method).toBe('HEAD');
-
-      if (url.pathname === '/') {
-        return Promise.resolve(new Response(null, {
-          headers: { 'content-type': 'text/html; charset=utf-8' },
-        }));
-      }
-
-      return Promise.resolve(new Response('unexpected', { status: 500 }));
-    });
-
-    const response = await worker.fetch(new Request('https://reader.quaduni.com/29', { method: 'HEAD' }), {
-      ASSETS: { fetch: assetsFetch },
-    });
-
-    expect(response.status).toBe(200);
-    expect(assetsFetch).toHaveBeenCalledTimes(1);
-    expect(assetsFetch.mock.calls[0][0].url).toBe('https://reader.quaduni.com/');
-  });
-
   it('builds clean asset requests for SPA shell fallbacks', () => {
-    const request = new Request('https://reader.quaduni.com/29?preview=1', {
+    const request = new Request('https://quaduni.com/profile?next=1', {
       headers: { accept: 'text/html' },
     });
 
     const assetRequest = buildAssetRequest(request, '/');
 
-    expect(assetRequest.url).toBe('https://reader.quaduni.com/');
+    expect(assetRequest.url).toBe('https://quaduni.com/');
     expect(assetRequest.method).toBe('GET');
     expect(assetRequest.headers.get('accept')).toBe('text/html');
-  });
-
-  it('serves reader subdomain asset paths directly', async () => {
-    const assetsFetch = vi.fn().mockResolvedValue(new Response('console.log("ok");', {
-      headers: { 'content-type': 'application/javascript' },
-    }));
-
-    const response = await worker.fetch(new Request('https://reader.quaduni.com/assets/index.js'), {
-      ASSETS: { fetch: assetsFetch },
-    });
-
-    expect(response.status).toBe(200);
-    expect(await response.text()).toBe('console.log("ok");');
-    expect(assetsFetch).toHaveBeenCalledTimes(1);
-    expect(assetsFetch.mock.calls[0][0].url).toBe('https://reader.quaduni.com/assets/index.js');
   });
 
   it('returns a hard 404 for missing books instead of soft metadata fallback', async () => {
