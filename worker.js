@@ -17,7 +17,19 @@ const KNOWN_PRIVATE_STATIC_ROUTES = new Set([
 ]);
 const PRIVATE_DYNAMIC_ROUTE_PATTERNS = [/^\/reader\/[^/]+\/?$/, /^\/draft\/[^/]+\/?$/];
 const FILE_EXTENSION_PATTERN = /\/[^/]+\.[a-z0-9]+$/i;
-const CONTENT_SECURITY_POLICY = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none';";
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "connect-src 'self' https://api.quaduni.com https://media.quaduni.com blob:",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "frame-ancestors 'none'",
+  "frame-src 'self' blob:",
+  "img-src 'self' https://api.quaduni.com https://media.quaduni.com https://quaduni.com data: blob:",
+  "object-src 'none'",
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "worker-src 'self' blob:",
+].join('; ');
 
 function getSitemapUrl(env) {
   return env.SITEMAP_PROXY_URL || DEFAULT_SITEMAP_URL;
