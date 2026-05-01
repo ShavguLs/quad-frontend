@@ -369,6 +369,16 @@ function isHtmlResponse(response) {
   return contentType.includes('text/html');
 }
 
+function buildAssetRequest(request, pathname) {
+  const url = new URL(request.url);
+  url.pathname = pathname;
+  url.search = '';
+  return new Request(url.toString(), {
+    method: request.method === 'HEAD' ? 'HEAD' : 'GET',
+    headers: request.headers,
+  });
+}
+
 function withSecurityHeaders(response) {
   const headers = new Headers(response.headers);
   headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
@@ -386,7 +396,7 @@ function withSecurityHeaders(response) {
 }
 
 async function renderNotFoundPage(request, env) {
-  const notFoundRequest = new Request(new URL('/404.html', request.url), request);
+  const notFoundRequest = buildAssetRequest(request, '/404.html');
   const notFoundResponse = await env.ASSETS.fetch(notFoundRequest);
   const headers = new Headers(notFoundResponse.headers);
   headers.set('content-type', 'text/html; charset=utf-8');
@@ -412,7 +422,7 @@ async function serveReaderApp(request, env) {
     return env.ASSETS.fetch(request);
   }
 
-  const indexRequest = new Request(new URL('/', request.url).toString(), request);
+  const indexRequest = buildAssetRequest(request, '/');
   return env.ASSETS.fetch(indexRequest);
 }
 
@@ -494,6 +504,7 @@ export {
   buildBookBreadcrumbJsonLd,
   buildBookJsonLd,
   buildFallbackMetadata,
+  buildAssetRequest,
   injectMetadata,
   isAssetPath,
   isReaderHost,

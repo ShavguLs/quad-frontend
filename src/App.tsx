@@ -19,7 +19,7 @@ import { LibraryView } from './components/LibraryView';
 import { MyBooksView } from './components/MyBooksView';
 import { BookDraftView } from './components/BookDraftView';
 import { CommunityView } from './components/CommunityView';
-import { ReaderSubdomainApp } from './components/ReaderSubdomainApp';
+import { ReaderErrorBoundary, ReaderSubdomainApp } from './components/ReaderSubdomainApp';
 import { TermsView } from './components/TermsView';
 import { SEOMeta } from './components/SEOMeta';
 import { NotFoundView } from './components/NotFoundView';
@@ -1672,7 +1672,11 @@ const BookDraftRoute: React.FC = () => {
 
 export default function App() {
   if (typeof window !== 'undefined' && window.location.hostname === 'reader.quaduni.com') {
-    return <ReaderSubdomainApp />;
+    return (
+      <ReaderErrorBoundary>
+        <ReaderSubdomainApp />
+      </ReaderErrorBoundary>
+    );
   }
 
   const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) || '464354709574-cg69doav97v5ee8ie2u37j0nfkuthqv7.apps.googleusercontent.com';

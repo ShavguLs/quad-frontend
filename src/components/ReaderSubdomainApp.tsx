@@ -9,6 +9,35 @@ const MAIN_APP_BASE_URL = (import.meta.env.VITE_MAIN_APP_BASE_URL as string | un
 const PAGE_BATCH_SIZE = 12;
 const LazyPDFViewer = React.lazy(() => import('@embedpdf/react-pdf-viewer').then((module) => ({ default: module.PDFViewer })));
 
+interface ReaderErrorBoundaryState {
+  error: Error | null;
+}
+
+export class ReaderErrorBoundary extends React.Component<{ children: React.ReactNode }, ReaderErrorBoundaryState> {
+  state: ReaderErrorBoundaryState = { error: null };
+
+  static getDerivedStateFromError(error: Error): ReaderErrorBoundaryState {
+    return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('Reader failed to render', error);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <ReaderFailure
+          title="მკითხველი ვერ ჩაიტვირთა"
+          message="სცადეთ გვერდის განახლება ან წიგნის გვერდზე დაბრუნება."
+        />
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const resolveBookId = (): string | null => {
   if (typeof window === 'undefined') return null;
   const [bookId] = window.location.pathname.replace(/^\/+/, '').split('/');
@@ -85,6 +114,9 @@ export const ReaderSubdomainApp: React.FC = () => {
         end: requestEnd,
         preview,
       });
+      if (payload.pages.length === 0) {
+        throw new Error('გვერდები ჯერ არ არის მომზადებული.');
+      }
       totalPagesRef.current = payload.total_pages;
       setTotalPages(payload.total_pages);
       setPages((current) => {
@@ -141,13 +173,10 @@ export const ReaderSubdomainApp: React.FC = () => {
 
   if (error || !access) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-6">
-        <div className="max-w-lg border-2 border-red-500/50 bg-black p-8 text-center space-y-4">
-          <h1 className="text-3xl font-black uppercase">მკითხველი მიუწვდომელია</h1>
-          <p className="text-sm text-gray-400">{error}</p>
-          <a className="inline-block bg-[#FFFF2E] px-5 py-3 text-xs font-black uppercase text-black" href={MAIN_APP_BASE_URL}>Quaduni-ზე დაბრუნება</a>
-        </div>
-      </div>
+      <ReaderFailure
+        title="მკითხველი მიუწვდომელია"
+        message={error || 'მკითხველი დროებით მიუწვდომელია.'}
+      />
     );
   }
 
@@ -255,6 +284,18 @@ const ReaderLoading: React.FC<{ label: string }> = ({ label }) => (
   <div className="flex h-[100dvh] items-center justify-center gap-3 bg-neutral-950 text-sm font-bold uppercase text-white">
     <Loader2 className="h-5 w-5 animate-spin text-[#FFFF2E]" />
     {label}
+  </div>
+);
+
+const ReaderFailure: React.FC<{ title: string; message: string }> = ({ title, message }) => (
+  <div className="flex min-h-screen items-center justify-center bg-zinc-950 p-6 text-white">
+    <div className="max-w-lg space-y-4 border-2 border-red-500/50 bg-black p-8 text-center">
+      <h1 className="text-3xl font-black uppercase">{title}</h1>
+      <p className="text-sm text-gray-400">{message}</p>
+      <a className="inline-block bg-[#FFFF2E] px-5 py-3 text-xs font-black uppercase text-black" href={MAIN_APP_BASE_URL}>
+        Quaduni-ზე დაბრუნება
+      </a>
+    </div>
   </div>
 );
 

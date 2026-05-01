@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import worker, {
   buildBookBreadcrumbJsonLd,
   buildBookJsonLd,
+  buildAssetRequest,
   buildBookMetadata,
   buildFallbackMetadata,
   classifyRoute,
@@ -335,6 +336,41 @@ describe('worker book metadata helpers', () => {
       'https://reader.quaduni.com/',
     ]);
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('serves the reader app shell for HEAD requests to book routes', async () => {
+    const assetsFetch = vi.fn().mockImplementation((request) => {
+      const url = new URL(request.url);
+      expect(request.method).toBe('HEAD');
+
+      if (url.pathname === '/') {
+        return Promise.resolve(new Response(null, {
+          headers: { 'content-type': 'text/html; charset=utf-8' },
+        }));
+      }
+
+      return Promise.resolve(new Response('unexpected', { status: 500 }));
+    });
+
+    const response = await worker.fetch(new Request('https://reader.quaduni.com/29', { method: 'HEAD' }), {
+      ASSETS: { fetch: assetsFetch },
+    });
+
+    expect(response.status).toBe(200);
+    expect(assetsFetch).toHaveBeenCalledTimes(1);
+    expect(assetsFetch.mock.calls[0][0].url).toBe('https://reader.quaduni.com/');
+  });
+
+  it('builds clean asset requests for SPA shell fallbacks', () => {
+    const request = new Request('https://reader.quaduni.com/29?preview=1', {
+      headers: { accept: 'text/html' },
+    });
+
+    const assetRequest = buildAssetRequest(request, '/');
+
+    expect(assetRequest.url).toBe('https://reader.quaduni.com/');
+    expect(assetRequest.method).toBe('GET');
+    expect(assetRequest.headers.get('accept')).toBe('text/html');
   });
 
   it('serves reader subdomain asset paths directly', async () => {
