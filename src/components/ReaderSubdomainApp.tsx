@@ -18,9 +18,6 @@ export const ReaderSubdomainApp: React.FC = () => {
   const [access, setAccess] = useState<ReaderAccessResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
-  const [documentLoading, setDocumentLoading] = useState(false);
-  const [documentError, setDocumentError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!bookId) {
@@ -48,48 +45,6 @@ export const ReaderSubdomainApp: React.FC = () => {
       cancelled = true;
     };
   }, [bookId, preview]);
-
-  useEffect(() => {
-    if (!access?.can_read || !access.document_url) {
-      setDocumentUrl(null);
-      setDocumentError(null);
-      setDocumentLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    let objectUrl: string | null = null;
-    setDocumentUrl(null);
-    setDocumentError(null);
-    setDocumentLoading(true);
-
-    fetch(access.document_url, { credentials: 'include' })
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error(response.status === 403
-            ? 'ამ დოკუმენტზე წვდომა შეზღუდულია. გთხოვთ თავიდან შეხვიდეთ ანგარიშში.'
-            : 'დოკუმენტის ჩატვირთვა ვერ მოხერხდა.');
-        }
-
-        return response.blob();
-      })
-      .then((blob) => {
-        if (cancelled) return;
-        objectUrl = URL.createObjectURL(blob);
-        setDocumentUrl(objectUrl);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setDocumentError(err instanceof Error ? err.message : 'დოკუმენტის ჩატვირთვა ვერ მოხერხდა.');
-      })
-      .finally(() => {
-        if (!cancelled) setDocumentLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [access]);
 
   const bookUrl = bookId ? `${MAIN_APP_BASE_URL}/book/${bookId}` : MAIN_APP_BASE_URL;
   const expiresText = access?.expires_at
@@ -140,45 +95,12 @@ export const ReaderSubdomainApp: React.FC = () => {
     );
   }
 
-  if (documentLoading || documentError || !documentUrl) {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-6">
-        <div className="max-w-lg border-2 border-white/10 bg-black p-8 text-center space-y-4">
-          {documentLoading ? (
-            <Loader2 className="mx-auto w-8 h-8 animate-spin text-[#FFFF2E]" />
-          ) : (
-            <h1 className="text-3xl font-black uppercase">დოკუმენტი მიუწვდომელია</h1>
-          )}
-          <p className="text-sm text-gray-400">{documentError || 'დოკუმენტი იტვირთება...'}</p>
-          {documentError && (
-            <a className="inline-block bg-[#FFFF2E] px-5 py-3 text-xs font-black uppercase text-black" href={bookUrl}>წიგნის გვერდი</a>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-neutral-950 text-white flex flex-col">
-      <header className="border-b border-white/10 bg-black px-4 py-3 md:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#FFFF2E]">Quaduni Reader // {access.mode === 'preview' ? 'ფრაგმენტი' : access.access_label}</p>
-          <h1 className="mt-1 text-lg md:text-2xl font-black uppercase leading-tight">{access.title}</h1>
-          <p className="text-xs font-bold uppercase text-gray-500">{access.author} · {expiresText}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <a className="border border-white/20 px-4 py-3 text-[10px] font-black uppercase text-white hover:border-[#FFFF2E] hover:text-[#FFFF2E]" href={bookUrl}>წიგნის გვერდი</a>
-          {access.can_download && access.download_url && (
-            <a className="inline-flex items-center gap-2 bg-[#FFFF2E] px-4 py-3 text-[10px] font-black uppercase text-black" href={access.download_url}>
-              <Download className="w-4 h-4" /> ჩამოტვირთვა
-            </a>
-          )}
-        </div>
-      </header>
-      <main className="flex-1 bg-neutral-900">
+    <div className="min-h-screen bg-neutral-950 text-white">
+      <main className="h-screen bg-neutral-900">
         <PDFViewer
           config={{
-            src: documentUrl,
+            src: access.document_url,
             disabledCategories: disabledReaderCategories,
             permissions: {
               enforceDocumentPermissions: false,
@@ -191,9 +113,26 @@ export const ReaderSubdomainApp: React.FC = () => {
             tabBar: 'never',
             theme: { preference: 'dark' },
           }}
-          className="h-[calc(100vh-120px)] min-h-[620px] w-full bg-white"
+          className="h-[100dvh] w-full bg-white"
         />
       </main>
+      <div className="fixed bottom-4 left-4 z-50 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/10 bg-black/85 p-3 text-white shadow-2xl shadow-black/50 backdrop-blur md:max-w-sm">
+        <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#FFFF2E]">
+          {access.mode === 'preview' ? 'ფრაგმენტი' : access.access_label}
+        </p>
+        <p className="mt-1 truncate text-sm font-black uppercase leading-tight">{access.title}</p>
+        <p className="truncate text-[10px] font-bold uppercase text-gray-500">{access.author} · {expiresText}</p>
+        <div className="mt-3 flex items-center gap-2">
+          <a className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-2 text-[10px] font-black uppercase text-white hover:border-[#FFFF2E] hover:text-[#FFFF2E]" href={bookUrl}>
+            <ShoppingBag className="h-3.5 w-3.5" /> წიგნი
+          </a>
+          {access.can_download && access.download_url && (
+            <a className="inline-flex items-center gap-2 rounded-full bg-[#FFFF2E] px-3 py-2 text-[10px] font-black uppercase text-black" href={access.download_url}>
+              <Download className="h-3.5 w-3.5" /> PDF
+            </a>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
