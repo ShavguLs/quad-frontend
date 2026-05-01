@@ -222,7 +222,7 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
               <p className="mt-3 text-[10px] uppercase tracking-[0.15em] text-gray-400 leading-relaxed">
                 სასწავლო — წვდომა 6 თვით, ჩამოტვირთვის გარეშე.
                 <br />
-                სამეცნიერო — მუდმივი წვდომა, წყლის ნიშნით ჩამოტვირთვა.
+                სამეცნიერო — მუდმივი წვდომა.
               </p>
             </label>
           </section>

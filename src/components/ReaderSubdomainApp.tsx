@@ -6,7 +6,7 @@ import { sanitizeBookHTML } from '../services/htmlSanitizer';
 import type { ReaderAccessResponse, ReaderPage } from '../types';
 
 const MAIN_APP_BASE_URL = (import.meta.env.VITE_MAIN_APP_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://quaduni.com';
-const PAGE_BATCH_SIZE = 6;
+const PAGE_BATCH_SIZE = 12;
 const LazyPDFViewer = React.lazy(() => import('@embedpdf/react-pdf-viewer').then((module) => ({ default: module.PDFViewer })));
 
 const resolveBookId = (): string | null => {
@@ -25,7 +25,17 @@ export const ReaderSubdomainApp: React.FC = () => {
   const [loadingPages, setLoadingPages] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const pageRequestsRef = useRef<Set<string>>(new Set());
+  const pagesRef = useRef<Record<number, ReaderPage>>({});
+  const totalPagesRef = useRef<number | null>(null);
+  const pendingPagesRef = useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    pagesRef.current = pages;
+  }, [pages]);
+
+  useEffect(() => {
+    totalPagesRef.current = totalPages;
+  }, [totalPages]);
 
   useEffect(() => {
     if (!bookId) {
@@ -57,19 +67,17 @@ export const ReaderSubdomainApp: React.FC = () => {
   const loadPageRange = useCallback(async (startPage: number, endPage: number) => {
     if (!bookId || !access?.can_read) return;
 
-    const knownTotal = totalPages ?? access.total_pages ?? (preview ? access.preview_pages : null);
+    const knownTotal = totalPagesRef.current ?? access.total_pages ?? (preview ? access.preview_pages : null);
     const start = Math.max(1, Math.floor(startPage));
     const end = Math.max(start, Math.floor(knownTotal ? Math.min(endPage, knownTotal) : endPage));
     const missing = Array.from({ length: end - start + 1 }, (_, index) => start + index)
-      .filter((pageNumber) => !pages[pageNumber]);
+      .filter((pageNumber) => !pagesRef.current[pageNumber] && !pendingPagesRef.current.has(pageNumber));
     if (missing.length === 0) return;
 
     const requestStart = Math.min(...missing);
     const requestEnd = Math.max(...missing);
-    const requestKey = `${requestStart}-${requestEnd}`;
-    if (pageRequestsRef.current.has(requestKey)) return;
+    missing.forEach((pageNumber) => pendingPagesRef.current.add(pageNumber));
 
-    pageRequestsRef.current.add(requestKey);
     setLoadingPages(true);
     try {
       const payload = await api.getReaderPages(bookId, {
@@ -77,27 +85,32 @@ export const ReaderSubdomainApp: React.FC = () => {
         end: requestEnd,
         preview,
       });
+      totalPagesRef.current = payload.total_pages;
       setTotalPages(payload.total_pages);
       setPages((current) => {
         const next = { ...current };
         for (const page of payload.pages) {
           next[page.page_number] = page;
         }
+        pagesRef.current = next;
         return next;
       });
       setPagesError(null);
     } catch (err: unknown) {
       setPagesError(err instanceof Error ? err.message : 'გვერდები ვერ ჩაიტვირთა.');
     } finally {
+      missing.forEach((pageNumber) => pendingPagesRef.current.delete(pageNumber));
       setLoadingPages(false);
     }
-  }, [access, bookId, pages, preview, totalPages]);
+  }, [access, bookId, preview]);
 
   useEffect(() => {
     setPages({});
     setTotalPages(null);
     setPagesError(null);
-    pageRequestsRef.current.clear();
+    pagesRef.current = {};
+    totalPagesRef.current = null;
+    pendingPagesRef.current.clear();
   }, [bookId, preview]);
 
   useEffect(() => {
@@ -245,7 +258,7 @@ const ReaderLoading: React.FC<{ label: string }> = ({ label }) => (
   </div>
 );
 
-const ReaderPageView: React.FC<{ page?: ReaderPage; pageNumber: number }> = ({ page, pageNumber }) => {
+const ReaderPageView = React.memo(function ReaderPageView({ page, pageNumber }: { page?: ReaderPage; pageNumber: number }) {
   const html = useMemo(() => sanitizeBookHTML(page?.html || ''), [page?.html]);
 
   return (
@@ -265,6 +278,7 @@ const ReaderPageView: React.FC<{ page?: ReaderPage; pageNumber: number }> = ({ p
             alt={`Page ${pageNumber}`}
             className="mx-auto block h-auto max-h-none w-full bg-white object-contain"
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <div
@@ -275,4 +289,4 @@ const ReaderPageView: React.FC<{ page?: ReaderPage; pageNumber: number }> = ({ p
       </div>
     </article>
   );
-};
+});
