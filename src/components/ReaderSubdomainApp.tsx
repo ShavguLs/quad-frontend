@@ -9,6 +9,11 @@ const MAIN_APP_BASE_URL = (import.meta.env.VITE_MAIN_APP_BASE_URL as string | un
 const PAGE_BATCH_SIZE = 12;
 const LazyPDFViewer = React.lazy(() => import('@embedpdf/react-pdf-viewer').then((module) => ({ default: module.PDFViewer })));
 
+const hasRenderableReaderPage = (page: ReaderPage): boolean => {
+  if (page.render_mode === 'image') return Boolean(page.image_url);
+  return (page.html || '').trim().length > 0;
+};
+
 interface ReaderErrorBoundaryState {
   error: Error | null;
 }
@@ -117,6 +122,9 @@ export const ReaderSubdomainApp: React.FC = () => {
       });
       if (payload.pages.length === 0) {
         throw new Error('გვერდები ჯერ არ არის მომზადებული.');
+      }
+      if (!payload.pages.some(hasRenderableReaderPage)) {
+        throw new Error('გვერდების ტექსტი ვერ ჩაიტვირთა. სცადეთ PDF რეჟიმი.');
       }
       totalPagesRef.current = payload.total_pages;
       setTotalPages(payload.total_pages);
@@ -378,6 +386,10 @@ const ReaderPageView = React.memo(function ReaderPageView({ page, pageNumber }: 
             loading="lazy"
             decoding="async"
           />
+        ) : !hasRenderableReaderPage(page) ? (
+          <div className="flex min-h-[60vh] items-center justify-center px-6 text-center text-xs font-bold uppercase tracking-[0.14em] text-neutral-400">
+            გვერდის შიგთავსი ვერ ჩაიტვირთა
+          </div>
         ) : (
           <div
             className="prose prose-neutral max-w-none px-6 py-8 text-[17px] leading-8 md:px-12 md:py-12 md:text-[19px] md:leading-9"
