@@ -610,9 +610,9 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
 
         {/* Similar Artifacts Section */}
         <div className="mt-40 pt-20 border-t-8 border-[#FFFF2E]">
-          <h3 className="text-4xl font-black uppercase tracking-tighter mb-12">მსგავსი არტეფაქტები</h3>
+          <h3 className="text-4xl font-black uppercase tracking-tighter mb-12">მსგავსი წიგნები</h3>
           {relatedArtifacts.length === 0 ? (
-            <div className="text-sm text-gray-500 uppercase tracking-widest">მსგავსი არტეფაქტები ვერ მოიძებნა</div>
+            <div className="text-sm text-gray-500 uppercase tracking-widest">მსგავსი წიგნები ვერ მოიძებნა</div>
           ) : (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                 {relatedArtifacts.map((relatedItem) => (

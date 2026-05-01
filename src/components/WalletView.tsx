@@ -11,12 +11,17 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { api } from '../services/api';
-import type { User as AppUser, WalletStats, WalletTransaction } from '../types';
+import type { DepositStatusResponse, User as AppUser, WalletStats, WalletTransaction } from '../types';
 
 interface WalletViewProps {
   user: AppUser | null;
   onBack: () => void;
 }
+
+const DEPOSIT_STATUS_POLL_ATTEMPTS = 6;
+const DEPOSIT_STATUS_POLL_DELAY_MS = 3000;
+
+const wait = (delayMs: number): Promise<void> => new Promise((resolve) => window.setTimeout(resolve, delayMs));
 
 export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
   const TRANSACTIONS_PER_PAGE = 8;
@@ -45,6 +50,22 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
 
   useEffect(() => {
     let cancelled = false;
+    const pollDepositStatus = async (orderId: string): Promise<DepositStatusResponse> => {
+      for (let attempt = 0; attempt < DEPOSIT_STATUS_POLL_ATTEMPTS; attempt += 1) {
+        const depositStatus = await api.getDepositStatus(orderId);
+        if (depositStatus.status !== 'PENDING' || attempt === DEPOSIT_STATUS_POLL_ATTEMPTS - 1) {
+          return depositStatus;
+        }
+
+        await wait(DEPOSIT_STATUS_POLL_DELAY_MS);
+        if (cancelled) {
+          return depositStatus;
+        }
+      }
+
+      return api.getDepositStatus(orderId);
+    };
+
     const loadWallet = async () => {
       setLoading(true);
       setError(null);
@@ -53,13 +74,16 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
         const orderId = params.get('order');
 
         if (orderId) {
+          let shouldClearDepositParams = false;
           try {
-            const depositStatus = await api.getDepositStatus(orderId);
+            const depositStatus = await pollDepositStatus(orderId);
             if (!cancelled) {
               if (depositStatus.status === 'COMPLETED') {
                 setDepositFeedback({ tone: 'success', message: 'თანხა წარმატებით ჩაირიცხა თქვენს ბალანსზე.' });
+                shouldClearDepositParams = true;
               } else if (depositStatus.status === 'FAILED') {
                 setDepositFeedback({ tone: 'error', message: 'გადახდა ვერ დადასტურდა. თანხა ბალანსზე არ ჩაირიცხა.' });
+                shouldClearDepositParams = true;
               } else {
                 setDepositFeedback({ tone: 'pending', message: 'გადახდა ჯერ მუშავდება. სტატუსი მალე განახლდება.' });
               }
@@ -72,7 +96,9 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
               });
             }
           } finally {
-            window.history.replaceState({}, '', '/wallet');
+            if (shouldClearDepositParams) {
+              window.history.replaceState({}, '', '/wallet');
+            }
           }
         }
 
