@@ -48,6 +48,7 @@ describe('Books API', () => {
         description: 'Desc',
         price: '10.00',
         category: 'წიგნები',
+        accessType: 'educational',
         renderPreference: 'exact_visual',
       },
       { pdf: pdfFile }

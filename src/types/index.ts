@@ -1,4 +1,5 @@
 export type PaperColor = 'white' | 'cream' | 'sepia' | 'gray' | 'dark' | 'blue' | 'green';
+export type BookAccessType = 'educational' | 'scientific';
 
 export interface User {
   id: string;
@@ -17,6 +18,7 @@ export interface Book {
   title: string;
   author: string;
   price: string;
+  access_type?: BookAccessType;
   totalPages?: number;
   total_pages?: number;
   views?: string | number;
@@ -37,6 +39,8 @@ export interface Book {
   extraction_error?: string | null;
   is_readable?: boolean;
   purchase_count?: number;
+  access_expires_at?: string | null;
+  access_is_expired?: boolean;
 }
 
 export interface AdPublisher {
@@ -125,6 +129,7 @@ export interface Order {
   status?: string;
   timestamp: string;
   expiresAt?: string | null;
+  accessType?: BookAccessType;
 }
 
 export interface MyBook {
@@ -132,6 +137,7 @@ export interface MyBook {
   title: string;
   author?: string;
   price: string;
+  access_type?: BookAccessType;
   coverUrl?: string;
   cover_image_url?: string;
   description?: string;
@@ -188,6 +194,23 @@ export interface UploadBookPayload {
   price: string;
   category: string;
   renderPreference: 'text' | 'exact_visual';
+  accessType: BookAccessType;
+}
+
+export interface ReaderAccessResponse {
+  book_id: string | number;
+  title: string;
+  author: string;
+  access_type: BookAccessType;
+  access_label: 'სასწავლო' | 'სამეცნიერო';
+  mode: 'preview' | 'full';
+  status: 'ready' | 'purchase_required' | 'expired' | 'not_found' | 'processing';
+  can_read: boolean;
+  can_download: boolean;
+  expires_at: string | null;
+  preview_pages: 10;
+  document_url: string | null;
+  download_url: string | null;
 }
 
 export interface UploadBookFiles {
@@ -264,34 +287,5 @@ export interface AuditLogResponse {
     end_date: string | null;
   };
   results: AuditLogEntry[];
-}
-
-export type ReaderAccessMode = 'full' | 'owner' | 'processing' | 'denied' | 'expired' | 'preview';
-
-export interface ReaderManifest {
-  book_id: string | number;
-  title?: string;
-  author?: string;
-  price?: string;
-  status: 'ready' | 'processing';
-  extraction_status?: 'pending' | 'processing' | 'completed' | 'partial' | 'failed';
-  total_pages: number;
-  available_pages?: number;
-  access_mode: ReaderAccessMode;
-  is_readable: boolean;
-  page_frame_width?: number;
-  page_frame_height?: number;
-}
-
-export interface ReaderPageResponse {
-  book_id: string | number;
-  page_number: number;
-  render_mode: 'html' | 'image';
-  render_html?: string;
-  fallback_image_data?: string | null;
-  blocks?: unknown[];
-  version?: number;
-  page_width?: number | null;
-  page_height?: number | null;
 }
 

@@ -20,8 +20,7 @@ import type {
   PublishError,
   AuditLogResponse,
   AuditLogFilters,
-  ReaderManifest,
-  ReaderPageResponse,
+  ReaderAccessResponse,
 } from '../types';
 import { refreshAccessToken, logout } from './auth';
 
@@ -380,6 +379,12 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     return response.results || [];
   },
 
+  async getPurchasedLibrary(): Promise<Book[]> {
+    if (!hasApi) return [];
+    const response = await request<PaginatedResponse<Book>>('/library/purchased/');
+    return response.results || [];
+  },
+
   async getMyBooks(): Promise<MyBook[]> {
     if (!hasApi) return [];
     const response = await request<PaginatedResponse<MyBook>>('/me/books/');
@@ -478,6 +483,7 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     formData.append('description', payload.description);
     formData.append('price', payload.price);
     formData.append('category', payload.category);
+    formData.append('access_type', payload.accessType);
     formData.append('status', 'draft');
 
     if (files.cover) formData.append('cover_image', files.cover);
@@ -517,6 +523,7 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     if (payload.description) formData.append('description', payload.description);
     if (payload.price) formData.append('price', payload.price);
     if (payload.category) formData.append('category', payload.category);
+    if (payload.accessType) formData.append('access_type', payload.accessType);
 
     if (files?.cover) formData.append('cover_image', files.cover);
 
@@ -551,24 +558,10 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     });
   },
 
-  async getReaderManifest(bookId: string | number): Promise<ReaderManifest> {
+  async getReaderAccess(bookId: string | number, preview = false): Promise<ReaderAccessResponse> {
     if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    return request<ReaderManifest>(`/books/${bookId}/read/manifest/`);
-  },
-
-  async getReaderPage(bookId: string | number, pageNumber: number): Promise<ReaderPageResponse> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    return request<ReaderPageResponse>(`/books/${bookId}/read/pages/${pageNumber}/`);
-  },
-
-  async getReaderManifestPreview(bookId: string | number): Promise<ReaderManifest> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    return request<ReaderManifest>(`/books/${bookId}/read/manifest/?preview=1`, { skipAuth: true });
-  },
-
-  async getReaderPagePreview(bookId: string | number, pageNumber: number): Promise<ReaderPageResponse> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    return request<ReaderPageResponse>(`/books/${bookId}/read/pages/${pageNumber}/?preview=1`, { skipAuth: true });
+    const suffix = preview ? '?preview=1' : '';
+    return request<ReaderAccessResponse>(`/books/${bookId}/read/access/${suffix}`, { skipAuth: preview });
   },
 
   async createReview(payload: { book: Book['id']; rating: number; content: string }): Promise<Review> {

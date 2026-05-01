@@ -11,14 +11,29 @@ interface RegisterViewProps {
   onSuccess: () => void;
 }
 
+interface RegisterFormValues {
+  firstName: string;
+  lastName: string;
+  handle: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
 export const RegisterView: React.FC<RegisterViewProps> = ({ onBack, onSwitchToLogin, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>();
 
-  const onSubmit = async (formData: any) => {
+  const onSubmit = async (formData: RegisterFormValues) => {
     setLoading(true);
     setServerError(null);
+
+    if (formData.password !== formData.confirmPassword) {
+      setServerError('პაროლები არ ემთხვევა.');
+      setLoading(false);
+      return;
+    }
     
     try {
       await auth.register({
@@ -31,9 +46,9 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onBack, onSwitchToLo
 
       alert('რეგისტრაცია წარმატებულია. გაიარეთ ავტორიზაცია.');
       onSwitchToLogin();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Registration error:', err);
-      setServerError(err.message);
+      setServerError(err instanceof Error ? err.message : 'რეგისტრაცია ვერ მოხერხდა.');
     } finally {
       setLoading(false);
     }

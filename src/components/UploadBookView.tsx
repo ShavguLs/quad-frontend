@@ -23,6 +23,7 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
     price: '',
     category: 'წიგნები',
     renderPreference: 'text' as 'text' | 'exact_visual',
+    accessType: 'educational' as 'educational' | 'scientific',
   });
 
   const [files, setFiles] = useState<{ cover: File | null; pdf: File | null }>({
@@ -205,6 +206,25 @@ export const UploadBookView: React.FC<UploadBookViewProps> = ({ onBack, onLoginR
                 onChange={(e) => onFile(e, 'pdf')}
                 className={`${fieldClassName} text-xs w-full md:max-w-[280px]`}
               />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#FFFF2E]">
+                წიგნის ტიპი
+              </span>
+              <select
+                value={formData.accessType}
+                onChange={(e) => setFormData({ ...formData, accessType: e.target.value as 'educational' | 'scientific' })}
+                className={`${fieldClassName} md:max-w-[360px]`}
+              >
+                <option value="educational">სასწავლო</option>
+                <option value="scientific">სამეცნიერო</option>
+              </select>
+              <p className="mt-3 text-[10px] uppercase tracking-[0.15em] text-gray-400 leading-relaxed">
+                სასწავლო — წვდომა 6 თვით, ჩამოტვირთვის გარეშე.
+                <br />
+                სამეცნიერო — მუდმივი წვდომა, წყლის ნიშნით ჩამოტვირთვა.
+              </p>
             </label>
 
             <label className="block">

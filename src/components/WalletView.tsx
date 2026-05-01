@@ -20,6 +20,7 @@ interface WalletViewProps {
 
 export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
   const TRANSACTIONS_PER_PAGE = 8;
+  const MAX_DEPOSIT_AMOUNT = 5000;
   const [activeTab, setActiveTab] = useState<'overview' | 'deposit'>('overview');
   const [amount, setAmount] = useState('');
   const [stats, setStats] = useState<WalletStats | null>(null);
@@ -105,14 +106,19 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
   }, [user]);
 
   const handleDeposit = async () => {
-    if (!amount || parseFloat(amount) <= 0) {
+    const depositAmount = Number(amount);
+    if (!amount || !Number.isFinite(depositAmount) || depositAmount <= 0) {
       setError('არასწორი თანხა');
+      return;
+    }
+    if (depositAmount > MAX_DEPOSIT_AMOUNT) {
+      setError('მაქსიმალური თანხაა ₾5000.00');
       return;
     }
     setProcessing(true);
     setError(null);
     try {
-      const result = await api.deposit(parseFloat(amount));
+      const result = await api.deposit(depositAmount);
       if (!result.checkoutUrl) {
         throw new Error('გადახდის ბმული ვერ მოიძებნა');
       }
@@ -328,10 +334,16 @@ export const WalletView: React.FC<WalletViewProps> = ({ user, onBack }) => {
                               type="number" 
                               value={amount}
                               onChange={(e) => setAmount(e.target.value)}
+                              min="0.01"
+                              max={MAX_DEPOSIT_AMOUNT}
+                              step="0.01"
                               placeholder="0.00"
                               className="w-full bg-transparent text-4xl font-black uppercase outline-none placeholder:text-gray-900"
                             />
                           </div>
+                          <p className="mt-3 text-[9px] font-black uppercase tracking-widest text-gray-600">
+                            მაქსიმალური ერთჯერადი შეტანა: ₾5000.00
+                          </p>
                         </div>
 
                         <div className="grid grid-cols-4 gap-2">

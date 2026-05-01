@@ -34,6 +34,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [ownedBooks, setOwnedBooks] = useState<Set<string | number>>(new Set());
+  const [purchasedBooks, setPurchasedBooks] = useState<Set<string | number>>(new Set());
   const [loadingOwnership, setLoadingOwnership] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
@@ -54,9 +55,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
         const existingUserReview = data.find(r =>
           r.userHandle ? r.userHandle === user?.handle : r.user === user?.name
         );
-        if (existingUserReview) {
-          setUserReview(existingUserReview);
-        }
+        setUserReview(existingUserReview ?? null);
       } catch (err) {
         console.error('Failed to fetch reviews:', err);
       } finally {
@@ -67,19 +66,33 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
   }, [book.id, user?.handle]);
 
   useEffect(() => {
+    setShowReviewForm(false);
+    setReviewRating(0);
+    setReviewContent('');
+    setReviewError(null);
+  }, [book.id]);
+
+  useEffect(() => {
     const fetchLibrary = async () => {
       if (isAuthLoading) return;
       if (!user) {
+        setOwnedBooks(new Set());
+        setPurchasedBooks(new Set());
         setLoadingOwnership(false);
         return;
       }
       setLoadingOwnership(true);
       try {
-        const library = await api.getLibrary();
-        const ownedIds = new Set(library.map(b => b.id));
-        setOwnedBooks(ownedIds);
+        const [library, purchased] = await Promise.all([
+          api.getLibrary(),
+          api.getPurchasedLibrary()
+        ]);
+        setOwnedBooks(new Set(library.filter(b => !b.access_is_expired).map(b => b.id)));
+        setPurchasedBooks(new Set(purchased.map(b => b.id)));
       } catch (err) {
         console.error('Failed to fetch library:', err);
+        setOwnedBooks(new Set());
+        setPurchasedBooks(new Set());
       } finally {
         setLoadingOwnership(false);
       }
@@ -88,6 +101,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
   }, [user, isAuthLoading]);
 
   const canRead = ownedBooks.has(book.id);
+  const canReview = purchasedBooks.has(book.id);
 
   const relatedArtifacts = useMemo(() => {
     const uniqueById = new Map<string, Book>();
@@ -219,6 +233,9 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
     [book, reviews],
   );
   const normalizedPrice = normalizePriceValue(book.price);
+  const accessRule = book.access_type === 'scientific'
+    ? 'სამეცნიერო: მუდმივი წვდომა, წყლის ნიშნით ჩამოტვირთვა'
+    : 'სასწავლო: წვდომა 6 თვით, ჩამოტვირთვის გარეშე';
 
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-24 selection:bg-[#FFFF2E] selection:text-black">
@@ -313,6 +330,10 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                   {book.description || 'აღწერა მიუწვდომელია'}
                 </p>
 
+                <div className="border-2 border-[#FFFF2E]/20 bg-[#FFFF2E]/5 p-4 text-[10px] font-black uppercase tracking-[0.18em] text-[#FFFF2E]">
+                  {accessRule}
+                </div>
+
               </div>
 
               <div className="flex flex-col gap-4 book-action-container">
@@ -379,8 +400,8 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
               <span className="text-lg text-gray-500 max-sm:text-base">({reviews.length})</span>
             </h3>
 
-            {/* Add Review Button - Only for owners */}
-            {canRead && !showReviewForm && (
+            {/* Add Review Button - Only for purchasers */}
+            {canReview && !showReviewForm && (
               <button
                 onClick={() => userReview ? handleEditReview() : setShowReviewForm(true)}
                 className="flex items-center justify-center gap-2 px-6 py-3 bg-[#FFFF2E] text-black font-black uppercase text-xs tracking-wider hover:bg-white transition-colors whitespace-nowrap max-sm:w-full max-sm:py-4"

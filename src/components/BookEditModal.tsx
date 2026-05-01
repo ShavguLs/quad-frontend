@@ -18,6 +18,7 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
     description: book.description || '',
     price: book.price || '0',
     category: book.category || '',
+    accessType: book.access_type || 'educational',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +43,7 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
         description: formData.description,
         price: formData.price,
         category: formData.category,
+        accessType: formData.accessType,
       });
 
       onSave({
@@ -50,6 +52,7 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
         author: formData.author,
         description: formData.description,
         category: formData.category,
+        access_type: formData.accessType,
         price: formData.price,
       });
     } catch (err: any) {
@@ -175,6 +178,19 @@ export const BookEditModal: React.FC<BookEditModalProps> = ({ book, onSave, onCa
                   <option value="არქივი">არქივი</option>
                 </select>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className={labelClass}>წიგნის ტიპი</label>
+              <select
+                name="accessType"
+                value={formData.accessType}
+                onChange={handleChange}
+                className={`${inputClass} cursor-pointer`}
+              >
+                <option value="educational">სასწავლო — წვდომა 6 თვით, ჩამოტვირთვის გარეშე</option>
+                <option value="scientific">სამეცნიერო — მუდმივი წვდომა, წყლის ნიშნით ჩამოტვირთვა</option>
+              </select>
             </div>
           </div>
 

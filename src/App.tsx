@@ -19,7 +19,7 @@ import { LibraryView } from './components/LibraryView';
 import { MyBooksView } from './components/MyBooksView';
 import { BookDraftView } from './components/BookDraftView';
 import { CommunityView } from './components/CommunityView';
-import { ReaderView } from './components/ReaderView';
+import { ReaderSubdomainApp } from './components/ReaderSubdomainApp';
 import { TermsView } from './components/TermsView';
 import { SEOMeta } from './components/SEOMeta';
 import { NotFoundView } from './components/NotFoundView';
@@ -27,6 +27,7 @@ import { api } from './services/api';
 import { auth } from './services/auth';
 import { buildHomeJsonLd, getBookPath } from './lib/seo';
 import { parseBookRouteId } from './lib/routing';
+import { openReader } from './lib/reader';
 import type { Book, Review, User as AppUser } from './types';
 
 // --- Sub-Components ---
@@ -1638,8 +1639,8 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
       isAuthLoading={isAuthLoading}
       onBack={() => navigate('/books')}
       onAddToCart={() => addToCart(resolvedBook)}
-      onReadBook={() => navigate(`/reader/${resolvedBook.id}`, { state: { book: resolvedBook } })}
-      onReadFragment={() => navigate(`/reader/${resolvedBook.id}`, { state: { book: resolvedBook, isPreview: true } })}
+      onReadBook={() => openReader(resolvedBook.id)}
+      onReadFragment={() => openReader(resolvedBook.id, true)}
       onOpenBook={(nextBook) => navigate(getBookPath(nextBook), { state: { book: nextBook } })}
     />
   );
@@ -1670,6 +1671,10 @@ const BookDraftRoute: React.FC = () => {
 };
 
 export default function App() {
+  if (typeof window !== 'undefined' && window.location.hostname === 'reader.quaduni.com') {
+    return <ReaderSubdomainApp />;
+  }
+
   const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) || '464354709574-cg69doav97v5ee8ie2u37j0nfkuthqv7.apps.googleusercontent.com';
   const [selectedBook, setSelectedBook] = useState<any>(null);
   const [user, setUser] = useState<AppUser | null>(null);
@@ -1842,19 +1847,26 @@ export default function App() {
     if (cart.length === 0 || isCheckingOut) return;
     setIsCheckingOut(true);
     setCheckoutError(null);
+    const successfulBookIds: Array<Book['id']> = [];
     try {
       for (const item of cart) {
         await api.createOrder({
-          bookId: item.book.id,
-          bookTitle: item.book.title,
-          price: item.book.price,
-          img: item.book.img || item.book.cover_image_url
+          bookId: item.book.id
         });
+        successfulBookIds.push(item.book.id);
       }
       setCart([]);
       setIsCartOpen(false);
-    } catch (err: any) {
-      setCheckoutError(err?.message || 'ORDER_FAILED');
+    } catch (err: unknown) {
+      if (successfulBookIds.length > 0) {
+        setCart(prev => prev.filter(item => !successfulBookIds.includes(item.book.id)));
+      }
+      const message = err instanceof Error ? err.message : 'ORDER_FAILED';
+      setCheckoutError(
+        successfulBookIds.length > 0
+          ? `ნაწილი შეძენილია. დარჩენილი წიგნები კალათაშია. ${message}`
+          : message
+      );
     } finally {
       setIsCheckingOut(false);
     }
@@ -1941,25 +1953,6 @@ export default function App() {
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<AdDetailPage />} />
           <Route path="/book/:bookId" element={<BookDetailRoute selectedBook={selectedBook} featuredBooks={featuredBooks} books={books} user={user} isAuthLoading={isAuthLoading} addToCart={addToCart} />} />
-          <Route
-            path="/reader/:bookId"
-            element={
-              <>
-                <SEOMeta
-                  title="წიგნის მკითხველი"
-                  description="Quaduni-ს პირადი მკითხველის გვერდი ინდექსაციისთვის გამორთულია."
-                  noindex
-                />
-                <ReaderView
-                  user={user}
-                  onBack={() => navigate(-1)}
-                  onAddToCart={addToCart}
-                  onLoginRequired={() => navigate('/login')}
-                  isPreview={location.state?.isPreview}
-                />
-              </>
-            }
-          />
           <Route
             path="/profile"
             element={

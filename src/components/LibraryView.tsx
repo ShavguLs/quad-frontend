@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, 
@@ -11,16 +10,15 @@ import {
   AlertCircle,
   FileText,
   Clock,
-  ExternalLink,
   ChevronRight,
   Database,
   Star,
-  MessageSquare
 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ReviewForm } from './ReviewForm';
 import { StarRating } from './StarRating';
 import { api } from '../services/api';
+import { openReader } from '../lib/reader';
 import type { User as AppUser, Book, Review } from '../types';
 
 interface LibraryViewProps {
@@ -29,9 +27,7 @@ interface LibraryViewProps {
   user: AppUser | null;
 }
 
-export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, onBookClick, user }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
+export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, user }) => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +81,15 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, onBookClick, u
     if (!normalizedQuery) return true;
     return title.includes(normalizedQuery);
   });
+
+  const getAccessLabel = (book: Book): string => {
+    if (book.access_is_expired) return 'წვდომის ვადა ამოიწურა';
+    if (book.access_type === 'scientific') return 'სამეცნიერო · მუდმივი წვდომა';
+    if (book.access_expires_at) {
+      return `სასწავლო · მოქმედებს ${new Date(book.access_expires_at).toLocaleDateString()}`;
+    }
+    return 'მფლობელი · მუდმივი წვდომა';
+  };
 
   const handleReviewSubmit = async (data: { rating: number; content: string }) => {
     if (!reviewingBook) return;
@@ -227,10 +232,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, onBookClick, u
                           {/* Overlay Controls */}
                           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm">
                             <button 
-                              onClick={() => navigate(`/reader/${book.id}`, { state: { backgroundLocation: location, book } })}
-                              className="w-40 bg-[#FFFF2E] text-black py-4 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white transition-all"
+                              onClick={() => !book.access_is_expired && openReader(book.id)}
+                              disabled={book.access_is_expired}
+                              className="w-40 bg-[#FFFF2E] text-black py-4 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white transition-all disabled:cursor-not-allowed disabled:bg-red-500 disabled:text-white"
                             >
-                              <BookOpen className="w-4 h-4" /> წაკითხვა
+                              <BookOpen className="w-4 h-4" /> {book.access_is_expired ? 'ვადაგასული' : 'წაკითხვა'}
                             </button>
                             <button 
                               onClick={() => setReviewingBook(book)}
@@ -247,10 +253,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, onBookClick, u
                              <div className="space-y-1">
                                <h3 className="text-xl font-black uppercase leading-none tracking-tighter group-hover:text-[#FFFF2E] transition-colors">{book.title}</h3>
                                <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                  <Clock className="w-3 h-3 text-[#FFFF2E]" /> {(book.created_at || book.createdAt) ? new Date(book.created_at || book.createdAt).toLocaleDateString() : 'თარიღი უცნობია'}
+                                   <Clock className="w-3 h-3 text-[#FFFF2E]" /> {(book.created_at || book.createdAt) ? new Date(book.created_at || book.createdAt).toLocaleDateString() : 'თარიღი უცნობია'}
+                                 </span>
+                                <span className={`text-[8px] font-black uppercase tracking-widest flex items-center gap-2 ${book.access_is_expired ? 'text-red-400' : 'text-[#FFFF2E]'}`}>
+                                  {getAccessLabel(book)}
                                 </span>
-                             </div>
-                          </div>
+                              </div>
+                           </div>
                           
                           {/* Review indicator */}
                           {userReviews[book.id] && (
@@ -299,15 +308,17 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, onBookClick, u
                           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-[9px] font-black text-gray-600 uppercase">
                             <span className="flex items-center gap-2"><FileText className="w-3 h-3" /> ID: {book.id}</span>
                             <span className="flex items-center gap-2"><Clock className="w-3 h-3" /> შეძენილია: {(book.created_at || book.createdAt) ? new Date(book.created_at || book.createdAt).toLocaleDateString() : 'თარიღი უცნობია'}</span>
+                            <span className={`flex items-center gap-2 ${book.access_is_expired ? 'text-red-400' : 'text-[#FFFF2E]'}`}>{getAccessLabel(book)}</span>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-4">
                           <button 
-                            onClick={() => navigate(`/reader/${book.id}`, { state: { backgroundLocation: location, book } })}
-                            className="bg-white text-black px-6 py-3 text-[10px] font-black uppercase hover:bg-[#FFFF2E] transition-all flex items-center gap-2"
+                            onClick={() => !book.access_is_expired && openReader(book.id)}
+                            disabled={book.access_is_expired}
+                            className="bg-white text-black px-6 py-3 text-[10px] font-black uppercase hover:bg-[#FFFF2E] transition-all flex items-center gap-2 disabled:cursor-not-allowed disabled:bg-red-500 disabled:text-white"
                           >
-                            <BookOpen className="w-4 h-4" /> წაკითხვა
+                            <BookOpen className="w-4 h-4" /> {book.access_is_expired ? 'ვადაგასული' : 'წაკითხვა'}
                           </button>
                           <button 
                             onClick={() => setReviewingBook(book)}
