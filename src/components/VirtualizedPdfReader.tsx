@@ -267,9 +267,11 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
 
   if (isLoading || !pdf || numPages === 0) {
     return (
-      <div className="flex-1 w-full flex items-center justify-center text-white">
-        <LoadingSpinner className="w-8 h-8 text-[#FFFF2E] mr-4" />
-        <span className="text-xs font-black uppercase tracking-[0.2em]">Loading PDF...</span>
+      <div className="flex-1 w-full flex flex-col items-center justify-center">
+        <LoadingSpinner className="w-12 h-12 text-[#FFFF2E] mb-6" />
+        <div className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FFFF2E] animate-pulse">
+          წიგნი იტვირთება...
+        </div>
       </div>
     );
   }
