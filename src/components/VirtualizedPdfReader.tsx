@@ -384,6 +384,7 @@ const PdfPage: React.FC<PdfPageProps> = ({ pdf, pageNumber, zoomLevel, onError }
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<pdfjsLib.RenderTask | null>(null);
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
+  const totalPages = pdf.numPages;
 
   useEffect(() => {
     let cancelled = false;
@@ -435,16 +436,27 @@ const PdfPage: React.FC<PdfPageProps> = ({ pdf, pageNumber, zoomLevel, onError }
     };
   }, [pdf, pageNumber, zoomLevel, onError]);
 
+  const pageWidth = dimensions ? dimensions.width : Math.floor(600 * zoomLevel);
+
   return (
-    <div className="flex justify-center w-full my-6">
-      <div 
-        className="bg-white shadow-xl relative"
+    <div className="flex flex-col items-center w-full pt-10 pb-2 first:pt-6">
+      <div
+        className="relative bg-white"
         style={{
-          width: dimensions ? dimensions.width : Math.floor(600 * zoomLevel),
+          width: pageWidth,
           height: dimensions ? dimensions.height : Math.floor(800 * zoomLevel),
+          boxShadow: '0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06)',
         }}
       >
         <canvas ref={canvasRef} className="absolute inset-0 block max-w-full" />
+      </div>
+      <div
+        className="flex items-center justify-center pt-3 pb-4"
+        style={{ width: pageWidth }}
+      >
+        <span className="text-[10px] font-bold tracking-[0.2em] text-white/25">
+          {pageNumber} / {totalPages}
+        </span>
       </div>
     </div>
   );
