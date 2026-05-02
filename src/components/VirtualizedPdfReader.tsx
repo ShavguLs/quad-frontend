@@ -60,6 +60,12 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
   });
   const [isPending, startTransition] = useTransition();
 
+  const handlePageError = useCallback((err: unknown) => {
+    const errorMsg = getErrorMessage(err);
+    setError(errorMsg);
+    onError?.(errorMsg);
+  }, [onError]);
+
   const loadPdf = useCallback(() => {
     let cancelled = false;
     setIsLoading(true);
@@ -179,13 +185,15 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
       <div className="flex-1 min-h-0 w-full relative">
         <Virtuoso
           totalCount={numPages}
-          className="w-full h-full scroll-smooth absolute inset-0"
+          style={{ height: '100%', width: '100%' }}
+          className="scroll-smooth"
           itemContent={(index) => (
             <PdfPage
               key={`${index}-${zoomLevel}`}
               pdf={pdf}
               pageNumber={index + 1}
               zoomLevel={zoomLevel}
+              onError={handlePageError}
             />
           )}
         />
@@ -198,9 +206,10 @@ interface PdfPageProps {
   pdf: pdfjsLib.PDFDocumentProxy;
   pageNumber: number;
   zoomLevel: number;
+  onError: (error: unknown) => void;
 }
 
-const PdfPage: React.FC<PdfPageProps> = ({ pdf, pageNumber, zoomLevel }) => {
+const PdfPage: React.FC<PdfPageProps> = ({ pdf, pageNumber, zoomLevel, onError }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<pdfjsLib.RenderTask | null>(null);
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
@@ -234,9 +243,13 @@ const PdfPage: React.FC<PdfPageProps> = ({ pdf, pageNumber, zoomLevel }) => {
             await renderTaskRef.current.promise;
           }
         }
-      } catch (err: any) {
-        if (err.name !== 'RenderingCancelledException') {
+      } catch (err: unknown) {
+        const isRenderCancelled = err instanceof Error && err.name === 'RenderingCancelledException';
+        if (!isRenderCancelled) {
           console.error(`Error rendering page ${pageNumber}:`, err);
+          if (!cancelled) {
+            onError(err);
+          }
         }
       }
     };
@@ -249,7 +262,7 @@ const PdfPage: React.FC<PdfPageProps> = ({ pdf, pageNumber, zoomLevel }) => {
         renderTaskRef.current.cancel();
       }
     };
-  }, [pdf, pageNumber, zoomLevel]);
+  }, [pdf, pageNumber, zoomLevel, onError]);
 
   return (
     <div className="flex justify-center w-full my-6">
