@@ -38,6 +38,8 @@ export interface Book {
   purchase_count?: number;
   access_expires_at?: string | null;
   access_is_expired?: boolean;
+  can_read?: boolean;
+  can_download?: boolean;
 }
 
 export interface AdPublisher {

@@ -19,6 +19,7 @@ import { CommunityView } from './components/CommunityView';
 import { TermsView } from './components/TermsView';
 import { SEOMeta } from './components/SEOMeta';
 import { NotFoundView } from './components/NotFoundView';
+import { ReaderPage } from './components/ReaderPage';
 import { api } from './services/api';
 import { auth } from './services/auth';
 import { buildHomeJsonLd, getBookPath } from './lib/seo';
@@ -1780,7 +1781,7 @@ export default function App() {
         : '/')
       : '/';
   const isAuthRoute = normalizedPathname === '/login' || normalizedPathname === '/register';
-  const isChromeHiddenRoute = false;
+  const isChromeHiddenRoute = normalizedPathname.startsWith('/reader/');
 
   const routeMap = useMemo(() => ({
     home: '/',
@@ -2020,6 +2021,12 @@ export default function App() {
           <Route path="/blog/:slug" element={<AdDetailPage />} />
           <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
           <Route path="/book/:bookId" element={<BookDetailRoute selectedBook={selectedBook} featuredBooks={featuredBooks} books={books} user={user} isAuthLoading={isAuthLoading} addToCart={addToCart} />} />
+          <Route path="/reader/:bookId" element={
+            <>
+              <SEOMeta title="წიგნის კითხვა" noindex />
+              <ReaderPage user={user} isAuthLoading={isAuthLoading} />
+            </>
+          } />
           <Route
             path="/profile"
             element={

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, ShoppingBag, Info, CheckCircle2, Loader2, Zap, Star, MessageSquare, ThumbsUp, ThumbsDown, Send, X } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Info, CheckCircle2, Loader2, Zap, Star, MessageSquare, ThumbsUp, ThumbsDown, Send, X, Download, BookOpen } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { SEOMeta } from './SEOMeta';
 import { Breadcrumbs } from './Breadcrumbs';
@@ -330,6 +330,42 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                 {(isAuthLoading || loadingOwnership) ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+                  </div>
+                ) : book.access_is_expired ? (
+                  <div className="py-8 md:py-8 text-xl font-black uppercase tracking-tighter bg-zinc-900 text-gray-500 flex justify-center text-center">
+                    წვდომის ვადა ამოიწურა
+                  </div>
+                ) : book.can_read ? (
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <button
+                      onClick={() => window.open(`/reader/${book.id}`, '_blank')}
+                      className="group relative flex-1 py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-white text-black hover:bg-[#FFFF2E]"
+                    >
+                      <div className="relative z-10 flex items-center justify-center gap-4">
+                        წაკითხვა <BookOpen className="w-6 h-6" />
+                      </div>
+                    </button>
+                    {book.can_download && (
+                      <button
+                        onClick={() => {
+                          api.downloadBookPdf(book.id).then(blob => {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${book.title}.pdf`;
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                            URL.revokeObjectURL(url);
+                          }).catch(err => alert(err.message));
+                        }}
+                        className="group relative flex-1 py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all border-4 border-white text-white hover:bg-zinc-800"
+                      >
+                        <div className="relative z-10 flex items-center justify-center gap-4">
+                          ჩამოტვირთვა <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
+                        </div>
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <button

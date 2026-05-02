@@ -515,6 +515,26 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     }
   },
 
+  async readBookPdf(bookId: string | number): Promise<Blob> {
+    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
+    const response = await fetchWithRefresh(`/books/${bookId}/read/`, { method: 'GET' });
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(extractApiErrorMessage(errorBody) || 'FAILED_TO_LOAD_PDF');
+    }
+    return response.blob();
+  },
+
+  async downloadBookPdf(bookId: string | number): Promise<Blob> {
+    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
+    const response = await fetchWithRefresh(`/books/${bookId}/download/`, { method: 'GET' });
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(extractApiErrorMessage(errorBody) || 'FAILED_TO_DOWNLOAD_PDF');
+    }
+    return response.blob();
+  },
+
 };
 
 export { fetchWithRefresh };

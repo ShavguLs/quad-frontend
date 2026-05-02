@@ -12,6 +12,8 @@ import {
   ChevronRight,
   Database,
   Star,
+  BookOpen,
+  Download
 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ReviewForm } from './ReviewForm';
@@ -228,13 +230,40 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, user }) => {
                           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
                           
                           {/* Overlay Controls */}
-                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm">
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm p-4">
+                            {book.can_read && !book.access_is_expired && (
+                              <button
+                                onClick={() => window.open(`/reader/${book.id}`, '_blank')}
+                                className="w-full max-w-[160px] border-2 border-white bg-white text-black py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#FFFF2E] hover:border-[#FFFF2E] transition-all"
+                              >
+                                <BookOpen className="w-4 h-4" /> წაკითხვა
+                              </button>
+                            )}
+                            {book.can_download && !book.access_is_expired && (
+                              <button
+                                onClick={() => {
+                                  api.downloadBookPdf(book.id).then(blob => {
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `${book.title}.pdf`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    a.remove();
+                                    URL.revokeObjectURL(url);
+                                  }).catch(err => alert(err.message));
+                                }}
+                                className="w-full max-w-[160px] border-2 border-white/50 text-white py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-zinc-800 hover:border-zinc-800 transition-all"
+                              >
+                                <Download className="w-4 h-4" /> ჩამოტვირთვა
+                              </button>
+                            )}
                             <button 
                               onClick={() => setReviewingBook(book)}
-                              className="w-40 border-2 border-[#FFFF2E] text-[#FFFF2E] py-4 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#FFFF2E] hover:text-black transition-all"
+                              className="w-full max-w-[160px] border-2 border-[#FFFF2E] text-[#FFFF2E] py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#FFFF2E] hover:text-black transition-all"
                             >
                               <Star className="w-4 h-4" /> 
-                              {userReviews[book.id] ? 'შეფასების რედ.' : 'შეფასება'}
+                              {userReviews[book.id] ? 'შეფასებულია' : 'შეფასება'}
                             </button>
                           </div>
                         </div>
@@ -303,7 +332,34 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, user }) => {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                          {book.can_read && !book.access_is_expired && (
+                            <button
+                              onClick={() => window.open(`/reader/${book.id}`, '_blank')}
+                              className="px-6 py-3 text-[10px] font-black uppercase transition-all flex items-center gap-2 bg-white text-black hover:bg-[#FFFF2E]"
+                            >
+                              <BookOpen className="w-4 h-4" /> წაკითხვა
+                            </button>
+                          )}
+                          {book.can_download && !book.access_is_expired && (
+                            <button
+                              onClick={() => {
+                                api.downloadBookPdf(book.id).then(blob => {
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = `${book.title}.pdf`;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  a.remove();
+                                  URL.revokeObjectURL(url);
+                                }).catch(err => alert(err.message));
+                              }}
+                              className="px-6 py-3 text-[10px] font-black uppercase transition-all flex items-center gap-2 bg-zinc-800 text-white hover:text-[#FFFF2E]"
+                            >
+                              <Download className="w-4 h-4" /> ჩამოტვირთვა
+                            </button>
+                          )}
                           <button 
                             onClick={() => setReviewingBook(book)}
                             className={`px-6 py-3 text-[10px] font-black uppercase transition-all flex items-center gap-2 ${
@@ -312,7 +368,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, user }) => {
                                 : 'border-2 border-white/10 text-gray-500 hover:text-white hover:border-white'
                             }`}
                           >
-                            <Star className="w-4 h-4" /> {userReviews[book.id] ? 'შეფასების რედ.' : 'შეფასება'}
+                            <Star className="w-4 h-4" /> {userReviews[book.id] ? 'შეფასებულია' : 'შეფასება'}
                           </button>
                         </div>
                       </motion.div>
