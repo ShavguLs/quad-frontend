@@ -1540,26 +1540,49 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
     };
   }, [matchedBook, bookId, needsHydration]);
 
+  const activeBook = useMemo(() => {
+    if (resolvedBook && bookId && String(resolvedBook.id) === String(bookId)) {
+      return resolvedBook;
+    }
+
+    return matchedBook;
+  }, [bookId, matchedBook, resolvedBook]);
+
   useEffect(() => {
-    if (!resolvedBook) {
+    if (!activeBook) {
       return;
     }
 
-    const canonicalPath = getBookPath(resolvedBook);
+    const canonicalPath = getBookPath(activeBook);
     const currentNormalizedPath = normalizeComparablePath(routeLocation.pathname);
     const canonicalNormalizedPath = normalizeComparablePath(canonicalPath);
 
     if (currentNormalizedPath !== canonicalNormalizedPath) {
       navigate(canonicalPath, {
         replace: true,
-        state: { book: resolvedBook },
+        state: { book: activeBook },
       });
     }
-  }, [navigate, resolvedBook, routeLocation.pathname]);
+  }, [activeBook, navigate, routeLocation.pathname]);
+
+  const activeBookId = activeBook?.id;
+
+  useEffect(() => {
+    if (!activeBookId || typeof window === 'undefined') {
+      return;
+    }
+
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [activeBookId]);
 
   const isNotFoundError = routeStatus === 'notFound';
+  const isResolvingBook = Boolean(
+    bookId
+    && !activeBook
+    && (routeStatus === 'loading' || (resolvedBook && String(resolvedBook.id) !== String(bookId))),
+  );
 
-  if (routeStatus === 'loading') {
+  if (isResolvingBook) {
     return (
       <div className="min-h-screen bg-black text-white pt-32 pb-24 px-6">
         <div className="container mx-auto max-w-3xl border-4 border-white bg-white/[0.03] p-8 md:p-12 text-center">
@@ -1576,7 +1599,7 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
     );
   }
 
-  if (!resolvedBook) {
+  if (!activeBook) {
     return (
       <div className="min-h-screen bg-black text-white pt-32 pb-24 px-6">
         <SEOMeta
@@ -1627,13 +1650,13 @@ const BookDetailRoute: React.FC<BookDetailRouteProps> = ({ selectedBook, feature
 
   return (
     <BookPage
-      book={resolvedBook}
+      key={activeBook.id}
+      book={activeBook}
       relatedBooks={relatedBooks}
       user={user}
       isAuthLoading={isAuthLoading}
       onBack={() => navigate('/books')}
-      onAddToCart={() => addToCart(resolvedBook)}
-      onOpenBook={(nextBook) => navigate(getBookPath(nextBook), { state: { book: nextBook } })}
+      onAddToCart={() => addToCart(activeBook)}
     />
   );
 };

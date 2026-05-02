@@ -25,10 +25,9 @@ interface BookPageProps {
   isAuthLoading: boolean;
   onBack: () => void;
   onAddToCart: () => void;
-  onOpenBook: (book: Book) => void;
 }
 
-export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, isAuthLoading, onBack, onAddToCart, onOpenBook }) => {
+export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, isAuthLoading, onBack, onAddToCart }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [purchasedBooks, setPurchasedBooks] = useState<Set<string | number>>(new Set());
@@ -656,7 +655,6 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                   key={relatedItem.id}
                   to={getBookPath(relatedItem)}
                   state={{ book: relatedItem }}
-                  onClick={() => onOpenBook(relatedItem)}
                   className="space-y-4 group block cursor-pointer opacity-50 hover:opacity-100 transition-opacity"
                 >
                   <div className="aspect-[3/4] bg-zinc-900 border-2 border-white/10 overflow-hidden relative">

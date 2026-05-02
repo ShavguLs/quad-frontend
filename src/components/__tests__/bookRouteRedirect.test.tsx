@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -14,6 +14,17 @@ const mockBook = {
   description: 'ქართული კლასიკა',
   category: 'წიგნები',
   total_pages: 320,
+};
+
+const relatedBook = {
+  id: 15,
+  url_slug: 'ჭაბუა-ამირეჯიბი-დათა-თუთაშხია',
+  title: 'დათა თუთაშხია',
+  author: 'ჭაბუა ამირეჯიბი',
+  price: '12',
+  description: 'ქართული რომანი',
+  category: 'წიგნები',
+  total_pages: 640,
 };
 
 const partialStateBook = {
@@ -66,7 +77,7 @@ const renderAppAt = (initialEntry: string | { pathname: string; state?: { book?:
 
 describe('book route redirects', () => {
   beforeEach(() => {
-    apiMock.getBooks.mockResolvedValue({ results: [mockBook], count: 1, next: null, previous: null });
+    apiMock.getBooks.mockResolvedValue({ results: [mockBook, relatedBook], count: 2, next: null, previous: null });
     apiMock.getFeaturedBooks.mockResolvedValue([]);
     apiMock.getReviews.mockResolvedValue({ results: [], count: 0, next: null, previous: null });
     apiMock.getBook.mockResolvedValue(mockBook);
@@ -133,6 +144,23 @@ describe('book route redirects', () => {
       expect(apiMock.getBooks).toHaveBeenCalled();
     });
     expect(apiMock.getBook).not.toHaveBeenCalled();
+  });
+
+  it('keeps similar-book navigation on the clicked book route', async () => {
+    renderAppAt({
+      pathname: '/book/შოთა-რუსთაველი-ვეფხისტყაოსანი--14',
+      state: { book: mockBook },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('დათა თუთაშხია')).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByText('დათა თუთაშხია'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location-path').textContent).toBe('/book/ჭაბუა-ამირეჯიბი-დათა-თუთაშხია--15');
+    });
   });
 
   it('hydrates canonical slug routes when location state has partial book data', async () => {
