@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, API_BASE_URL } from '../services/api';
 import type { Book, User } from '../types';
@@ -16,8 +16,46 @@ export const ReaderPage: React.FC<ReaderPageProps> = ({ user, isAuthLoading }) =
   const navigate = useNavigate();
   const [book, setBook] = useState<Book | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [initialPage, setInitialPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const lastSavedPageRef = useRef<number | null>(null);
+  const pendingPageRef = useRef<number | null>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleCurrentPageChange = useCallback((page: number) => {
+    if (!bookId || !Number.isFinite(page) || page < 1) return;
+    if (page === lastSavedPageRef.current) return;
+
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+
+    pendingPageRef.current = page;
+
+    saveTimerRef.current = setTimeout(() => {
+      if (page === lastSavedPageRef.current) return;
+      api.updateReadingPosition(bookId, page)
+        .then(() => {
+          lastSavedPageRef.current = page;
+        })
+        .catch(() => {});
+      pendingPageRef.current = null;
+    }, 1000);
+  }, [bookId]);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+      const pendingPage = pendingPageRef.current;
+      if (pendingPage !== null && bookId && pendingPage !== lastSavedPageRef.current) {
+        api.updateReadingPosition(bookId, pendingPage).catch(() => {});
+      }
+    };
+  }, [bookId]);
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -40,12 +78,27 @@ export const ReaderPage: React.FC<ReaderPageProps> = ({ user, isAuthLoading }) =
         setIsLoading(true);
         setError(null);
 
-        // Fetch metadata
         const metadata = await api.getBook(bookId);
         if (cancelled) return;
         setBook(metadata);
 
-        // Just build the URL, PDF.js will fetch it progressively
+        let savedPage: number | null = null;
+        try {
+          const position = await api.getReadingPosition(bookId);
+          savedPage = position.pageNumber ?? position.page_number ?? null;
+        } catch {
+          // Position load failure is non-fatal; continue with page 1
+        }
+
+        if (savedPage && savedPage >= 1) {
+          const totalPages = metadata.totalPages ?? metadata.total_pages ?? 0;
+          if (totalPages > 0) {
+            setInitialPage(Math.min(savedPage, totalPages));
+          } else {
+            setInitialPage(savedPage);
+          }
+        }
+
         const endpoint = `${API_BASE_URL}/books/${bookId}/read/`;
         setPdfUrl(endpoint);
       } catch (err: unknown) {
@@ -120,7 +173,11 @@ export const ReaderPage: React.FC<ReaderPageProps> = ({ user, isAuthLoading }) =
       </div>
       
       <div className="flex-1 min-h-0 w-full bg-[#111] overflow-hidden relative flex flex-col">
-        <VirtualizedPdfReader pdfUrl={pdfUrl} />
+        <VirtualizedPdfReader
+          pdfUrl={pdfUrl}
+          initialPage={initialPage}
+          onCurrentPageChange={handleCurrentPageChange}
+        />
       </div>
     </div>
   );

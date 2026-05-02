@@ -15,6 +15,7 @@ import type {
   Ad,
   AdListItem,
   AdPublisher,
+  ReadingPosition,
 } from '../types';
 import { refreshAccessToken, logout } from './auth';
 
@@ -525,7 +526,24 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     return response.blob();
   },
 
-};
+  async getReadingPosition(bookId: string | number): Promise<ReadingPosition> {
+    if (!hasApi) return { book_id: bookId, page_number: null, pageNumber: null, updated_at: null, updatedAt: null };
+    try {
+      return await request<ReadingPosition>(`/books/${bookId}/reading-position/`);
+    } catch {
+      return { book_id: bookId, page_number: null, pageNumber: null, updated_at: null, updatedAt: null };
+    }
+  },
+
+  async updateReadingPosition(bookId: string | number, pageNumber: number): Promise<ReadingPosition> {
+    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
+    return request<ReadingPosition>(`/books/${bookId}/reading-position/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ page_number: pageNumber }),
+    });
+  },
+
+  };
 
 export { fetchWithRefresh };
 

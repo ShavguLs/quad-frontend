@@ -189,3 +189,12 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
+export interface ReadingPosition {
+  book_id?: string | number;
+  bookId?: string | number;
+  page_number: number | null;
+  pageNumber?: number | null;
+  updated_at?: string | null;
+  updatedAt?: string | null;
+}
+

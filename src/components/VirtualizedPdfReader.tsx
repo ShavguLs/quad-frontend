@@ -9,6 +9,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 interface VirtualizedPdfReaderProps {
   pdfUrl: string;
+  initialPage?: number;
+  onCurrentPageChange?: (page: number) => void;
   onError?: (error: string) => void;
 }
 
@@ -49,7 +51,7 @@ function getErrorMessage(err: unknown): string {
   return 'PDF_LOAD_FAILED';
 }
 
-export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfUrl, onError }) => {
+export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfUrl, initialPage, onCurrentPageChange, onError }) => {
   const [pdf, setPdf] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +70,8 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const pdfContainerRef = useRef<HTMLDivElement>(null);
+  const hasAppliedInitialPageRef = useRef(false);
+  const lastReportedPageRef = useRef<number | null>(null);
 
   useEffect(() => {
     setPageInput(currentPage.toString());
@@ -137,6 +141,27 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
       }
     };
   }, [pdf]);
+
+  // Scroll to initial page once when PDF is ready
+  useEffect(() => {
+    if (
+      pdf &&
+      numPages > 0 &&
+      initialPage &&
+      initialPage > 1 &&
+      !hasAppliedInitialPageRef.current
+    ) {
+      const targetPage = Math.min(initialPage, numPages);
+      virtuosoRef.current?.scrollToIndex({ index: targetPage - 1, align: 'start' });
+      setCurrentPage(targetPage);
+      hasAppliedInitialPageRef.current = true;
+    }
+  }, [pdf, numPages, initialPage]);
+
+  // Reset initial page flag when pdfUrl changes
+  useEffect(() => {
+    hasAppliedInitialPageRef.current = false;
+  }, [pdfUrl]);
 
   const handleZoomIn = () => {
     if (zoomIndex < ZOOM_LEVELS.length - 1) {
@@ -208,6 +233,10 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
     if (!isNaN(page) && page >= 1 && page <= numPages) {
       virtuosoRef.current?.scrollToIndex({ index: page - 1, align: 'start' });
       setCurrentPage(page);
+      if (page !== lastReportedPageRef.current) {
+        lastReportedPageRef.current = page;
+        onCurrentPageChange?.(page);
+      }
     } else {
       setPageInput(currentPage.toString());
     }
@@ -286,7 +315,12 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
           className="scroll-smooth"
           rangeChanged={(range) => {
             const midpoint = Math.floor((range.startIndex + range.endIndex) / 2);
-            setCurrentPage(midpoint + 1);
+            const page = midpoint + 1;
+            setCurrentPage(page);
+            if (page !== lastReportedPageRef.current) {
+              lastReportedPageRef.current = page;
+              onCurrentPageChange?.(page);
+            }
           }}
           itemContent={(index) => (
             <PdfPage
