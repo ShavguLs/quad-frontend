@@ -102,7 +102,7 @@ export const ReaderPage: React.FC<ReaderPageProps> = ({ user, isAuthLoading }) =
   }
 
   return (
-    <div className="h-screen w-full flex flex-col bg-black">
+    <div className="w-full flex flex-col bg-black" style={{ height: '100vh' }}>
       <div className="h-16 border-b border-white/10 flex items-center justify-between px-4 lg:px-6 bg-black z-10 shrink-0">
         <button
           onClick={() => navigate(book ? `/book/${book.id}` : '/library')}

@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef, useTransition, useCallback } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
-import { Virtuoso } from 'react-virtuoso';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import { ZoomIn, ZoomOut, Maximize2, Maximize, Minimize, ChevronUp, ChevronDown } from 'lucide-react';
 import { LoadingSpinner } from './LoadingSpinner';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
@@ -58,7 +59,27 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
     const initial = getInitialZoom();
     return ZOOM_LEVELS.indexOf(initial) >= 0 ? ZOOM_LEVELS.indexOf(initial) : 2;
   });
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageInput, setPageInput] = useState('1');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pdfContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setPageInput(currentPage.toString());
+  }, [currentPage]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   const handlePageError = useCallback((err: unknown) => {
     const errorMsg = getErrorMessage(err);
@@ -135,6 +156,85 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
     }
   };
 
+  const handleFitWidth = async () => {
+    if (!pdfContainerRef.current || !pdf) return;
+    
+    // Calculate available width directly from the PDF container
+    const availableWidth = pdfContainerRef.current.clientWidth;
+    
+    try {
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 1 });
+      const calculatedZoom = availableWidth / viewport.width;
+      
+      const minZoom = ZOOM_LEVELS[0];
+      const maxZoom = ZOOM_LEVELS[ZOOM_LEVELS.length - 1];
+      const clampedZoom = Math.max(minZoom, Math.min(calculatedZoom, maxZoom));
+      
+      startTransition(() => {
+        setZoomLevel(clampedZoom);
+        
+        let nearestIdx = 0;
+        let minDiff = Infinity;
+        ZOOM_LEVELS.forEach((level, idx) => {
+          const diff = Math.abs(level - clampedZoom);
+          if (diff < minDiff) {
+            minDiff = diff;
+            nearestIdx = idx;
+          }
+        });
+        setZoomIndex(nearestIdx);
+      });
+    } catch (err) {
+      console.error('Failed to calculate fit width:', err);
+    }
+  };
+
+  const toggleFullscreen = async () => {
+    if (!containerRef.current) return;
+    try {
+      if (!document.fullscreenElement) {
+        await containerRef.current.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (err) {
+      console.error('Fullscreen toggle failed:', err);
+    }
+  };
+
+  const goToPage = (pageStr: string) => {
+    const page = parseInt(pageStr, 10);
+    if (!isNaN(page) && page >= 1 && page <= numPages) {
+      virtuosoRef.current?.scrollToIndex({ index: page - 1, align: 'start' });
+      setCurrentPage(page);
+    } else {
+      setPageInput(currentPage.toString());
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < numPages) {
+      goToPage((currentPage + 1).toString());
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      goToPage((currentPage - 1).toString());
+    }
+  };
+
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPageInput(e.target.value);
+  };
+
+  const handlePageInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      goToPage(pageInput);
+    }
+  };
+
   if (error) {
     return (
       <div className="flex-1 w-full flex items-center justify-center text-white">
@@ -175,18 +275,17 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
   }
 
   return (
-    <div className="flex-1 min-h-0 w-full flex flex-col relative overflow-hidden">
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-4 bg-black/80 px-4 py-2 border border-white/20 backdrop-blur-sm rounded-full shadow-2xl items-center">
-        <button onClick={handleZoomOut} disabled={zoomIndex === 0} className="text-white hover:text-[#FFFF2E] disabled:opacity-30 disabled:hover:text-white px-2 font-black text-xl transition-colors">-</button>
-        <span className="text-white text-xs font-bold leading-6 min-w-[3rem] text-center tracking-[0.1em] opacity-80">{Math.round(zoomLevel * 100)}%</span>
-        <button onClick={handleZoomIn} disabled={zoomIndex === ZOOM_LEVELS.length - 1} className="text-white hover:text-[#FFFF2E] disabled:opacity-30 disabled:hover:text-white px-2 font-black text-xl transition-colors">+</button>
-      </div>
-      
-      <div className="flex-1 min-h-0 w-full relative">
+    <div ref={containerRef} className="flex-1 min-h-0 w-full flex relative overflow-hidden bg-zinc-950">
+      <div ref={pdfContainerRef} className="flex-1 min-h-0 w-full relative">
         <Virtuoso
+          ref={virtuosoRef}
           totalCount={numPages}
           style={{ height: '100%', width: '100%' }}
           className="scroll-smooth"
+          rangeChanged={(range) => {
+            const midpoint = Math.floor((range.startIndex + range.endIndex) / 2);
+            setCurrentPage(midpoint + 1);
+          }}
           itemContent={(index) => (
             <PdfPage
               key={`${index}-${zoomLevel}`}
@@ -197,6 +296,78 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
             />
           )}
         />
+      </div>
+
+      <div className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center bg-black border-2 border-white w-14 md:w-16">
+        <button
+          onClick={handlePrevPage}
+          disabled={currentPage <= 1}
+          title="წინა გვერდი"
+          className="w-full flex items-center justify-center py-2 text-white hover:bg-[#FFFF2E] hover:text-black disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-white transition-all"
+        >
+          <ChevronUp size={18} strokeWidth={3} />
+        </button>
+
+        <div className="w-full border-t border-b border-white/30 flex flex-col items-center py-2 gap-0.5">
+          <input
+            type="text"
+            value={pageInput}
+            onChange={handlePageInputChange}
+            onKeyDown={handlePageInputKeyDown}
+            onBlur={() => setPageInput(currentPage.toString())}
+            className="w-8 bg-transparent text-white text-center text-[11px] font-black focus:outline-none focus:text-[#FFFF2E] border-b border-transparent focus:border-[#FFFF2E]"
+          />
+          <span className="text-white/40 text-[9px] font-black tracking-[0.1em]">/ {numPages}</span>
+        </div>
+
+        <button
+          onClick={handleNextPage}
+          disabled={currentPage >= numPages}
+          title="შემდეგი გვერდი"
+          className="w-full flex items-center justify-center py-2 text-white hover:bg-[#FFFF2E] hover:text-black disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-white transition-all border-b border-white/30"
+        >
+          <ChevronDown size={18} strokeWidth={3} />
+        </button>
+
+        <button
+          onClick={handleZoomIn}
+          disabled={zoomIndex === ZOOM_LEVELS.length - 1}
+          title="გადიდება"
+          className="w-full flex items-center justify-center py-2 text-white hover:bg-[#FFFF2E] hover:text-black disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-white transition-all"
+        >
+          <ZoomIn size={16} strokeWidth={2.5} />
+        </button>
+
+        <div className="w-full flex items-center justify-center py-1.5 border-t border-b border-white/30">
+          <span className="text-[9px] font-black tracking-[0.15em] text-[#FFFF2E]">
+            {Math.round(zoomLevel * 100)}%
+          </span>
+        </div>
+
+        <button
+          onClick={handleZoomOut}
+          disabled={zoomIndex === 0}
+          title="დაპატარავება"
+          className="w-full flex items-center justify-center py-2 text-white hover:bg-[#FFFF2E] hover:text-black disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-white transition-all border-b border-white/30"
+        >
+          <ZoomOut size={16} strokeWidth={2.5} />
+        </button>
+
+        <button
+          onClick={handleFitWidth}
+          title="სიგანეზე მორგება"
+          className="w-full flex items-center justify-center py-2 text-white hover:bg-[#FFFF2E] hover:text-black transition-all border-b border-white/30"
+        >
+          <Maximize2 size={16} strokeWidth={2.5} />
+        </button>
+
+        <button
+          onClick={toggleFullscreen}
+          title={isFullscreen ? 'სრული ეკრანიდან გამოსვლა' : 'სრული ეკრანი'}
+          className="w-full flex items-center justify-center py-2 text-white hover:bg-[#FFFF2E] hover:text-black transition-all"
+        >
+          {isFullscreen ? <Minimize size={16} strokeWidth={2.5} /> : <Maximize size={16} strokeWidth={2.5} />}
+        </button>
       </div>
     </div>
   );
