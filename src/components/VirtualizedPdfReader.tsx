@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useTransition } from 'react';
+import React, { useEffect, useState, useRef, useTransition, useCallback } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
 import { Virtuoso } from 'react-virtuoso';
@@ -8,6 +8,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 interface VirtualizedPdfReaderProps {
   pdfUrl: string;
+  onError?: (error: string) => void;
 }
 
 const getInitialZoom = () => {
@@ -19,9 +20,39 @@ const getInitialZoom = () => {
 
 const ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3];
 
-export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfUrl }) => {
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    const msg = err.message || '';
+
+    if (msg.includes('403') || msg.includes('Forbidden')) {
+      return 'ACCESS_DENIED';
+    }
+    if (msg.includes('404') || msg.includes('Not Found')) {
+      return 'PDF_NOT_FOUND';
+    }
+    if (msg.includes('Invalid PDF') || msg.includes('Bad PDF')) {
+      return 'INVALID_PDF';
+    }
+    if (msg.includes('password') || msg.includes('encrypted')) {
+      return 'PDF_PASSWORD_PROTECTED';
+    }
+    if (
+      msg.includes('NetworkError') ||
+      msg.includes('Failed to fetch') ||
+      msg.includes('Network request')
+    ) {
+      return 'NETWORK_ERROR';
+    }
+    return msg || 'PDF_LOAD_FAILED';
+  }
+  return 'PDF_LOAD_FAILED';
+}
+
+export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfUrl, onError }) => {
   const [pdf, setPdf] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [zoomLevel, setZoomLevel] = useState<number>(getInitialZoom());
   const [zoomIndex, setZoomIndex] = useState<number>(() => {
     const initial = getInitialZoom();
@@ -29,9 +60,12 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
   });
   const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
+  const loadPdf = useCallback(() => {
     let cancelled = false;
-    const loadPdf = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    const run = async () => {
       try {
         const loadingTask = pdfjsLib.getDocument({
           url: pdfUrl,
@@ -44,16 +78,29 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
         if (!cancelled) {
           setPdf(doc);
           setNumPages(doc.numPages);
+          setIsLoading(false);
         }
       } catch (err) {
-        console.error('Failed to load PDF:', err);
+        if (!cancelled) {
+          const errorMsg = getErrorMessage(err);
+          console.error('Failed to load PDF:', err);
+          setError(errorMsg);
+          setIsLoading(false);
+          onError?.(errorMsg);
+        }
       }
     };
-    loadPdf();
+    run();
+
     return () => {
       cancelled = true;
     };
-  }, [pdfUrl]);
+  }, [pdfUrl, onError]);
+
+  useEffect(() => {
+    const cleanup = loadPdf();
+    return cleanup;
+  }, [loadPdf]);
 
   // Clean up PDF on unmount separately so we don't destroy it prematurely
   useEffect(() => {
@@ -82,7 +129,37 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
     }
   };
 
-  if (!pdf || numPages === 0) {
+  if (error) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-white">
+        <div className="text-center px-6 max-w-md">
+          <div className="text-3xl mb-4">⚠</div>
+          <p className="text-sm font-bold tracking-[0.1em] text-white/70 mb-4">
+            წიგნის ჩატვირთვა ვერ მოხერხდა
+          </p>
+          <p className="text-xs text-white/50 mb-6">
+            {error === 'ACCESS_DENIED'
+              ? 'თქვენ არ გაქვთ ამ წიგნის წაკითხვის უფლება.'
+              : error === 'PDF_NOT_FOUND'
+                ? 'წიგნის ფაილი ვერ მოიძებნა.'
+                : error === 'NETWORK_ERROR'
+                  ? 'ქსელის შეცდომა. გთხოვთ, სცადოთ თავიდან.'
+                  : error === 'INVALID_PDF'
+                    ? 'წიგნის ფაილი დაზიანებულია.'
+                    : 'შეცდომა მოხდა წიგნის ჩატვირთვისას.'}
+          </p>
+          <button
+            onClick={loadPdf}
+            className="border-2 border-[#FFFF2E] bg-transparent text-[#FFFF2E] px-6 py-3 text-xs font-black uppercase tracking-[0.2em] hover:bg-[#FFFF2E] hover:text-black transition-all"
+          >
+            თავიდან ცდა
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading || !pdf || numPages === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center text-white">
         <LoadingSpinner className="w-8 h-8 text-[#FFFF2E] mr-4" />
