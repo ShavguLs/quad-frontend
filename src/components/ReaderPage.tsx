@@ -119,7 +119,7 @@ export const ReaderPage: React.FC<ReaderPageProps> = ({ user, isAuthLoading }) =
         <div className="w-8"></div>
       </div>
       
-      <div className="flex-1 w-full bg-[#111] overflow-hidden relative">
+      <div className="flex-1 min-h-0 w-full bg-[#111] overflow-hidden relative flex flex-col">
         <VirtualizedPdfReader pdfUrl={pdfUrl} />
       </div>
     </div>

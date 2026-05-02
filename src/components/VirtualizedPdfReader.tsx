@@ -131,7 +131,7 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
 
   if (error) {
     return (
-      <div className="w-full h-full flex items-center justify-center text-white">
+      <div className="flex-1 w-full flex items-center justify-center text-white">
         <div className="text-center px-6 max-w-md">
           <div className="text-3xl mb-4">⚠</div>
           <p className="text-sm font-bold tracking-[0.1em] text-white/70 mb-4">
@@ -161,7 +161,7 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
 
   if (isLoading || !pdf || numPages === 0) {
     return (
-      <div className="w-full h-full flex items-center justify-center text-white">
+      <div className="flex-1 w-full flex items-center justify-center text-white">
         <LoadingSpinner className="w-8 h-8 text-[#FFFF2E] mr-4" />
         <span className="text-xs font-black uppercase tracking-[0.2em]">Loading PDF...</span>
       </div>
@@ -169,26 +169,27 @@ export const VirtualizedPdfReader: React.FC<VirtualizedPdfReaderProps> = ({ pdfU
   }
 
   return (
-    <div className="w-full h-full flex flex-col relative overflow-hidden">
+    <div className="flex-1 min-h-0 w-full flex flex-col relative overflow-hidden">
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-4 bg-black/80 px-4 py-2 border border-white/20 backdrop-blur-sm rounded-full shadow-2xl items-center">
         <button onClick={handleZoomOut} disabled={zoomIndex === 0} className="text-white hover:text-[#FFFF2E] disabled:opacity-30 disabled:hover:text-white px-2 font-black text-xl transition-colors">-</button>
         <span className="text-white text-xs font-bold leading-6 min-w-[3rem] text-center tracking-[0.1em] opacity-80">{Math.round(zoomLevel * 100)}%</span>
         <button onClick={handleZoomIn} disabled={zoomIndex === ZOOM_LEVELS.length - 1} className="text-white hover:text-[#FFFF2E] disabled:opacity-30 disabled:hover:text-white px-2 font-black text-xl transition-colors">+</button>
       </div>
       
-      <Virtuoso
-        totalCount={numPages}
-        className="w-full h-full scroll-smooth"
-        style={{ height: '100%' }}
-        itemContent={(index) => (
-          <PdfPage
-            key={`${index}-${zoomLevel}`}
-            pdf={pdf}
-            pageNumber={index + 1}
-            zoomLevel={zoomLevel}
-          />
-        )}
-      />
+      <div className="flex-1 min-h-0 w-full relative">
+        <Virtuoso
+          totalCount={numPages}
+          className="w-full h-full scroll-smooth absolute inset-0"
+          itemContent={(index) => (
+            <PdfPage
+              key={`${index}-${zoomLevel}`}
+              pdf={pdf}
+              pageNumber={index + 1}
+              zoomLevel={zoomLevel}
+            />
+          )}
+        />
+      </div>
     </div>
   );
 };
