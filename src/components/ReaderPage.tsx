@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PDFViewer } from '@embedpdf/react-pdf-viewer';
-import { api } from '../services/api';
+import { api, API_BASE_URL } from '../services/api';
 import type { Book, User } from '../types';
 import { ChevronLeft } from 'lucide-react';
 import { LoadingSpinner } from './LoadingSpinner';
+import { VirtualizedPdfReader } from './VirtualizedPdfReader';
 
 interface ReaderPageProps {
   user: User | null;
@@ -33,7 +33,6 @@ export const ReaderPage: React.FC<ReaderPageProps> = ({ user, isAuthLoading }) =
       return;
     }
 
-    let objectUrl: string | null = null;
     let cancelled = false;
 
     const loadReader = async () => {
@@ -46,12 +45,9 @@ export const ReaderPage: React.FC<ReaderPageProps> = ({ user, isAuthLoading }) =
         if (cancelled) return;
         setBook(metadata);
 
-        // Fetch PDF Blob
-        const blob = await api.readBookPdf(bookId);
-        if (cancelled) return;
-
-        objectUrl = URL.createObjectURL(blob);
-        setPdfUrl(objectUrl);
+        // Just build the URL, PDF.js will fetch it progressively
+        const endpoint = `${API_BASE_URL}/books/${bookId}/read/`;
+        setPdfUrl(endpoint);
       } catch (err: unknown) {
         if (cancelled) return;
         const msg = err instanceof Error ? err.message : 'FAILED_TO_LOAD_PDF';
@@ -67,9 +63,6 @@ export const ReaderPage: React.FC<ReaderPageProps> = ({ user, isAuthLoading }) =
 
     return () => {
       cancelled = true;
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
     };
   }, [bookId, user, isAuthLoading, navigate]);
 
@@ -127,20 +120,7 @@ export const ReaderPage: React.FC<ReaderPageProps> = ({ user, isAuthLoading }) =
       </div>
       
       <div className="flex-1 w-full bg-[#111] overflow-hidden relative">
-        <PDFViewer
-          config={{
-            src: pdfUrl,
-            theme: { preference: 'dark' },
-            ui: {
-              features: {
-                download: false,
-                print: false,
-                export: false,
-              }
-            }
-          }}
-          className="w-full h-full"
-        />
+        <VirtualizedPdfReader pdfUrl={pdfUrl} />
       </div>
     </div>
   );

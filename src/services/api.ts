@@ -77,7 +77,7 @@ export const setCsrfToken = (token: string | null): void => {
   inMemoryCsrfToken = token;
 };
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://api.quaduni.com';
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') || 'https://api.quaduni.com';
 const initialHasApi = Boolean(API_BASE_URL);
 let hasApi = initialHasApi;
 
@@ -513,16 +513,6 @@ async getReviews(page: number = 1, pageSize: number = 20): Promise<PaginatedResp
     } catch {
       return {};
     }
-  },
-
-  async readBookPdf(bookId: string | number): Promise<Blob> {
-    if (!hasApi) throw new Error('BACKEND_NOT_CONFIGURED');
-    const response = await fetchWithRefresh(`/books/${bookId}/read/`, { method: 'GET' });
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(extractApiErrorMessage(errorBody) || 'FAILED_TO_LOAD_PDF');
-    }
-    return response.blob();
   },
 
   async downloadBookPdf(bookId: string | number): Promise<Blob> {
