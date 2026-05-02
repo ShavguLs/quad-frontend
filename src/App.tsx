@@ -664,7 +664,7 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                           <span className="w-12 h-1 bg-[#FFFF2E]" />
                           <span className="text-xs font-black uppercase tracking-[0.5em]">პოპულარული</span>
                         </div>
-                        <h2 className="content-title-h2 text-5xl md:text-6xl lg:text-[8vw] font-black uppercase leading-[0.8] tracking-tighter">
+                        <h2 className="content-title-h2 text-4xl md:text-5xl lg:text-[6vw] font-black uppercase leading-[0.8] tracking-tighter">
                           {book.title}
                         </h2>
                         <p className="text-xl font-black uppercase italic text-gray-500">
