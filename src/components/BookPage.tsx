@@ -338,7 +338,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                   <div className="flex flex-col sm:flex-row gap-4">
                     <button
                       onClick={() => window.open(`/reader/${book.id}`, '_blank')}
-                      className="group relative flex-1 py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-white text-black hover:bg-[#FFFF2E]"
+                      className="group relative flex-1 cursor-pointer py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-white text-black hover:bg-[#FFFF2E]"
                     >
                       <div className="relative z-10 flex items-center justify-center gap-4">
                         წაკითხვა <BookOpen className="w-6 h-6" />
@@ -358,7 +358,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                             URL.revokeObjectURL(url);
                           }).catch(err => alert(err.message));
                         }}
-                        className="group relative flex-1 py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all border-4 border-white text-white hover:bg-zinc-800"
+                        className="group relative flex-1 cursor-pointer py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all border-4 border-white text-white hover:-translate-y-1 hover:border-[#FFFF2E] hover:bg-[#FFFF2E] hover:text-black hover:shadow-[8px_8px_0_0_rgba(255,255,255,0.18)] active:translate-y-0"
                       >
                         <div className="relative z-10 flex items-center justify-center gap-4">
                           ჩამოტვირთვა <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />

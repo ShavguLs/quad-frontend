@@ -234,7 +234,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, user }) => {
                             {book.can_read && !book.access_is_expired && (
                               <button
                                 onClick={() => window.open(`/reader/${book.id}`, '_blank')}
-                                className="w-full max-w-[160px] border-2 border-white bg-white text-black py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#FFFF2E] hover:border-[#FFFF2E] transition-all"
+                                className="w-full max-w-[160px] cursor-pointer border-2 border-white bg-white text-black py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#FFFF2E] hover:border-[#FFFF2E] transition-all"
                               >
                                 <BookOpen className="w-4 h-4" /> წაკითხვა
                               </button>
@@ -253,14 +253,14 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, user }) => {
                                     URL.revokeObjectURL(url);
                                   }).catch(err => alert(err.message));
                                 }}
-                                className="w-full max-w-[160px] border-2 border-white/50 text-white py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-zinc-800 hover:border-zinc-800 transition-all"
+                                className="group/download w-full max-w-[160px] cursor-pointer border-2 border-[#FFFF2E]/60 bg-black/80 text-[#FFFF2E] py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] hover:-translate-y-0.5 hover:border-[#FFFF2E] hover:bg-[#FFFF2E] hover:text-black hover:shadow-[5px_5px_0_0_rgba(255,255,255,0.18)] active:translate-y-0 transition-all"
                               >
-                                <Download className="w-4 h-4" /> ჩამოტვირთვა
+                                <Download className="w-4 h-4 transition-transform group-hover/download:-translate-y-0.5" /> ჩამოტვირთვა
                               </button>
                             )}
                             <button 
                               onClick={() => setReviewingBook(book)}
-                              className="w-full max-w-[160px] border-2 border-[#FFFF2E] text-[#FFFF2E] py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#FFFF2E] hover:text-black transition-all"
+                              className="w-full max-w-[160px] cursor-pointer border-2 border-[#FFFF2E] text-[#FFFF2E] py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#FFFF2E] hover:text-black transition-all"
                             >
                               <Star className="w-4 h-4" /> 
                               {userReviews[book.id] ? 'შეფასებულია' : 'შეფასება'}
@@ -336,7 +336,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, user }) => {
                           {book.can_read && !book.access_is_expired && (
                             <button
                               onClick={() => window.open(`/reader/${book.id}`, '_blank')}
-                              className="px-6 py-3 text-[10px] font-black uppercase transition-all flex items-center gap-2 bg-white text-black hover:bg-[#FFFF2E]"
+                              className="cursor-pointer px-6 py-3 text-[10px] font-black uppercase transition-all flex items-center gap-2 bg-white text-black hover:bg-[#FFFF2E]"
                             >
                               <BookOpen className="w-4 h-4" /> წაკითხვა
                             </button>
@@ -355,14 +355,14 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onBack, user }) => {
                                   URL.revokeObjectURL(url);
                                 }).catch(err => alert(err.message));
                               }}
-                              className="px-6 py-3 text-[10px] font-black uppercase transition-all flex items-center gap-2 bg-zinc-800 text-white hover:text-[#FFFF2E]"
+                              className="group/download cursor-pointer px-6 py-3 text-[10px] font-black uppercase transition-all flex items-center gap-2 border-2 border-[#FFFF2E]/60 bg-black/80 text-[#FFFF2E] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] hover:-translate-y-0.5 hover:border-[#FFFF2E] hover:bg-[#FFFF2E] hover:text-black hover:shadow-[5px_5px_0_0_rgba(255,255,255,0.18)] active:translate-y-0"
                             >
-                              <Download className="w-4 h-4" /> ჩამოტვირთვა
+                              <Download className="w-4 h-4 transition-transform group-hover/download:-translate-y-0.5" /> ჩამოტვირთვა
                             </button>
                           )}
                           <button 
                             onClick={() => setReviewingBook(book)}
-                            className={`px-6 py-3 text-[10px] font-black uppercase transition-all flex items-center gap-2 ${
+                            className={`cursor-pointer px-6 py-3 text-[10px] font-black uppercase transition-all flex items-center gap-2 ${
                               userReviews[book.id] 
                                 ? 'bg-[#FFFF2E] text-black hover:bg-white' 
                                 : 'border-2 border-white/10 text-gray-500 hover:text-white hover:border-white'
