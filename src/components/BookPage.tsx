@@ -223,7 +223,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
   );
   const normalizedPrice = normalizePriceValue(book.price);
   const accessRule = book.access_type === 'scientific'
-    ? 'სამეცნიერო: მუდმივი წვდომა, წყლის ნიშნით ჩამოტვირთვა'
+    ? 'სამეცნიერო: მუდმივი წვდომა, watermark-ით ჩამოტვირთვა'
     : 'სასწავლო: წვდომა 6 თვით, ჩამოტვირთვის გარეშე';
 
   return (
