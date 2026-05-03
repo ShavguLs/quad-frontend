@@ -75,10 +75,10 @@ describe('BookPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('პრევიუ')).toBeInTheDocument();
+      expect(screen.getByText('ნახვა')).toBeInTheDocument();
     });
 
-    const previewLink = screen.getByText('პრევიუ').closest('a');
+    const previewLink = screen.getByText('ნახვა').closest('a');
     expect(previewLink).toHaveAttribute('href', '/preview/42');
   });
 
@@ -102,7 +102,7 @@ describe('BookPage', () => {
       expect(screen.getByText('წაკითხვა')).toBeInTheDocument();
     });
 
-    expect(screen.queryByText('პრევიუ')).not.toBeInTheDocument();
+    expect(screen.queryByText('ნახვა')).not.toBeInTheDocument();
   });
 
   it('renders preview link for unauthenticated users on non-purchased books', async () => {
@@ -122,7 +122,7 @@ describe('BookPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('პრევიუ')).toBeInTheDocument();
+      expect(screen.getByText('ნახვა')).toBeInTheDocument();
     });
   });
 
@@ -146,6 +146,6 @@ describe('BookPage', () => {
       expect(screen.getByText('ყიდვა')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('პრევიუ')).toBeInTheDocument();
+    expect(screen.getByText('ნახვა')).toBeInTheDocument();
   });
 });

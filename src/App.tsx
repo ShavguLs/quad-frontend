@@ -814,12 +814,12 @@ src={book.img || book.coverUrl || book.cover_image_url || ''}
                   </div>
 
                   {/* Info Block */}
-                  <div className="p-6 space-y-2">
-                    <div className="flex justify-between items-start">
-                      <h3 className="text-3xl font-black uppercase leading-none tracking-tighter group-hover:text-[#FFFF2E] transition-colors">
+                  <div className="p-4 sm:p-6 space-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start gap-2 sm:gap-3 min-w-0">
+                      <h3 className="min-w-0 max-w-full text-2xl sm:text-3xl font-black uppercase leading-none tracking-tighter break-all sm:break-words [overflow-wrap:anywhere] group-hover:text-[#FFFF2E] transition-colors">
                         {book.title}
                       </h3>
-                      <span className="text-2xl font-black italic">{book.price}</span>
+                      <span className="shrink-0 self-end text-right text-xl sm:text-2xl font-black italic">{book.price}</span>
                     </div>
                     <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">
                       ავტ: {book.author}

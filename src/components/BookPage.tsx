@@ -338,7 +338,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                   <div className="flex flex-col sm:flex-row gap-4">
                     <button
                       onClick={() => window.open(`/reader/${book.id}`, '_blank')}
-                      className="group relative flex-1 cursor-pointer py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-white text-black hover:bg-[#FFFF2E]"
+                      className="group relative flex-1 w-full sm:w-auto cursor-pointer py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-white text-black hover:bg-[#FFFF2E]"
                     >
                       <div className="relative z-10 flex items-center justify-center gap-4">
                         წაკითხვა <BookOpen className="w-6 h-6" />
@@ -358,7 +358,7 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                             URL.revokeObjectURL(url);
                           }).catch(err => alert(err.message));
                         }}
-                        className="group relative flex-1 cursor-pointer py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all border-4 border-white text-white hover:-translate-y-1 hover:border-[#FFFF2E] hover:bg-[#FFFF2E] hover:text-black hover:shadow-[8px_8px_0_0_rgba(255,255,255,0.18)] active:translate-y-0"
+                        className="group relative flex-1 w-full sm:w-auto cursor-pointer py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all border-4 border-white text-white hover:-translate-y-1 hover:border-[#FFFF2E] hover:bg-[#FFFF2E] hover:text-black hover:shadow-[8px_8px_0_0_rgba(255,255,255,0.18)] active:translate-y-0"
                       >
                         <div className="relative z-10 flex items-center justify-center gap-4">
                           ჩამოტვირთვა <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
@@ -367,10 +367,10 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                     )}
                   </div>
                 ) : (
-                  <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4 w-full">
                     <button
                       onClick={onAddToCart}
-                      className="group relative flex-1 py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-[#FFFF2E] text-black hover:bg-white book-action-btn"
+                      className="group relative flex-1 w-full sm:w-auto max-sm:min-h-[88px] max-sm:border-4 max-sm:border-[#FFFF2E] py-6 md:py-8 text-xl max-sm:text-xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-[#FFFF2E] text-black hover:bg-white book-action-btn"
                     >
                       <div className="relative z-10 flex items-center justify-center gap-4">
                         ყიდვა <ShoppingBag className="w-6 h-6 group-hover:rotate-12 transition-transform" />
@@ -378,10 +378,10 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                     </button>
                     <Link
                       to={`/preview/${book.id}`}
-                      className="group relative flex-1 py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all border-4 border-white text-white hover:bg-zinc-800 flex items-center justify-center gap-4"
+                      className="group relative flex-1 w-full sm:w-auto max-sm:min-h-[88px] py-6 md:py-8 text-xl max-sm:text-xl font-black uppercase tracking-tighter overflow-hidden transition-all border-4 border-white text-white hover:bg-zinc-800 flex items-center justify-center gap-4 book-action-btn"
                     >
-                      <Eye className="w-5 h-5" />
-                      პრევიუ
+                      <Eye className="w-5 h-5 max-sm:w-6 max-sm:h-6" />
+                      ნახვა
                     </Link>
                   </div>
                 )}
