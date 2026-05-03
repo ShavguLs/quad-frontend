@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, ShoppingBag, Info, CheckCircle2, Loader2, Zap, Star, MessageSquare, ThumbsUp, ThumbsDown, Send, X, Download, BookOpen } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Info, CheckCircle2, Loader2, Zap, Star, MessageSquare, ThumbsUp, ThumbsDown, Send, X, Download, BookOpen, Eye } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { SEOMeta } from './SEOMeta';
 import { Breadcrumbs } from './Breadcrumbs';
@@ -367,15 +367,23 @@ export const BookPage: React.FC<BookPageProps> = ({ book, relatedBooks, user, is
                     )}
                   </div>
                 ) : (
-                  <button
-                    onClick={onAddToCart}
-                    className="group relative py-8 md:py-8 text-2xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-[#FFFF2E] text-black hover:bg-white book-action-btn"
-                  >
-                    <div className="relative z-10 flex items-center justify-center gap-4">
-                      ყიდვა <ShoppingBag className="w-8 h-8 group-hover:rotate-12 transition-transform" />
-                    </div>
-                    <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <button
+                      onClick={onAddToCart}
+                      className="group relative flex-1 py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all bg-[#FFFF2E] text-black hover:bg-white book-action-btn"
+                    >
+                      <div className="relative z-10 flex items-center justify-center gap-4">
+                        ყიდვა <ShoppingBag className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                      </div>
+                    </button>
+                    <Link
+                      to={`/preview/${book.id}`}
+                      className="group relative flex-1 py-6 md:py-8 text-xl font-black uppercase tracking-tighter overflow-hidden transition-all border-4 border-white text-white hover:bg-zinc-800 flex items-center justify-center gap-4"
+                    >
+                      <Eye className="w-5 h-5" />
+                      პრევიუ
+                    </Link>
+                  </div>
                 )}
               </div>
 

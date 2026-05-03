@@ -20,6 +20,7 @@ import { TermsView } from './components/TermsView';
 import { SEOMeta } from './components/SEOMeta';
 import { NotFoundView } from './components/NotFoundView';
 import { ReaderPage } from './components/ReaderPage';
+import { BookPreviewPage } from './components/BookPreviewPage';
 import { api } from './services/api';
 import { auth } from './services/auth';
 import { buildHomeJsonLd, getBookPath } from './lib/seo';
@@ -1804,7 +1805,7 @@ export default function App() {
         : '/')
       : '/';
   const isAuthRoute = normalizedPathname === '/login' || normalizedPathname === '/register';
-  const isChromeHiddenRoute = normalizedPathname.startsWith('/reader/');
+  const isChromeHiddenRoute = normalizedPathname.startsWith('/reader/') || normalizedPathname.startsWith('/preview/');
 
   const routeMap = useMemo(() => ({
     home: '/',
@@ -2050,6 +2051,7 @@ export default function App() {
               <ReaderPage user={user} isAuthLoading={isAuthLoading} />
             </>
           } />
+          <Route path="/preview/:bookId" element={<BookPreviewPage />} />
           <Route
             path="/profile"
             element={
