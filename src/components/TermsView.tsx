@@ -276,7 +276,7 @@ export const TermsView: React.FC = () => {
 
               <Callout type="info">
                 ამ წესებთან ან პოლიტიკასთან დაკავშირებული ნებისმიერი კითხვისთვის მოგვწერეთ:
-                lukamirtskhulava28@gmail.com
+                supremeee20001@gmail.com
               </Callout>
             </PolicySection>
 
@@ -535,20 +535,20 @@ export const TermsView: React.FC = () => {
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">ელ-ფოსტა</p>
                     <p className="text-sm font-black normal-case group-hover:text-[#FFFF2E] transition-colors break-all">
-                      lukamirtskhulava28@gmail.com
+                      supremeee20001@gmail.com
                     </p>
                   </div>
                 </a>
 
                 <a
-                  href="tel:+995591286699"
+                  href="tel:+995591117291"
                   className="group border-2 border-white/10 hover:border-[#FFFF2E] p-5 flex items-start gap-4 transition-all"
                 >
                   <Phone className="w-5 h-5 text-[#FFFF2E] flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">ტელეფონი</p>
                     <p className="text-sm font-black normal-case group-hover:text-[#FFFF2E] transition-colors">
-                      +995 591 28 66 99
+                      +995 591 11 72 91
                     </p>
                   </div>
                 </a>
